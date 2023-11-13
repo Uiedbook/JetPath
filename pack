@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+#!/bin/bash
+ 
+
+echo "" 
+echo ""
+# npm run build
+echo  "  Building ...."
+npm run compile
+echo  "  Packing ...."
+npm pack
+mv jetpath-1.0.0.tgz ~ 

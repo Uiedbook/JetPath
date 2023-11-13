@@ -1,0 +1,53 @@
+{
+  "name": "jetpath",
+  "version": "1.0.0",
+  "description": "JetPath - A fast, seamless and minimalist framework for Node, Deno and Bun.js. Embrace the speed and elegance of the next-gen server-side experience.",
+  "main": "lib/index.js",
+  "type": "module",
+  "files": [
+    "lib/index.d.ts",
+    "lib/index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fridaycandour/jetpath.git"
+  },
+  "keywords": [
+    "web",
+    "framework",
+    "fast",
+    "simple",
+    "bunjs",
+    "nodejs",
+    "denojs",
+    "expressive",
+    "server",
+    "http"
+  ],
+  "author": "fridaycandour fridaycandours@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fridaycandour/jetpath/issues"
+  },
+  "homepage": "https://github.com/fridaycandour/jetpath#readme",
+  "scripts": {
+    "compile": "rm -rf lib && npm run build",
+    "test": "npm run compile && bun test --watch",
+    "start": "node tests/http/app.js",
+    "tests": "node --test tests/JetPath.test.js",
+    "build": "tsup src/index.ts"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.0",
+    "@types/node": "^18.7.15",
+    "bun-types": "^1.0.7",
+    "mitata": "^0.1.6",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "bun": ">=0.1.0"
+  },
+  "private": false
+}

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "lib": ["es2022", "esnext", "dom", "dom.iterable"],
+    "declaration": true,
+    // "noEmit": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "checkJs": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": false,
+    "outDir": "JetPath"
+  },
+  "include": ["src", "tests", "tests/http"]
+}
