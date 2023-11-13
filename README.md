@@ -157,8 +157,6 @@ When improvements and changes rolls out, we will quickly update this page and th
 
 We intend to move with less traction and have implemented many of the best decisions and designs we can think-of/research right from the beginning.
 
-The `JetPath` class accepts an object argument with the following options:
-
 ## MIT Lincenced
 
 Opensourced And Free.
