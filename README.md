@@ -1,6 +1,6 @@
 <br/>
 <p align="center">
-  <a href="https://github.com/uiedbook/JetPath">
+  <a href="#">
      <img src="icon-transparent.webp" alt="JetPath" width="190" height="190">
   </a>
 
@@ -13,7 +13,7 @@
     <a href="https://github.com/uiedbook/JetPath#examples"><strong>Explore JetPath APIs »</strong></a>
     <br/>
     <br/>
-    <a href="https://t.me/JetPath">Join Community</a>
+    <a href="https://t.me/uiedbookHQ">Join Community</a>
     .
     <a href="https://github.com/uiedbook/JetPath/issues">Report Bug</a>
     .
