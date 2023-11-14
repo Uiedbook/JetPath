@@ -33,7 +33,7 @@ export const _JetPath_hooks: Record<
 };
 const doneError = new Error("done");
 export const _JetPath_app_config = {
-  cors: undefined as unknown as (ctx: AppCTXType) => boolean,
+  cors: undefined as unknown as (ctx: AppCTXType) => void,
   set(this: any, opt: string, val: any) {
     if (opt === "cors" && val) {
       this.cors = corsHooker({
@@ -42,12 +42,6 @@ export const _JetPath_app_config = {
         allowHeaders: "",
         maxAge: "",
         keepHeadersOnError: undefined,
-        origin: function (arg0: any) {
-          throw new Error("Function not implemented.");
-        },
-        credentials: function (arg0: any) {
-          throw new Error("Function not implemented.");
-        },
         secureContext: false,
         privateNetworkAccess: undefined,
         ...(typeof val === "object" ? val : {}),
@@ -70,8 +64,9 @@ function createCTX(
     req: IncomingMessage;
   }
 ) {
-  let load: unknown,
-    code = 200;
+  let load: unknown;
+  res.statusCode = 200;
+  const header: Record<string, string> = {};
   const ctx: AppCTXType = {
     request: req,
     body: null,
@@ -94,39 +89,31 @@ function createCTX(
             load = JSON.stringify(data);
           }
           break;
-        case "boolean":
-          contentType = "text/plain";
-          load = data.toString();
-          break;
-        case "number":
-          contentType = "text/plain";
-          load = data.toString();
-          break;
         default:
           contentType = "text/plain";
-          load = (data as any).toString();
+          load = String(data);
           break;
       }
-      res.writeHead(code, { "Content-Type": contentType });
+      header["Content-Type"] = contentType;
       throw doneError;
     },
     redirect(url: string) {
-      res.writeHead(301, { Location: url });
+      res.statusCode = 301;
+      header["Location"] = url;
       load = undefined;
       throw doneError;
     },
     throw(code: number = 404, message: string = "Not FOund") {
-      res.writeHead(code, { "Content-Type": "text/plain" });
+      header["Content-Type"] = "text/plain";
       res.statusCode = code;
       load = String(message);
       throw doneError;
     },
     code(statusCode?: number) {
       if (statusCode) {
-        code = statusCode;
         res.statusCode = statusCode;
       }
-      return code;
+      return res.statusCode;
     },
     method: req.method!,
     get(field: string) {
@@ -168,8 +155,11 @@ function createCTX(
         });
       });
     },
-    _() {
+    _1() {
       return load;
+    },
+    _2() {
+      return header;
     },
     params: undefined as any,
     search: undefined as any,
@@ -205,24 +195,27 @@ export const JetPath_app = createServer(
         if (_JetPath_app_config.cors) {
           _JetPath_app_config.cors(ctx);
         }
-        res.end(ctx._());
+        res.writeHead(ctx.code(), ctx._2());
+        res.end(ctx._1());
       } catch (error) {
         //? report error to error hook
         if (String(error).includes("done")) {
           if (_JetPath_app_config.cors) {
             _JetPath_app_config.cors(ctx);
           }
-          res.end(ctx._());
+          res.writeHead(ctx.code(), ctx._2());
+          res.end(ctx._1());
         } else {
           try {
             await (_JetPath_hooks["ERROR"] as any)?.(ctx, error);
             if (_JetPath_app_config.cors) {
               _JetPath_app_config.cors(ctx);
             }
-            res.end(ctx._());
+            res.writeHead(ctx.code(), ctx._2());
+            res.end(ctx._1());
           } catch (error) {
-            res.end(ctx._());
-            res.end(ctx._());
+            res.writeHead(ctx.code(), ctx._2());
+            res.end(ctx._1());
           }
         }
       }

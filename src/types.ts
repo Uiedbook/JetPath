@@ -12,11 +12,12 @@ export type AppCTXType = {
   method: string;
   get(field: string): string | undefined;
   set(field: string, value: string): void;
-  code(code: number): void;
+  code(code?: number): number;
   pipe(stream: Stream, message: string): void;
   json(): Promise<Record<string, any>>;
   text(): Promise<string>;
-  _(): any;
+  _1(): any;
+  _2(): any;
 };
 
 export type allowedMethods = methods[];
