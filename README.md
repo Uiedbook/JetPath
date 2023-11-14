@@ -30,7 +30,7 @@
 
 # Rationale
 
-JetPath is a Small(5.35kb) Server-side framework that is Fast and Easy to use.
+JetPath is a Small(5.5kb) Server-side framework that is Fast and Easy to use.
 
 - Function names as routing patterns.
 - Pre, Post and Error request hooks.
@@ -80,21 +80,26 @@ const app = new JetPath({
   cors: true, // optional
 });
 //? listening for requests
-await app.listen();
+app.listen(); // ? don't await this promise it never resolves
 ```
 
 #### Example routes
 
 ```ts
+// in your src/app.js
+
 import JetPath from "jetpath";
 
 const app = new JetPath({
-  source: "./src", // optional
+  source: "./routes", // optional
   port: 3000, // optional
   cors: true, // optional
 });
 
-// in your ./src/dogs.js
+//? listening for requests
+app.listen(); // ? don't await this promise it never resolves
+
+// in your ./src/routes/dogs.js
 
 //? GET locahost:8080/dogs
 export function GET_dogs(ctx) {

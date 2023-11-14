@@ -33,7 +33,9 @@
   "scripts": {
     "compile": "rm -rf lib && npm run build",
     "test": "npm run compile && bun test --watch",
-    "start": "node tests/http/app.js",
+    "node": "node tests/http/app.js",
+    "deno": "deno run --allow-all tests/http/app.js",
+    "bun": "bun -b tests/http/app.js",
     "tests": "node --test tests/JetPath.test.js",
     "build": "tsup src/index.ts"
   },

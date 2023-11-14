@@ -1,28 +1,15 @@
 import { opendir } from "node:fs/promises";
 import { IncomingMessage, ServerResponse, createServer } from "node:http";
-import { AppCTXType } from "./types";
+import { AppCTXType, methods } from "./types";
 import { Stream } from "node:stream";
 import { corsHooker } from "./cor";
 import { URLSearchParams } from "node:url";
 import path from "node:path";
-
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import { cwd } from "node:process";
-// @ts-ignore
-const _dirname = (0, dirname)((0, fileURLToPath)(import.meta.url));
 
-type methods = "GET" | "POST" | "OPTIONS" | "DELETE" | "HEAD" | "PUT" | "PATCH";
-
-export class JetPathError extends Error {
-  constructor(...err: any[]) {
-    const message = JetPathError.geterr(err);
-    super(message);
-  }
-  private static geterr(err: string[]) {
-    return String(err.join(""));
-  }
-}
+// import { dirname } from "path";
+// import { fileURLToPath } from "url";
+// const _dirname = dirname(fileURLToPath(import.meta.url));
 
 export let _JetPath_paths: Record<
   methods,
@@ -44,7 +31,7 @@ export const _JetPath_hooks: Record<
   POST: true as any,
   ERROR: true as any,
 };
-
+const doneError = new Error("done");
 export const _JetPath_app_config = {
   cors: undefined as unknown as (ctx: AppCTXType) => boolean,
   set(this: any, opt: string, val: any) {
@@ -87,48 +74,70 @@ function createCTX(
     code = 200;
   const ctx: AppCTXType = {
     request: req,
+    body: null,
     reply(data: unknown) {
-      try {
-        switch (typeof data) {
-          case "string":
-            res.writeHead(code, { "Content-Type": "text/plain" });
-            load = data;
-            break;
-          case "object":
-            res.writeHead(code, { "Content-Type": "application/json" });
+      let contentType = "text/plain";
+      switch (typeof data) {
+        case "string":
+          contentType = "text/plain";
+          load = data;
+          break;
+        case "object":
+          if (data === null) {
+            contentType = "text/plain";
+            load = "null";
+          } else if (Array.isArray(data)) {
+            contentType = "application/json";
             load = JSON.stringify(data);
-            break;
-          // ! add more ...
-          default:
-            res.writeHead(code, { "Content-Type": "text/plain" });
-            load = data;
-            break;
-        }
-      } catch (error) {
-        console.error(error);
+          } else {
+            contentType = "application/json";
+            load = JSON.stringify(data);
+          }
+          break;
+        case "boolean":
+          contentType = "text/plain";
+          load = data.toString();
+          break;
+        case "number":
+          contentType = "text/plain";
+          load = data.toString();
+          break;
+        default:
+          contentType = "text/plain";
+          load = (data as any).toString();
+          break;
       }
+      res.writeHead(code, { "Content-Type": contentType });
+      throw doneError;
     },
-    throw(code: number, message: string) {
+    redirect(url: string) {
+      res.writeHead(301, { Location: url });
+      load = undefined;
+      throw doneError;
+    },
+    throw(code: number = 404, message: string = "Not FOund") {
       res.writeHead(code, { "Content-Type": "text/plain" });
-      res.end(message);
+      res.statusCode = code;
+      load = String(message);
+      throw doneError;
     },
     code(statusCode?: number) {
       if (statusCode) {
         code = statusCode;
+        res.statusCode = statusCode;
       }
       return code;
     },
-    method: req.method,
+    method: req.method!,
     get(field: string) {
       if (field) {
-        console.log({ get_: req.headers });
         return req.headers[field] as string;
       }
       return undefined;
     },
     set(field: string, value: string) {
       if (field && value) {
-        req.headers[field] = value;
+        res.setHeader(field, value);
       }
     },
     pipe(stream: Stream, ContentDisposition: string) {
@@ -142,7 +151,9 @@ function createCTX(
           body += data.toString();
         });
         req.on("end", () => {
-          r(JSON.parse(body || "{}"));
+          const data = JSON.parse(body || "{}");
+          this.body = data;
+          r(data);
         });
       });
     },
@@ -176,9 +187,8 @@ export const JetPath_app = createServer(
     let routesParams: Record<string, string> = {};
     let searchParams: Record<string, string> = {};
     let r = checker(req.method as methods, req.url!);
-    const ctx = createCTX(req, res);
-
     if (r) {
+      const ctx = createCTX(req, res);
       if (r.length > 1) {
         [r, routesParams, searchParams] = r as unknown as any[];
         ctx.params = routesParams;
@@ -186,22 +196,35 @@ export const JetPath_app = createServer(
       }
       try {
         //? pre-request hooks here
-        _JetPath_hooks["PRE"]?.(ctx);
+        await _JetPath_hooks["PRE"]?.(ctx);
         //? router
         await (r as any)(ctx);
         //? post-request hooks here
-        let out = ctx._();
-        _JetPath_hooks["POST"] &&
-          (out = (_JetPath_hooks["POST"] as any)(ctx, out));
+        _JetPath_hooks["POST"] && (await (_JetPath_hooks["POST"] as any)(ctx));
         // ? cors header
         if (_JetPath_app_config.cors) {
           _JetPath_app_config.cors(ctx);
         }
-        console.log(out);
-        res.end(out);
+        res.end(ctx._());
       } catch (error) {
         //? report error to error hook
-        (_JetPath_hooks["ERROR"] as any)?.(ctx, error);
+        if (String(error).includes("done")) {
+          if (_JetPath_app_config.cors) {
+            _JetPath_app_config.cors(ctx);
+          }
+          res.end(ctx._());
+        } else {
+          try {
+            await (_JetPath_hooks["ERROR"] as any)?.(ctx, error);
+            if (_JetPath_app_config.cors) {
+              _JetPath_app_config.cors(ctx);
+            }
+            res.end(ctx._());
+          } catch (error) {
+            res.end(ctx._());
+            res.end(ctx._());
+          }
+        }
       }
     } else {
       res.writeHead(404, { "Content-Type": "text/plain" });
@@ -230,46 +253,6 @@ const Handlerspath = (path: any) => {
   }
   return;
 };
-
-// export async function getHandlers(source?: string) {
-//   // Set a default value using a ternary operator instead of logical OR
-//   source = source ? path.resolve(source) : path.resolve(_dirname, "..");
-
-//   const dir = await opendir(source);
-//   for await (const dirent of dir) {
-//     if (dirent.isFile() && dirent.name.endsWith(".js")) {
-//       // Use path.join to concatenate paths properly
-//       const module = await import(path.join(source, dirent.name));
-
-//       for (const p in module) {
-//         const params = Handlerspath(p);
-//         if (params) {
-//           if (Array.isArray(params) && _JetPath_paths[params[0]]) {
-//             _JetPath_paths[params[0]][params[1]] = module[p];
-//           } else {
-//             // Assuming params is a string at this point
-//             if (_JetPath_hooks[params as string]) {
-//               _JetPath_hooks[params as string] = module[p];
-//             }
-//           }
-//         }
-//       }
-//     }
-//     if (
-//       dirent.isDirectory() &&
-//       dirent.name !== "node_modules" &&
-//       dirent.name !== ".git"
-//     ) {
-//       const nextSourcePath = path.join(source, dirent.name);
-//       console.log(`Processing directory: ${nextSourcePath}`);
-//       try {
-//         await getHandlers(nextSourcePath);
-//       } catch (error) {
-//         console.error(`Error processing directory ${nextSourcePath}:`, error);
-//       }
-//     }
-//   }
-// }
 
 export async function getHandlers(source: string) {
   source = source || (cwd().split("/").pop() as string);

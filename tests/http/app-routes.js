@@ -61,6 +61,9 @@ export async function GET_dogs$$(ctx) {
       " thanks for visiting JetPath App!"
   );
 }
+export async function GET_(ctx) {
+  throw new Error("tada");
+}
 
 /**
  * @param {{
@@ -110,5 +113,7 @@ export function hook__POST(ctx, data) {
  */
 
 export function hook__ERROR(ctx, err) {
+  console.log(err);
   ctx.throw(400, "bad request!");
+  console.log(err); // nop this won't run, JetPath took over control
 }

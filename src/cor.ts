@@ -1,4 +1,3 @@
-// import vary from "vary";
 import { AppCTXType, allowedMethods, methods } from "./types";
 
 /**
@@ -36,11 +35,11 @@ export function corsHooker(_options: {
     origin: "*",
     secureContext: false,
     keepHeadersOnError: false,
-    allowHeaders: ["X-E"],
+    allowHeaders: [],
   };
 
   for (const key in _options) {
-    if (_options[key as keyof typeof _options]) {
+    if (_options.hasOwnProperty(key)) {
       options[key as keyof typeof _options] =
         _options[key as keyof typeof _options];
     }
@@ -59,7 +58,7 @@ export function corsHooker(_options: {
   options.keepHeadersOnError =
     options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
 
-  return async function cors(ctx: AppCTXType) {
+  return function cors(ctx: AppCTXType) {
     let credentials = options.credentials;
     const headersSet: Record<string, string> = {};
 
@@ -71,6 +70,9 @@ export function corsHooker(_options: {
     if (ctx.method !== "OPTIONS") {
       //? Simple Cross-Origin Request, Actual Request, and Redirects
       set("Access-Control-Allow-Origin", options.origin!);
+
+      //? Add Vary header to indicate response varies based on the Origin header
+      set("Vary", "Origin");
       if (credentials === true) {
         set("Access-Control-Allow-Credentials", "true");
       }
@@ -94,7 +96,6 @@ export function corsHooker(_options: {
       // The request is outside the scope of this specification.
       if (!ctx.get("Access-Control-Request-Method")) {
         // this not preflight request, ignore it
-
         return;
       }
 
@@ -124,10 +125,6 @@ export function corsHooker(_options: {
         set("Cross-Origin-Embedder-Policy", "require-corp");
       }
 
-      // let allowHeaders = options.allowHeaders;
-      // if (!allowHeaders) {
-      //   allowHeaders = ctx.get("Access-Control-Request-Headers")!;
-      // }
       if (options.allowHeaders) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
       }

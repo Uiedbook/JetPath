@@ -39,14 +39,17 @@ export default class JetPath {
     for (const [k, v] of Object.entries(this.options || {})) {
       _JetPath_app_config.set(k, v);
     }
-    console.log("JetPath: compiling paths ... ");
-    await getHandlers(this.options?.source!);
-    console.log("JetPath: done.");
+
     if (
       _JetPath_app_config["printRoutes" as keyof typeof _JetPath_app_config]
     ) {
-      console.log(_JetPath_paths);
+      console.log("JetPath: compiling paths ... ");
+      await getHandlers(this.options?.source!);
+      console.log("JetPath: done.");
       console.log(_JetPath_hooks);
+      console.log(_JetPath_paths);
+    } else {
+      await getHandlers(this.options?.source!);
     }
     console.log(`JetPath app listening on port ${port}`);
     JetPath_app.on("error", (e) => {
@@ -63,5 +66,4 @@ export default class JetPath {
 }
 
 //? exports
-export { JetPathError } from "./app.js";
 export type { AppCTXType } from "./types";
