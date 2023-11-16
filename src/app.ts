@@ -7,9 +7,47 @@ import { URLSearchParams } from "node:url";
 import path from "node:path";
 import { cwd } from "node:process";
 
-// import { dirname } from "path";
-// import { fileURLToPath } from "url";
-// const _dirname = dirname(fileURLToPath(import.meta.url));
+const avoidErr = (cb: { (): any; (): any; (): void }) => {
+  try {
+    cb();
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+const getRutime = () => {
+  // @ts-ignore
+  const bun = avoidErr(() => Bun);
+  // @ts-ignore
+  const deno = avoidErr(() => Deno);
+  const node = !bun && !deno;
+  return { bun, deno, node };
+};
+
+const runtime = getRutime();
+export let JetPath_server = { listen(port: number) {} };
+if (runtime.node) {
+  JetPath_server = createServer((x, y) => {
+    JetPath_app(x, y);
+  });
+}
+if (runtime.deno) {
+  JetPath_server = {
+    listen(port) {
+      // @ts-ignore
+      Deno.serve({ port: port }, JetPath_app);
+    },
+  };
+}
+if (runtime.bun) {
+  JetPath_server = {
+    listen(port) {
+      // @ts-ignore
+      Bun.serve({ port, fetch: JetPath_app });
+    },
+  };
+}
 
 export let _JetPath_paths: Record<
   methods,
@@ -31,7 +69,7 @@ export const _JetPath_hooks: Record<
   POST: true as any,
   ERROR: true as any,
 };
-const doneError = new Error("done");
+const errDone = new Error("done");
 export const _JetPath_app_config = {
   cors: undefined as unknown as (ctx: AppCTXType) => void,
   set(this: any, opt: string, val: any) {
@@ -41,7 +79,7 @@ export const _JetPath_app_config = {
         allowMethods: "",
         allowHeaders: "",
         maxAge: "",
-        keepHeadersOnError: undefined,
+        keepHeadersOnError: true,
         secureContext: false,
         privateNetworkAccess: undefined,
         ...(typeof val === "object" ? val : {}),
@@ -58,78 +96,76 @@ export const _JetPath_app_config = {
   },
 };
 
-function createCTX(
-  req: IncomingMessage,
-  res: ServerResponse<IncomingMessage> & {
-    req: IncomingMessage;
-  }
-) {
-  let load: unknown;
-  res.statusCode = 200;
-  const header: Record<string, string> = {};
-  const ctx: AppCTXType = {
+function createCTX(req: IncomingMessage): AppCTXType {
+  return {
     request: req,
     body: null,
-    reply(data: unknown) {
-      let contentType = "text/plain";
+    statusCode: 200,
+    method: req.method!,
+    reply(data: unknown, contentType = "text/plain") {
       switch (typeof data) {
         case "string":
           contentType = "text/plain";
-          load = data;
+          this._1 = data;
           break;
         case "object":
           if (data === null) {
             contentType = "text/plain";
-            load = "null";
+            this._1 = "null";
           } else if (Array.isArray(data)) {
             contentType = "application/json";
-            load = JSON.stringify(data);
+            this._1 = JSON.stringify(data);
           } else {
             contentType = "application/json";
-            load = JSON.stringify(data);
+            this._1 = JSON.stringify(data);
           }
           break;
         default:
           contentType = "text/plain";
-          load = String(data);
+          this._1 = String(data);
           break;
       }
-      header["Content-Type"] = contentType;
-      throw doneError;
+      this._2["Content-Type"] = contentType;
+      throw errDone;
     },
     redirect(url: string) {
-      res.statusCode = 301;
-      header["Location"] = url;
-      load = undefined;
-      throw doneError;
+      this.statusCode = 301;
+      this._2["Location"] = url;
+      this._1 = undefined;
+      throw errDone;
     },
-    throw(code: number = 404, message: string = "Not FOund") {
-      header["Content-Type"] = "text/plain";
-      res.statusCode = code;
-      load = String(message);
-      throw doneError;
+    throw(code: number = 404, message: string = "Not Found") {
+      this._2["Content-Type"] = "text/plain";
+      if (typeof code === "string") {
+        message = code;
+        code = 400;
+      }
+      this.statusCode = code;
+      this._1 = String(message);
+      throw errDone;
     },
     code(statusCode?: number) {
       if (statusCode) {
-        res.statusCode = statusCode;
+        this.statusCode = statusCode;
       }
-      return res.statusCode;
+      return this.statusCode || 200;
     },
-    method: req.method!,
     get(field: string) {
       if (field) {
         return req.headers[field] as string;
       }
       return undefined;
     },
+
     set(field: string, value: string) {
       if (field && value) {
-        res.setHeader(field, value);
+        this._2[field] = value;
       }
     },
+
     pipe(stream: Stream, ContentDisposition: string) {
-      res.setHeader("Content-Disposition", ContentDisposition);
-      stream.pipe(res);
+      this._2["Content-Disposition"] = ContentDisposition;
+      this._3 = stream;
     },
     json() {
       return new Promise<Record<string, any>>((r) => {
@@ -155,76 +191,98 @@ function createCTX(
         });
       });
     },
-    _1() {
-      return load;
-    },
-    _2() {
-      return header;
-    },
-    params: undefined as any,
-    search: undefined as any,
+    //? load
+    _1: undefined,
+    //? header
+    _2: {},
+    //? stream
+    _3: undefined,
+    params: {},
+    search: {},
   };
-  return ctx;
 }
 
-export const JetPath_app = createServer(
-  async (
-    req: IncomingMessage,
-    res: ServerResponse<IncomingMessage> & {
-      req: IncomingMessage;
-    }
-  ) => {
-    let routesParams: Record<string, string> = {};
-    let searchParams: Record<string, string> = {};
-    let r = checker(req.method as methods, req.url!);
-    if (r) {
-      const ctx = createCTX(req, res);
-      if (r.length > 1) {
-        [r, routesParams, searchParams] = r as unknown as any[];
-        ctx.params = routesParams;
-        ctx.search = searchParams;
+const createResponse = (
+  ctx: AppCTXType | undefined = undefined,
+  res: ServerResponse<IncomingMessage> & {
+    req: IncomingMessage;
+  }
+) => {
+  if (!runtime.node) {
+    const headers: Record<string, string> = {};
+    for (const key in ctx?._2) {
+      if (Object.prototype.hasOwnProperty.call(ctx._2, key)) {
+        headers[key] = ctx._2[key];
       }
-      try {
-        //? pre-request hooks here
-        await _JetPath_hooks["PRE"]?.(ctx);
-        //? router
-        await (r as any)(ctx);
-        //? post-request hooks here
-        _JetPath_hooks["POST"] && (await (_JetPath_hooks["POST"] as any)(ctx));
-        // ? cors header
+    }
+    return new Response(ctx?._1 || "Not found!", {
+      status: ctx?.code() || 404,
+      headers,
+    });
+  }
+  res.writeHead(
+    ctx?.code() || 404,
+    ctx?._2 || { "Content-Type": "text/plain" }
+  );
+  res.end(ctx?._1 || "Not found!");
+  return undefined;
+};
+
+const JetPath_app = async (
+  req: IncomingMessage,
+  res: ServerResponse<IncomingMessage> & {
+    req: IncomingMessage;
+  }
+) => {
+  let routesParams: Record<string, string> = {};
+  let searchParams: Record<string, string> = {};
+  let r = checker(req.method as methods, req.url!);
+  if (r) {
+    const ctx = createCTX(req);
+    if (r.length > 1) {
+      [r, routesParams, searchParams] = r as unknown as any[];
+      ctx.params = routesParams;
+      ctx.search = searchParams;
+    }
+    try {
+      //? pre-request hooks here
+      await _JetPath_hooks["PRE"]?.(ctx);
+      //? router
+      await (r as any)(ctx);
+      //? post-request hooks here
+      _JetPath_hooks["POST"] && (await (_JetPath_hooks["POST"] as any)(ctx));
+      // ? cors header
+      if (_JetPath_app_config.cors) {
+        _JetPath_app_config.cors(ctx);
+      }
+      !ctx._1 && ctx._3 && ctx._3.pipe(res);
+      return createResponse(ctx, res);
+    } catch (error) {
+      //? report error to error hook
+      if (String(error).includes("done")) {
         if (_JetPath_app_config.cors) {
           _JetPath_app_config.cors(ctx);
         }
-        res.writeHead(ctx.code(), ctx._2());
-        res.end(ctx._1());
-      } catch (error) {
-        //? report error to error hook
-        if (String(error).includes("done")) {
+        return createResponse(ctx, res);
+      } else {
+        try {
+          await (_JetPath_hooks["ERROR"] as any)?.(ctx, error);
           if (_JetPath_app_config.cors) {
             _JetPath_app_config.cors(ctx);
           }
-          res.writeHead(ctx.code(), ctx._2());
-          res.end(ctx._1());
-        } else {
-          try {
-            await (_JetPath_hooks["ERROR"] as any)?.(ctx, error);
-            if (_JetPath_app_config.cors) {
-              _JetPath_app_config.cors(ctx);
-            }
-            res.writeHead(ctx.code(), ctx._2());
-            res.end(ctx._1());
-          } catch (error) {
-            res.writeHead(ctx.code(), ctx._2());
-            res.end(ctx._1());
+          return createResponse(ctx, res);
+        } catch (error) {
+          if (_JetPath_app_config.cors) {
+            _JetPath_app_config.cors(ctx);
           }
+          return createResponse(ctx, res);
         }
       }
-    } else {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Not found!");
     }
+  } else {
+    return createResponse(undefined, res);
   }
-);
+};
 
 const Handlerspath = (path: any) => {
   if ((path as string).includes("hook__")) {
@@ -281,6 +339,9 @@ export async function getHandlers(source: string) {
 
 const checker = (method: methods, url: string) => {
   const routes = _JetPath_paths[method];
+  if (url[0] !== "/") {
+    url = url.slice(url.indexOf("/", 7));
+  }
   if (routes[url]) {
     return routes[url];
   }

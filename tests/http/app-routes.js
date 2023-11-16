@@ -1,5 +1,4 @@
 import { Stream } from "node:stream";
-import { JetPathError } from "../../lib/index.js";
 import { IncomingMessage } from "node:http";
 
 /**
@@ -99,7 +98,6 @@ export function hook__POST(ctx, data) {
 }
 
 /**
- * @param {JetPathError} err
  *
  * @param {{
  * reply: (data: any) => void;

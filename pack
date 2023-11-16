@@ -9,4 +9,4 @@ echo  "  Building ...."
 npm run compile
 echo  "  Packing ...."
 npm pack
-mv jetpath-1.0.0.tgz ~ 
+mv jetpath-1.0.1.tgz ~ 

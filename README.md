@@ -30,17 +30,18 @@
 
 # Rationale
 
-JetPath is a Small(5.5kb) Server-side framework that is Fast and Easy to use.
+JetPath is a Small(5.9kb) Server-side framework that is Fast and Easy to use.
 
-- Function names as routing patterns.
+- JetPath now runs one the runtime you are using, bun or node or deno.
+- Function names as routing patterns (newest innovation you haven't seen before).
 - Pre, Post and Error request hooks.
-- Inbuilt Cors interface.
-- Fast and BenchedMarked.
+- Inbuilt Cors handlers.
+- Fast and small and easy as peasy.
 - A strong backup community moved with passion for making the web better.
 
 In JetPath, unlike express, fastify or other Javascript base server-side framworks, JetPath is designed as a light, simple and but powerful, using the an intuitive route as function name system. you can be able to design and manage your api(s) with more granularity as an easy peasy grease.
 
-This benefits are very essential and delighting.
+This benefits are very lovely and delighting.
 
 --
 
@@ -55,7 +56,8 @@ JetPath support all server-side Javascrit runtimes:
 - Nodejs.
 - Denojs.
 - Bunjs.
-- Edge support for runtimes like cloudflare workers and deno deploy(in view).
+- and deno deploy (testing)
+- Edge support for runtimes like cloudflare workers(in view).
 
 ## Installation
 
@@ -101,11 +103,16 @@ app.listen(); // ? don't await this promise it never resolves
 
 // in your ./src/routes/dogs.js
 
-//? GET locahost:8080/dogs
+//? GET locahost:8080/
 export function GET_dogs(ctx) {
   ctx.set("X-E", "boohoo");
+  ctx.reply("welcome home fellas");
+}
+
+//? GET locahost:8080/dogs
+export function GET_dogs(ctx) {
   ctx.reply({ foo: "bar" });
-  // ctx.throw(400, "boohoo you mf*");
+  // ctx.throw(400, "poop");
 }
 
 //? POST locahost:8080/dogs

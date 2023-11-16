@@ -3,7 +3,7 @@ import {
   _JetPath_hooks,
   _JetPath_paths,
   getHandlers,
-  JetPath_app,
+  JetPath_server,
 } from "./app.js";
 import { allowedMethods } from "./types.js";
 
@@ -30,7 +30,7 @@ export default class JetPath {
       | boolean;
   }) {
     this.options = options;
-    this.server = JetPath_app;
+    this.server = JetPath_server;
   }
   async listen() {
     const port = this.options?.port || 8080;
@@ -52,16 +52,16 @@ export default class JetPath {
       await getHandlers(this.options?.source!);
     }
     console.log(`JetPath app listening on port ${port}`);
-    JetPath_app.on("error", (e) => {
-      if ((e as any).code === "EADDRINUSE") {
-        console.log("Address in use, retrying...");
-        setTimeout(() => {
-          JetPath_app.close();
-          JetPath_app.listen(port);
-        }, 1000);
-      }
-    });
-    JetPath_app.listen(this.options?.port || 8080);
+    // JetPath_server.on("error", (e) => {
+    //   if ((e as any).code === "EADDRINUSE") {
+    //     console.log("Address in use, retrying...");
+    //     setTimeout(() => {
+    //       JetPath_server.close();
+    //       JetPath_server.listen(port);
+    //     }, 1000);
+    //   }
+    // });
+    JetPath_server.listen(this.options?.port || 8080);
   }
 }
 

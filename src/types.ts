@@ -7,7 +7,7 @@ export type AppCTXType = {
   params: Record<string, string>;
   request: IncomingMessage;
   reply(data: unknown, ContentType?: string): void;
-  throw(code?: number, message?: string): void;
+  throw(code?: number | string, message?: string): void;
   redirect(url: string): void;
   method: string;
   get(field: string): string | undefined;
@@ -16,8 +16,10 @@ export type AppCTXType = {
   pipe(stream: Stream, message: string): void;
   json(): Promise<Record<string, any>>;
   text(): Promise<string>;
-  _1(): any;
-  _2(): any;
+  statusCode: number;
+  _1: any;
+  _2: Record<string, string>;
+  _3: Stream | undefined;
 };
 
 export type allowedMethods = methods[];

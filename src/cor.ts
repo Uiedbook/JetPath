@@ -1,9 +1,9 @@
 import { AppCTXType, allowedMethods, methods } from "./types";
 
 /**
- * CORS post hook
+ * an inbuilt CORS post hook
  *
- * @param {Object} [options]
+ * @param {Object} [_options]
  *  - {String|Function(ctx)} origin `Access-Control-Allow-Origin`, default is request Origin header
  *  - {String|Array} allowMethods `Access-Control-Allow-Methods`, default is 'GET,HEAD,PUT,POST,DELETE,PATCH'
  *  - {String|Array} exposeHeaders `Access-Control-Expose-Headers`
