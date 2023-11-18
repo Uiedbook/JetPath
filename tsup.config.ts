@@ -6,7 +6,6 @@ const config: Options = {
   clean: true,
   format: ["esm"],
   minify: true,
-  treeshake: "recommended",
   target: "esnext",
   bundle: true,
   outDir: "lib",

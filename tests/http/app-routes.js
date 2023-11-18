@@ -16,9 +16,9 @@ import { IncomingMessage } from "node:http";
  *  }} ctx
  */
 export function GET_dogs(ctx) {
-  ctx.set("X-E", "boohoo");
+  ctx.set("X-token", "boohoo");
   ctx.reply({ foo: "bar" });
-  // ctx.throw(400, "boohoo you mf");
+  // ctx.throw(400, "boohoo");
 }
 /**
  * @param {{ text: () => any; reply: (data: string) => void; }} ctx
@@ -61,7 +61,8 @@ export async function GET_dogs$$(ctx) {
   );
 }
 export async function GET_(ctx) {
-  throw new Error("tada");
+  ctx.redirect("http://localhost:8080/dogs");
+  // throw new Error("tada");
 }
 
 /**

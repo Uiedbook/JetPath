@@ -5,7 +5,7 @@ import {
   getHandlers,
   JetPath_server,
 } from "./app.js";
-import { allowedMethods } from "./types.js";
+import { allowedMethods, methods } from "./types.js";
 
 export default class JetPath {
   options: any;
@@ -29,7 +29,7 @@ export default class JetPath {
         }
       | boolean;
   }) {
-    this.options = options;
+    this.options = options || { printRoutes: true };
     this.server = JetPath_server;
   }
   async listen() {
@@ -43,24 +43,23 @@ export default class JetPath {
     if (
       _JetPath_app_config["printRoutes" as keyof typeof _JetPath_app_config]
     ) {
-      console.log("JetPath: compiling paths ... ");
+      console.log("JetPath: compiling paths...");
       await getHandlers(this.options?.source!);
       console.log("JetPath: done.");
       console.log(_JetPath_hooks);
-      console.log(_JetPath_paths);
+      for (const k in _JetPath_paths) {
+        const r = _JetPath_paths[k as methods] as any;
+        if (r && Object.keys(r).length) {
+          console.log("\n" + k + ": routes");
+          for (const p in r) {
+            console.log("'" + p + "'");
+          }
+        }
+      }
     } else {
       await getHandlers(this.options?.source!);
     }
-    console.log(`JetPath app listening on port ${port}`);
-    // JetPath_server.on("error", (e) => {
-    //   if ((e as any).code === "EADDRINUSE") {
-    //     console.log("Address in use, retrying...");
-    //     setTimeout(() => {
-    //       JetPath_server.close();
-    //       JetPath_server.listen(port);
-    //     }, 1000);
-    //   }
-    // });
+    console.log(`\nJetPath app listening on port ${port}...`);
     JetPath_server.listen(this.options?.port || 8080);
   }
 }

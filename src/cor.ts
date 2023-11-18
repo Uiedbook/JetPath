@@ -128,7 +128,7 @@ export function corsHooker(_options: {
       if (options.allowHeaders) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
       }
-      ctx.code(204);
+      ctx.statusCode = 204;
     }
   };
 }

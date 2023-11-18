@@ -1,7 +1,7 @@
 <br/>
 <p align="center">
   <a href="#">
-     <img src="icon-transparent.webp" alt="JetPath" width="190" height="190">
+     <img src="icon.webp" alt="JetPath" width="190" height="190">
   </a>
 
   <h1 align="center">JetPath</h1>
@@ -28,9 +28,27 @@
 
 --
 
+## Latest version info
+
+In this version, multi-runtime support is no-longer based on compartiblity but pure engine api(s).
+
+- runing Node index.js starts a Node instance for your app.
+- runing Deno run index.ts starts a Deno instance for your app.
+- runing Bun index.ts starts a Bun instance for your app.
+
+- looking into serverless
+
+this version we fixed issues with the inbuilt cors hook.
+
+- more speed, same size, more power.
+
+Why let's remove any overhead of compartibilty layers, run bare, more speed.
+
+How are we able to achieve this without any configuration, sperate repo, or chnage in package size? the Overview method, find out from our our community, JetPath your next app right and enjoy this cool benefit!!!
+
 # Rationale
 
-JetPath is a Small(5.9kb) Server-side framework that is Fast and Easy to use.
+JetPath is a Small(5.7kb) Server-side framework that is Fast and Easy to use.
 
 - JetPath now runs one the runtime you are using, bun or node or deno.
 - Function names as routing patterns (newest innovation you haven't seen before).
@@ -82,7 +100,7 @@ const app = new JetPath({
   cors: true, // optional
 });
 //? listening for requests
-app.listen(); // ? don't await this promise it never resolves
+app.listen();
 ```
 
 #### Example routes
@@ -99,7 +117,7 @@ const app = new JetPath({
 });
 
 //? listening for requests
-app.listen(); // ? don't await this promise it never resolves
+app.listen();
 
 // in your ./src/routes/dogs.js
 
@@ -165,9 +183,36 @@ export function hook__ERROR(ctx, err) {
 }
 ```
 
+### ctx Overview at current
+
+ctx is th JetPath parameter your route functions are called with.
+
+```ts
+export type AppCTXType = {
+  // parse incoming data
+  json(): Promise<Record<string, any>>;
+  text(): Promise<string>;
+  // readOnly(s)
+  body: any; // only available after calling ctx.json() ot ctx.text()
+  search: Record<string, string>;
+  params: Record<string, string>;
+  request: IncomingMessage; // original reg object
+  method: string;
+  // get and set headers and code
+  get(field: string): string | undefined;
+  set(field: string, value: string): void;
+  statusCode: number;
+  //Reply  methods
+  reply(data: unknown, ContentType?: string): void;
+  throw(code?: number | string, message?: string): void;
+  redirect(url: string): void;
+  pipe(stream: Stream, message: string): void;
+};
+```
+
 When improvements and changes rolls out, we will quickly update this page and the currently prepared [web documentation]("https://uiedbook.gitbook.io/jetpath/").
 
-We intend to move with less traction and have implemented many of the best decisions and designs we can think-of/research right from the beginning.
+We intend to move with less traction and have implemented many of the best decisions and designs we can think-of/research right from the start1.
 
 ## MIT Lincenced
 
@@ -181,3 +226,13 @@ Ask your questions and become a team-member/contributor by becoming an insider.
 ### Contribution and License Agreement
 
 If you contribute code to this project, you are implicitly allowing your code to be distributed under the MIT license. You are also implicitly verifying that all code is your original work.
+
+### Support
+
+Your contribution(s) is a good force for change anytime you do it, you can ensure JrtPath's growth and improvement by contributing a re-occuring or fixed donations to:
+
+https://www.buymeacoffee.com/fridaycandour
+
+Or Click.
+
+<a href="https://www.buymeacoffee.com/fridaycandour"><img src="https://img.buymeacoffee.com/button-api/?text=Buy us a coffee&emoji=&slug=fridaycandour&button_colour=FFDD00&font_colour=000000&outline_colour=000000&coffee_colour=ffffff" /></a>
