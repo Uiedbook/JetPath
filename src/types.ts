@@ -12,8 +12,8 @@ export type AppCTXType = {
   method: string;
   reply(data: unknown, ContentType?: string): void;
   throw(
-    code: number | string | Record<string, any>,
-    message: string | Record<string, any>
+    code: number | string | Record<string, any> | unknown,
+    message?: string | Record<string, any>
   ): void;
   redirect(url: string): void;
   get(field: string): string | undefined;
