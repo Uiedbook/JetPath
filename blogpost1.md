@@ -2,22 +2,22 @@
 
 ## it's Evening time here tho.
 
-It's a evening over here, and i'm writing this article to share with the awareness about two thing.
+It's evening over here, and i'm writing this article to share with the awareness about two thing.
 
 1. The heavy and cumbersome nature of server-sider frameworks for NodeJs, Denojs and Bunjs
 2. The solution y'all been waiting for!
 
-Sit properly let's evaluate and hunt for something better. hhgs
+Sit properly let's evaluate and hunt for something better.
 
 ## Cumbersome? what's cumbersome? teach your cat to fetch.
 
-Things become cumbersome when they tends to create a dependency tree, complicated interfaces, poor innovation, high level of abstraction layers and most of all using solutions that implies runtime overhead.
+Things become cumbersome when they tends to create a dependency tree, complicated interfaces, poor innovation, high level of abstraction layers and most of all using solutions that implies heavy runtime overhead.
 
-I'm in the pothole with you if you onced feel your tools has these problems.
+I'm in the pothole with you if you onced feel this way.
 
-As a software engineer i always have this phylosophy of simplicity is easier to manage and extend. and that's what the tool i designed does, we will get into it in a moment.
+As a software engineer i always have this phylosophy of simplicity is easier to manage and extend. and that's what the tool i will be talking about, does, we will get into it in a moment.
 
-### The bad offenders in most node Frameworks meow.
+### The bad offenders in most node Frameworks.
 
 High learning curve, Abstraction layers, Convention over Configuration, Middleware management, boiler-platey codes, Configuration Overheads, Dependency Injection overhead, debugging challeges, updates and compartibility dramas.
 
