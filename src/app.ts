@@ -111,6 +111,7 @@ export const _JetPath_app_config = {
 const createCTX = (req: IncomingMessage): AppCTXType => ({
   request: req,
   body: null,
+  app: {},
   statusCode: 200,
   method: req.method!,
   reply(data: unknown, contentType = "text/plain") {
@@ -137,14 +138,24 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
     this._1 = undefined;
     throw errDone;
   },
-  throw(code: number = 404, message: string = "Not Found") {
-    this._2["Content-Type"] = "text/plain";
-    if (typeof code === "string") {
-      message = code;
-      code = 400;
+  throw(
+    code: number | string | Record<string, any> = 404,
+    message: string | Record<string, any> = "Not Found"
+  ) {
+    switch (typeof code) {
+      case "string":
+        this._2["Content-Type"] = "text/plain";
+        this._1 = String(code);
+        break;
+      case "object":
+        this._2["Content-Type"] = "application/json";
+        this._1 = JSON.stringify(message);
+        break;
+      default:
+        this._2["Content-Type"] = "text/plain";
+        this._1 = String(code);
+        break;
     }
-    this.statusCode = code;
-    this._1 = String(message);
     throw errDone;
   },
   get(field: string) {
@@ -160,6 +171,11 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
     }
   },
 
+  pass(field: string, value: unknown) {
+    if (field && value) {
+      this.app[field] = value;
+    }
+  },
   pipe(stream: Stream, ContentDisposition: string) {
     this._2["Content-Disposition"] = ContentDisposition;
     this._3 = stream;
