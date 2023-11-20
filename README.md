@@ -1,8 +1,6 @@
 <br/>
 <p align="center">
-  <a href="#">
      <img src="icon.webp" alt="JetPath" width="190" height="190">
-  </a>
 
   <h1 align="center">JetPath</h1>
 
