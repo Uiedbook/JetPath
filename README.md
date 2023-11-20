@@ -48,6 +48,8 @@ How are we able to achieve this without any configuration, sperate repo, or chna
 
 JetPath is a Small(5.7kb) Server-side framework that is Fast and Easy to use.
 
+[benchmark repo](https://github.com/FridayCandour/jetpath-benchmark)
+
 - JetPath now runs one the runtime you are using, bun or node or deno.
 - Function names as routing patterns (newest innovation you haven't seen before).
 - Pre, Post and Error request hooks.

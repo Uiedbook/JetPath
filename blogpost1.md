@@ -53,6 +53,10 @@ When it comes to server-side frameworks, speed and simplicity are of utmost impo
 
 It's intuitive routing system, which uses function names as routing patterns, sets it apart from traditional frameworks like Express or Fastify. This innovative approach simplifies your code and enhances the readability of your routing logic, making it easier to design and manage your API(s) with unparalleled granularity.
 
+JetPath is one of Bun's fastest web frameworks.
+
+[benchmark repo](https://github.com/FridayCandour/jetpath-benchmark)
+
 ## The Power of JetPath
 
 `JetPath` seamlessly adapts to your preferred runtime. With JetPath, you have the flexibility to choose the runtime that best suits your project's requirements without sacrificing the simplicity and speed that `JetPath` offers. Why limit yourself to a single runtime when `JetPath` empowers you to explore all three? with no extra steps!!!
