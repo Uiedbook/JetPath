@@ -22,7 +22,7 @@
 </p>
 
 ![Contributors](https://img.shields.io/github/contributors/uiedbook/JetPath?color=dark-green)
-[![npm Version](https://img.shields.io/npm/v/JetPath.svg)](https://www.npmjs.com/package/JetPath)
+[![npm Version](https://img.shields.io/npm/v/jetpath.svg)](https://www.npmjs.com/package/JetPath)
 ![Forks](https://img.shields.io/github/forks/uiedbook/JetPath?style=social)
 ![Stargazers](https://img.shields.io/github/stars/uiedbook/JetPath?style=social)
 
@@ -229,7 +229,7 @@ If you contribute code to this project, you are implicitly allowing your code to
 
 ### Support
 
-Your contribution(s) is a good force for change anytime you do it, you can ensure JrtPath's growth and improvement by contributing a re-occuring or fixed donations to:
+Your contribution(s) is a good force for change anytime you do it, you can ensure JetPath's growth and improvement by contributing a re-occuring or fixed donations to:
 
 https://www.buymeacoffee.com/fridaycandour
 
