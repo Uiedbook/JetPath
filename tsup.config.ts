@@ -5,7 +5,7 @@ const config: Options = {
   dts: true,
   clean: true,
   format: ["esm"],
-  minify: true,
+  // minify: true,
   target: "esnext",
   bundle: true,
   outDir: "lib",

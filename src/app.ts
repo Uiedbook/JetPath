@@ -139,21 +139,27 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
     throw errDone;
   },
   throw(
-    code: number | string | Record<string, any> = 404,
-    message: string | Record<string, any> = "Not Found"
+    code: number | string | object = 404,
+    message: string | object = "Not Found"
   ) {
     switch (typeof code) {
+      case "number":
+        this.statusCode = code;
+        if (typeof message === "object") {
+          this._2["Content-Type"] = "application/json";
+          this._1 = JSON.stringify(message);
+        } else {
+          this._2["Content-Type"] = "text/plain";
+          this._1 = message;
+        }
+        break;
       case "string":
         this._2["Content-Type"] = "text/plain";
-        this._1 = String(code);
+        this._1 = code;
         break;
       case "object":
         this._2["Content-Type"] = "application/json";
         this._1 = JSON.stringify(message);
-        break;
-      default:
-        this._2["Content-Type"] = "text/plain";
-        this._1 = String(code);
         break;
     }
     throw errDone;
