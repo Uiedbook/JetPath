@@ -4,7 +4,7 @@ import { Stream } from "stream";
 export type AppCTXType = {
   app: Record<string, unknown>;
   // files(): Promise<any>;
-  json(): Promise<Record<string, any>>;
+  json(): Promise<Record<string, any>> | null;
   text(): Promise<string>;
   body: any;
   search: Record<string, string>;

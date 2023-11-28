@@ -187,19 +187,20 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
     this._3 = stream;
   },
   json() {
-    return new Promise<Record<string, any>>((r) => {
-      let body = "";
-      this.request.on("data", (data: { toString: () => string }) => {
-        body += data.toString();
-      });
-      this.request.on("end", () => {
-        //? Check Content-Type header
-        if (this.request.headers["content-type"] === "application/json") {
+    if (this.request.headers["content-type"] === "application/json") {
+      return new Promise<Record<string, any>>((r) => {
+        let body = "";
+        this.request.on("data", (data: { toString: () => string }) => {
+          body += data.toString();
+        });
+        this.request.on("end", () => {
+          //? Check Content-Type header
           this.body = JSON.parse(body);
           r(this.body);
-        }
+        });
       });
-    });
+    }
+    return null;
   },
   text() {
     return new Promise<string>((r) => {
