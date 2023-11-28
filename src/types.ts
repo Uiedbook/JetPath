@@ -3,6 +3,7 @@ import { Stream } from "stream";
 
 export type AppCTXType = {
   app: Record<string, unknown>;
+  // files(): Promise<any>;
   json(): Promise<Record<string, any>>;
   text(): Promise<string>;
   body: any;
@@ -12,7 +13,7 @@ export type AppCTXType = {
   method: string;
   reply(data: unknown, ContentType?: string): void;
   throw(
-    code: number | string | Record<string, any> | unknown,
+    code?: number | string | Record<string, any> | unknown,
     message?: string | Record<string, any>
   ): void;
   redirect(url: string): void;

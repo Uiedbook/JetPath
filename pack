@@ -9,4 +9,4 @@ echo  "  Building ...."
 npm run compile
 echo  "  Packing ...."
 npm pack 
-mv jetpath-1.0.5.tgz ~/uiedbook-jetpath.package
+mv jetpath-1.0.5.tgz ~/jetpath.1.0.5.tgz

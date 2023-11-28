@@ -1,4 +1,4 @@
-import JetPath from "../../lib/index.js";
+import { JetPath } from "../../lib/index.js";
 
 const app = new JetPath();
 app.listen();

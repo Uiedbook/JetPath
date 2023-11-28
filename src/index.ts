@@ -7,7 +7,7 @@ import {
 } from "./app.js";
 import { allowedMethods, methods } from "./types.js";
 
-export default class JetPath {
+export class JetPath {
   options: any;
   server: any;
   constructor(options?: {

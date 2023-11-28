@@ -48,4 +48,4 @@ declare class JetPath {
     listen(): Promise<void>;
 }
 
-export { AppCTXType, JetPath as default };
+export { AppCTXType, JetPath };

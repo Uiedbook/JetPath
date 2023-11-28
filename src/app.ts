@@ -166,7 +166,7 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
   },
   get(field: string) {
     if (field) {
-      return req.headers[field] as string;
+      return this.request.headers[field] as string;
     }
     return undefined;
   },
@@ -189,27 +189,49 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
   json() {
     return new Promise<Record<string, any>>((r) => {
       let body = "";
-      req.on("data", (data: { toString: () => string }) => {
+      this.request.on("data", (data: { toString: () => string }) => {
         body += data.toString();
       });
-      req.on("end", () => {
-        const data = JSON.parse(body || "{}");
-        this.body = data;
-        r(data);
+      this.request.on("end", () => {
+        //? Check Content-Type header
+        if (this.request.headers["content-type"] === "application/json") {
+          this.body = JSON.parse(body);
+          r(this.body);
+        }
       });
     });
   },
   text() {
     return new Promise<string>((r) => {
       let body = "";
-      req.on("data", (data: { toString: () => string }) => {
+      this.request.on("data", (data: { toString: () => string }) => {
         body += data.toString();
       });
-      req.on("end", () => {
+      this.request.on("end", () => {
+        this.body = body;
         r(body);
       });
     });
   },
+  // https://github.com/mscdex/busboy
+  // files() {
+  //  npm i busboy
+  // return new Promise<any>((r) => {
+  // if (req.method === "POST") {
+  //   const bb = busboy({ headers: req.headers });
+  //   bb.on("file", (name, file, info) => {
+  //     const saveTo = path.join(os.tmpdir(), `busboy-upload-${random()}`);
+  //     file.pipe(fs.createWriteStream(saveTo));
+  //   });
+  //   bb.on("close", () => {
+  //     res.writeHead(200, { Connection: "close" });
+  //     res.end(`That's all folks!`);
+  //   });
+  //   req.pipe(bb);
+  //   return;
+  // }
+  // });
+  // },
   //? load
   _1: undefined,
   //? header
