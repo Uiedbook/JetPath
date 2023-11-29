@@ -114,7 +114,8 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
   app: {},
   statusCode: 200,
   method: req.method!,
-  reply(data: unknown, contentType = "text/plain") {
+  reply(data: unknown) {
+    let contentType: string;
     switch (typeof data) {
       case "string":
         contentType = "text/plain";
@@ -187,20 +188,18 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
     this._3 = stream;
   },
   json() {
-    if (this.request.headers["content-type"] === "application/json") {
-      return new Promise<Record<string, any>>((r) => {
-        let body = "";
-        this.request.on("data", (data: { toString: () => string }) => {
-          body += data.toString();
-        });
-        this.request.on("end", () => {
-          //? Check Content-Type header
-          this.body = JSON.parse(body);
-          r(this.body);
-        });
+    return new Promise<Record<string, any>>((r) => {
+      let body = "";
+      this.request.on("data", (data: { toString: () => string }) => {
+        body += data.toString();
       });
-    }
-    return null;
+      this.request.on("end", () => {
+        try {
+          this.body = JSON.parse(body);
+        } catch (error) {}
+        r(this.body);
+      });
+    });
   },
   text() {
     return new Promise<string>((r) => {
@@ -244,10 +243,10 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
 });
 
 const createResponse = (
-  ctx: AppCTXType | undefined = undefined,
   res: ServerResponse<IncomingMessage> & {
     req: IncomingMessage;
-  }
+  },
+  ctx?: AppCTXType
 ) => {
   if (!runtime.node) {
     if (ctx?.statusCode === 301 && ctx._2["Location"]) {
@@ -294,31 +293,36 @@ const JetPath_app = async (
         _JetPath_app_config.cors(ctx);
       }
       !ctx._1 && ctx._3 && ctx._3.pipe(res);
-      return createResponse(ctx, res);
+      return createResponse(res, ctx);
     } catch (error) {
       //? report error to error hook
       if (String(error).includes("done")) {
         if (_JetPath_app_config.cors) {
           _JetPath_app_config.cors(ctx);
         }
-        return createResponse(ctx, res);
+        return createResponse(res, ctx);
       } else {
         try {
           await (_JetPath_hooks["ERROR"] as any)?.(ctx, error);
           if (_JetPath_app_config.cors) {
             _JetPath_app_config.cors(ctx);
           }
-          return createResponse(ctx, res);
+          return createResponse(res, ctx);
         } catch (error) {
           if (_JetPath_app_config.cors) {
             _JetPath_app_config.cors(ctx);
           }
-          return createResponse(ctx, res);
+          return createResponse(res, ctx);
         }
       }
     }
   } else {
-    return createResponse(undefined, res);
+    if (_JetPath_app_config.cors || req.method === "OPTIONS") {
+      const ctx = createCTX(req); //? no closures more efficient
+      _JetPath_app_config.cors(ctx);
+      return createResponse(res, ctx);
+    }
+    return createResponse(res);
   }
 };
 

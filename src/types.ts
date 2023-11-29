@@ -22,7 +22,7 @@ export type AppCTXType = {
   set(field: string, value: string): void;
   pass(field: string, value: unknown): void;
   pipe(stream: Stream, message: string): void;
-  _1: any;
+  _1: string | undefined;
   _2: Record<string, string>;
   _3: Stream | undefined;
 };
