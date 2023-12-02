@@ -25,6 +25,7 @@ export type AppCTXType = {
   _1: string | undefined;
   _2: Record<string, string>;
   _3: Stream | undefined;
+  _4: boolean | undefined;
 };
 
 export type allowedMethods = methods[];

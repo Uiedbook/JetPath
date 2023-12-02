@@ -60,9 +60,12 @@ export async function GET_dogs$$(ctx) {
       " thanks for visiting JetPath App!"
   );
 }
+/**
+ * @param {{ redirect: (arg0: string) => void; }} ctx
+ */
 export async function GET_(ctx) {
-  ctx.redirect("http://localhost:8080/dogs");
-  // throw new Error("tada");
+  // ctx.redirect("http://localhost:8080/dogs");
+  throw new Error("tada");
 }
 
 /**
@@ -99,20 +102,19 @@ export function hook__POST(ctx, data) {
 }
 
 /**
- *
  * @param {{
- * reply: (data: any) => void;
- * throw(code: number, message: string): void;
- * code(code: number): void;
- *  pipe(stream: Stream, message: string): void;
- * json(): Promise<Record<string, any>>;
- * text(): Promise<string>;
- *  _(): any;
- *  }} ctx
+    reply: (data: any) => void;
+    throw(code: number, message: string): void;
+    code(code: number): void;
+    pipe(stream: Stream, message: string): void;
+    json(): Promise<Record<string, any>>;
+    text(): Promise<string>;
+    _(): any;
+}} ctx
+ * @param {any} err
  */
-
 export function hook__ERROR(ctx, err) {
-  console.log(err);
+  console.log({ err });
   ctx.throw(400, "bad request!");
   console.log(err); // nop this won't run, JetPath took over control
 }

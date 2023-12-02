@@ -44,7 +44,7 @@ export class JetPath {
       _JetPath_app_config["printRoutes" as keyof typeof _JetPath_app_config]
     ) {
       console.log("JetPath: compiling paths...");
-      await getHandlers(this.options?.source!);
+      await getHandlers(this.options?.source!, true);
       console.log("JetPath: done.");
       console.log(_JetPath_hooks);
       for (const k in _JetPath_paths) {
@@ -57,7 +57,7 @@ export class JetPath {
         }
       }
     } else {
-      await getHandlers(this.options?.source!);
+      await getHandlers(this.options?.source!, false);
     }
     console.log(`\nJetPath app listening on port ${port}...`);
     JetPath_server.listen(this.options?.port || 8080);

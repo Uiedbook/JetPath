@@ -77,11 +77,18 @@ export const _JetPath_hooks: Record<
   string,
   (ctx: AppCTXType) => void | Promise<void>
 > = {
-  PRE: true as any,
-  POST: true as any,
-  ERROR: true as any,
+  PRE: false as any,
+  POST: false as any,
+  ERROR: false as any,
 };
-const errDone = new Error("done");
+class JetPathErrors extends Error {
+  constructor(message: string = "done") {
+    super(message);
+  }
+}
+
+const errDone = new JetPathErrors();
+
 export const _JetPath_app_config = {
   cors: undefined as unknown as (ctx: AppCTXType) => void,
   set(this: any, opt: string, val: any) {
@@ -131,37 +138,42 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
         break;
     }
     this._2["Content-Type"] = contentType;
+    this._4 = true;
     throw errDone;
   },
   redirect(url: string) {
     this.statusCode = 301;
     this._2["Location"] = url;
     this._1 = undefined;
+    this._4 = true;
     throw errDone;
   },
   throw(
     code: number | string | object = 404,
     message: string | object = "Not Found"
   ) {
-    switch (typeof code) {
-      case "number":
-        this.statusCode = code;
-        if (typeof message === "object") {
+    // ? could be a success but a wrong throw, so we check
+    if (!this._4) {
+      switch (typeof code) {
+        case "number":
+          this.statusCode = code;
+          if (typeof message === "object") {
+            this._2["Content-Type"] = "application/json";
+            this._1 = JSON.stringify(message);
+          } else {
+            this._2["Content-Type"] = "text/plain";
+            this._1 = message;
+          }
+          break;
+        case "string":
+          this._2["Content-Type"] = "text/plain";
+          this._1 = code;
+          break;
+        case "object":
           this._2["Content-Type"] = "application/json";
           this._1 = JSON.stringify(message);
-        } else {
-          this._2["Content-Type"] = "text/plain";
-          this._1 = message;
-        }
-        break;
-      case "string":
-        this._2["Content-Type"] = "text/plain";
-        this._1 = code;
-        break;
-      case "object":
-        this._2["Content-Type"] = "application/json";
-        this._1 = JSON.stringify(message);
-        break;
+          break;
+      }
     }
     throw errDone;
   },
@@ -186,8 +198,16 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
   pipe(stream: Stream, ContentDisposition: string) {
     this._2["Content-Disposition"] = ContentDisposition;
     this._3 = stream;
+    this._4 = true;
   },
   json() {
+    if (this.body) {
+      return this.body;
+    }
+    if (!runtime.node) {
+      // @ts-ignore
+      return this.request.json();
+    }
     return new Promise<Record<string, any>>((r) => {
       let body = "";
       this.request.on("data", (data: { toString: () => string }) => {
@@ -202,6 +222,13 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
     });
   },
   text() {
+    if (this.body) {
+      return this.body;
+    }
+    if (!runtime.node) {
+      // @ts-ignore
+      return this.request.text();
+    }
     return new Promise<string>((r) => {
       let body = "";
       this.request.on("data", (data: { toString: () => string }) => {
@@ -234,10 +261,12 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
   // },
   //? load
   _1: undefined,
-  //? header
+  //? header of response
   _2: {},
   //? stream
   _3: undefined,
+  //? succes  state
+  _4: false,
   params: {},
   search: {},
 });
@@ -283,11 +312,11 @@ const JetPath_app = async (
     }
     try {
       //? pre-request hooks here
-      await _JetPath_hooks["PRE"]?.(ctx);
+      _JetPath_hooks["PRE"] && (await _JetPath_hooks["PRE"]?.(ctx));
       //? router
       await (r as any)(ctx);
       //? post-request hooks here
-      _JetPath_hooks["POST"] && (await (_JetPath_hooks["POST"] as any)(ctx));
+      _JetPath_hooks["POST"] && (await _JetPath_hooks["POST"](ctx));
       // ? cors header
       if (_JetPath_app_config.cors) {
         _JetPath_app_config.cors(ctx);
@@ -296,14 +325,20 @@ const JetPath_app = async (
       return createResponse(res, ctx);
     } catch (error) {
       //? report error to error hook
-      if (String(error).includes("done")) {
+      if (error instanceof JetPathErrors) {
         if (_JetPath_app_config.cors) {
           _JetPath_app_config.cors(ctx);
         }
         return createResponse(res, ctx);
       } else {
         try {
-          await (_JetPath_hooks["ERROR"] as any)?.(ctx, error);
+          _JetPath_hooks["ERROR"] &&
+            (await (
+              _JetPath_hooks["ERROR"] as (
+                k: AppCTXType,
+                v: unknown
+              ) => Promise<any>
+            )(ctx, error));
           if (_JetPath_app_config.cors) {
             _JetPath_app_config.cors(ctx);
           }
@@ -347,10 +382,12 @@ const Handlerspath = (path: any) => {
   return;
 };
 
-export async function getHandlers(source: string) {
+export async function getHandlers(source: string, print: boolean) {
   source = source || cwd();
   source = path.resolve(cwd(), source);
-  console.log("JetPath: " + source);
+  if (print) {
+    console.log("JetPath: " + source);
+  }
   const dir = await opendir(source);
   for await (const dirent of dir) {
     if (dirent.isFile() && dirent.name.endsWith(".js")) {
@@ -364,7 +401,7 @@ export async function getHandlers(source: string) {
           ) {
             _JetPath_paths[params[0] as methods][params[1]] = module[p];
           } else {
-            if (_JetPath_hooks[params as string]) {
+            if ((_JetPath_hooks[params as string] as any) === false) {
               _JetPath_hooks[params as string] = module[p];
             }
           }
@@ -376,7 +413,7 @@ export async function getHandlers(source: string) {
       dirent.name !== "node_modules" &&
       dirent.name !== ".git"
     ) {
-      await getHandlers(source + "/" + dirent.name);
+      await getHandlers(source + "/" + dirent.name, print);
     }
   }
 }

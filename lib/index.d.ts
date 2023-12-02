@@ -21,6 +21,7 @@ type AppCTXType = {
     _1: string | undefined;
     _2: Record<string, string>;
     _3: Stream | undefined;
+    _4: boolean | undefined;
 };
 type allowedMethods = methods[];
 type methods = "GET" | "POST" | "OPTIONS" | "DELETE" | "HEAD" | "PUT" | "PATCH";
