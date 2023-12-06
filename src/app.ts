@@ -154,13 +154,14 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
   ) {
     // ? could be a success but a wrong throw, so we check
     if (!this._4) {
+      this.statusCode = 400;
       switch (typeof code) {
         case "number":
           this.statusCode = code;
           if (typeof message === "object") {
             this._2["Content-Type"] = "application/json";
             this._1 = JSON.stringify(message);
-          } else {
+          } else if (typeof message === "string") {
             this._2["Content-Type"] = "text/plain";
             this._1 = message;
           }
