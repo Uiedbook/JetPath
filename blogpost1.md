@@ -1,4 +1,4 @@
-# Introducing JetPath: A Lightning-Fast, Code-Saving Node Framework, for Supercharged Server-Side apps! ✨🚀
+## Introducing JetPath: A Lightning-Fast, Code-Saving Node Framework, for Supercharged Server-Side apps! ✨🚀
 
 <img src="sunset.jpg" />
 
@@ -6,12 +6,12 @@ Image by <a href="https://pixabay.com/users/analogicus-8164369/?utm_source=link-
 
 ## it's Evening time here tho.
 
-It's evening over here, and i'm writing this article to share with the awareness about two thing.
+It's evening over here, and i'm writing this article to talk about two things.
 
 1. The heavy and cumbersome nature of server-sider frameworks for NodeJs, Denojs and Bunjs
 2. The solution y'all been waiting for!
 
-Sit properly let's evaluate and hunt for something better.
+let's walk in.
 
 ## Cumbersome? what's cumbersome?
 
@@ -19,39 +19,43 @@ What's the Challenge?
 
 Things become cumbersome when they tends to create a dependency tree, complicated interfaces, limited innovation, excessive abstraction layers, and most of all using solutions that implies heavy runtime overhead. If you've ever felt trapped in this situation, you're not alone.
 
-As a software engineer i always have this phylosophy of simplicity is easier to manage and extend. The tool I'm about to introduce aligns with this philosophy, providing a refreshing perspective.
+As a software engineer i always have this phylosophy of simplicity is easier to manage and extend. The tool I'm about to introduce aligns with this philosophy, providing a refreshing perspective in this early 2024 and beyound.
 
 ### The Culprits in most node Frameworks.
 
 High learning curve, Abstraction layers, Convention over Configuration, Middleware management, boiler-platey codes, Configuration Overheads, Dependency Injection overhead, debugging challeges, updates and compartibility dramas.
 
-Not make this article too long and creating a debate over the value of whatever advantages or disadvantages. i won't go much into detail on which tools is lacking or what's not.
+Not to make this article too long and creating a debate over the value of whatever advantages or disadvantages. i won't go much into detail on which tools is lacking or what's not.
 
-Instead, Let's talk about something better.
+Instead, Let's walk into something better.
 
 ## Rationale
 
+<center>
 <img style="display: block; margin: 20px auto;" src="icon.webp" alt="JetPath" width="190" height="190">
+</center>
+
+### JetPath
 
 Many are obviously fed up of dealing with heavy and cumbersome server-side frameworks for our Node.js, Deno.js, and Bun.js applications. Looking into `JetPath` which revolutionize our development experience With its lightweight design and intuitive routing patterns, `JetPath` takes server-side JavaScript frameworks to a new level.
 
 Whether you're using Node.js, Deno.js, or Bun.js, `JetPath` adapts seamlessly to your preferred runtime. Let's look into `JetPath` maybe it will solve all your problems.
 
-It's 'Drop in' it only use the native http api of the runtime you run your app with, so zero compartibility overhead ma.
+It's a runtime 'Drop in' it only use the native http api of the runtime you run your app with, so zero compartibility overhead ma.
 
-You enjoy enjoy this sleek design and fast performance, `JetPath` offers a refreshing experience.
+With a sleek design and high performance, `JetPath` offers a refreshing experience, i have ever seen. this is new innovation.
 
 ## Fast, Small, and Easy-Peasy
 
-JetPath is a small and efficient framework, weighing in at just 5.7kb. Its lightweight nature bare level of abstraction ensures your applications perform optimally without unnecessary overhead. Additionally, `JetPath` offers an easy-to-use API, enabling you to design and manage your API(s) with unparalleled granularity.
+JetPath is a small and efficient framework, weighing in at just 6kb. Its lightweight nature bare level of abstraction ensures your applications performs optimally without unnecessary overhead. Additionally, `JetPath` offers an easy-to-use API, enabling you to design and manage your API(s) with unparalleled granularity.
 
 Unlike traditional frameworks like Express or Fastify, `JetPath` introduces a groundbreaking innovation with function names as routing patterns. This unique approach simplifies your code and enhances the readability of your routing logic.
 
 ## The Need for more Speed and Simplicity
 
-When it comes to server-side frameworks, speed and simplicity are of utmost importance. Other frameworks out there often come with unnecessary overhead, slowing down your application's performance. JetPath, on the other hand, is a lightweight and minimalist framework that emphasizes on speed and simplicity.
+When it comes to server-side frameworks, speed and simplicity are of utmost importance. JetPath's aim is to avoid performance bottle necks, with a lightweight and minimalist design that emphasizes on speed and simplicity.
 
-It's intuitive routing system, which uses function names as routing patterns, sets it apart from traditional frameworks like Express or Fastify. This innovative approach simplifies your code and enhances the readability of your routing logic, making it easier to design and manage your API(s) with unparalleled granularity.
+It's has an inbuilt intuitive routing system, which uses function names as routing patterns, sets it apart from traditional frameworks like Express or Fastify. This innovative approach simplifies your code and enhances the readability of your routing logic, making it easier to design and manage your API(s) with unparalleled granularity.
 
 JetPath is one of Bun's fastest web frameworks.
 
@@ -67,7 +71,7 @@ Our Telegram group, comprised of passionate minds, is dedicated to making the we
 
 ## Exploring JetPath's Functionality
 
-JetPath operates by searching through your source folder and automatically assembling any defined paths and hooks following its intuitive format.
+JetPath operates by searching through your source folder and automatically assembling any exported defined paths and hooks functions following its intuitive route patterns.
 
 This seamless integration saves you precious development time and effort. Instead of spending hours configuring and setting up routes, you can focus on crafting your application's core logic while `JetPath` handles the routing for you.
 
@@ -84,7 +88,7 @@ npm install jetpath --save
 Once installed, configure your JetPath instance with necessary options, such as setting the source folder for your routes and specifying the port you want to listen on. Here's an example:
 
 ```typescript
-import `JetPath` from "jetpath";
+import { JetPath } from "jetpath";
 
 const app = new JetPath({
   source: "./src", // Optional: Set the source folder for your routes
@@ -106,7 +110,7 @@ And these features are the core of JetPath.
 
 ### Function Names as Routing Patterns
 
-JetPath introduces a groundbreaking innovation where your function names embody the routing patterns. This unique approach eliminates the need for complex configuration files and enables you to define routes with ease. By aligning your code structure with your routing structure, `JetPath` streamlines the development process and improves code maintainability.
+JetPath introduces a groundbreaking innovation where your function names declares the routing pattern for the function. This unique approach eliminates the need for complex configuration files and enables you to define routes with ease.
 
 My first testimony - ( more below )
 
@@ -133,7 +137,7 @@ npm i `jetpath` --save
 Using `JetPath` is incredibly straightforward, enabling you to create powerful applications with ease. Let's walk through a basic app setup to demonstrate the simplicity of JetPath:
 
 ```typescript
-import `JetPath` from "jetpath";
+import { JetPath } from "jetpath";
 
 const app = new JetPath({
   source: "./src", // Optional: Set the source folder for your routes
@@ -204,13 +208,11 @@ export function hook__ERROR(ctx, err) {
 }
 ```
 
-We define routes using function names, allowing for clear and concise code. `JetPath` also supports pre and post-request hooks, providing extra flexibility for customizations. Additionally, `JetPath` includes inbuilt CORS hooks, things everyone needs.
+We define routes using function names, allowing for clear and concise code. `JetPath` also supports pre and post-request hooks, providing extra flexibility for customizations. Additionally, `JetPath` includes inbuilt CORS hooks, things web dev needs.
 
 ## It's time to JetPath, JetPath, Jet.
 
 JetPath is the game-changer you've been waiting for — a fast, minimalist framework that empowers you to build powerful server applications with ease. With its lightning speed, simplicity-driven design, and passionate community, `JetPath` is the ideal choice for your Node.js, Deno.js, or Bun.js project.
-
-Benchmarks you won't believe can be on the repo soon.
 
 ## My testimony
 
@@ -226,7 +228,7 @@ Add your testimonies below
 
 <a href="https://www.buymeacoffee.com/fridaycandour"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=&slug=fridaycandour&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>
 
-Some read-world codes (copied)
+Some read-world codes (copied with permission)
 
 ```js
 export async function POST_admin_create_product(ctx: AppCTXType) {
@@ -251,22 +253,24 @@ export async function Get_products_search$query(ctx: AppCTXType) {
   ctx.reply(search);
 }
 
-// if you wanna add your just dm me @procal.
+// if you wanna add your just dm me @Procal on the group.
 ```
 
-share the love, tell someone about JetPath.
+share the love, tell someone about JetPath. i told my friends and my mum.
 
 ## Where's JetPath future gonna be like?
 
 currently we are working on integration with industry tools like
 
 1. GraphQL Yoga
-2. Swagger
+2. Swagger (in progress)
 3. tRPC
-4. Vite
-5. Web Socket
+4. Vite (in progress)
+5. Web Socket (in progress)
 6. Clerk
 7. Lucia Auth
-8. Logger
+8. Logger (in progress)
+9. http stream (in progress)
+10. file upload (in progress)
 
-This road map is short and narrow to what everyone will benenfit the most from, if you have any suggestion kindly reach out to me.
+This road map is short and narrow to what everyone would benenfit from the most, if you have any suggestions kindly reach out to me on the [HQ](https://t.me/uiedbookHQ).
