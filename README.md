@@ -46,7 +46,7 @@ How are we able to achieve this without any configuration, sperate repo, or chna
 
 # Rationale
 
-JetPath is a Small(5.7kb) Server-side framework that is Fast and Easy to use.
+JetPath is a Small(6kb) Server-side framework that is Fast and Easy to use.
 
 [benchmark repo](https://github.com/FridayCandour/jetpath-benchmark)
 
