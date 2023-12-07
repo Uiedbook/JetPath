@@ -176,6 +176,7 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
           break;
       }
     }
+    this._4 = true;
     throw errDone;
   },
   get(field: string) {
