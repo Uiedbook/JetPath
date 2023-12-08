@@ -3,7 +3,7 @@ import {
   _JetPath_hooks,
   _JetPath_paths,
   getHandlers,
-  JetPath_server,
+  UTILS,
 } from "./app.js";
 import { allowedMethods, methods } from "./types.js";
 
@@ -30,7 +30,7 @@ export class JetPath {
       | boolean;
   }) {
     this.options = options || { printRoutes: true };
-    this.server = JetPath_server;
+    this.server = UTILS.server();
   }
   async listen() {
     const port = this.options?.port || 8080;
@@ -60,7 +60,7 @@ export class JetPath {
       await getHandlers(this.options?.source!, false);
     }
     console.log(`\nJetPath app listening on port ${port}...`);
-    JetPath_server.listen(this.options?.port || 8080);
+    this.server.listen(this.options?.port || 8080);
   }
 }
 

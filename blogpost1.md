@@ -33,9 +33,11 @@ Instead, Let's walk into something better.
 
 <center>
 <img style="display: block; margin: 20px auto;" src="icon.webp" alt="JetPath" width="190" height="190">
-</center>
 
-### JetPath
+<h1>
+JetPath
+</h1>
+</center>
 
 Many are obviously fed up of dealing with heavy and cumbersome server-side frameworks for our Node.js, Deno.js, and Bun.js applications. Looking into `JetPath` which revolutionize our development experience With its lightweight design and intuitive routing patterns, `JetPath` takes server-side JavaScript frameworks to a new level.
 
@@ -49,7 +51,7 @@ With a sleek design and high performance, `JetPath` offers a refreshing experien
 
 JetPath is a small and efficient framework, weighing in at just 6kb. Its lightweight nature bare level of abstraction ensures your applications performs optimally without unnecessary overhead. Additionally, `JetPath` offers an easy-to-use API, enabling you to design and manage your API(s) with unparalleled granularity.
 
-Unlike traditional frameworks like Express or Fastify, `JetPath` introduces a groundbreaking innovation with function names as routing patterns. This unique approach simplifies your code and enhances the readability of your routing logic.
+Unlike traditional frameworks like Express or Fastify, `JetPath` introduces a groundbreaking innovation with function names as routing patterns. This unique and innovative approach simplifies your code and enhances the readability of your routing logic.
 
 ## The Need for more Speed and Simplicity
 
@@ -69,7 +71,7 @@ JetPath is one of Bun's fastest web frameworks.
 
 Our Telegram group, comprised of passionate minds, is dedicated to making the web better. Whether you're a beginner developer or embarking on your coding journey, you'll find support, inspiration, and collaboration within the [Uiedbook](https://t.me/uiedbookHQ) community.
 
-## Exploring JetPath's Functionality
+## Exploring How JetPath's Work
 
 JetPath operates by searching through your source folder and automatically assembling any exported defined paths and hooks functions following its intuitive route patterns.
 
@@ -110,7 +112,7 @@ And these features are the core of JetPath.
 
 ### Function Names as Routing Patterns
 
-JetPath introduces a groundbreaking innovation where your function names declares the routing pattern for the function. This unique approach eliminates the need for complex configuration files and enables you to define routes with ease.
+JetPath introduces an innovation where your function names declares the routing pattern for the function. This unique approach eliminates the need for complex configuration files and enables you to define routes with ease.
 
 My first testimony - ( more below )
 
@@ -118,7 +120,7 @@ My first testimony - ( more below )
 
 ### Pre, Post, and Error Request Hooks
 
-JetPath provides hooks that allow you to execute code before and after each request, as well as handle any runtime errors that may occur. These hooks offer unparalleled flexibility to customize the behavior of your application. Whether you need to manipulate data, validate requests, or handle errors gracefully, `JetPath` has got you covered.
+JetPath provides hooks that allows you to execute code before and after each request, as well as handle any runtime errors that may occur. These hooks offer unparalleled flexibility to customize the behavior of your application. Whether you need to manipulate data, validate requests, or handle errors gracefully, `JetPath`'s hooks has got you covered.
 
 ### Built-in CORS Handlers
 
@@ -134,7 +136,7 @@ npm i `jetpath` --save
 
 ## Getting Started with JetPath
 
-Using `JetPath` is incredibly straightforward, enabling you to create powerful applications with ease. Let's walk through a basic app setup to demonstrate the simplicity of JetPath:
+Using `JetPath` is incredibly straightforward. Let's walk through a basic app setup to demonstrate the simplicity of JetPath:
 
 ```typescript
 import { JetPath } from "jetpath";
@@ -192,6 +194,36 @@ export async function GET_cats$$(ctx) {
   );
 }
 
+// GET localhost:8080/default/dog/types
+export async function GET_default_dog_types(ctx) {
+  // custom ctx methods
+  ctx.sendDefaultDoglist();
+}
+
+// hook to decorate the CTX
+export function hook__DECORATOR() {
+  return {
+    sendDefaultDoglist() {
+      this.reply({
+        types: [
+          "rottweiler",
+          "german sheepherd",
+          "boerbull",
+          "husky",
+          "neopolitan mastiff",
+          "pitbull",
+          "pug",
+          "eskimo",
+          "labrador",
+          "golden retrieval",
+        ],
+      });
+    },
+  };
+}
+
+
+
 // Hooks
 export function hook__POST(ctx, data) {
   // console.log("POST boohoo");
@@ -208,25 +240,21 @@ export function hook__ERROR(ctx, err) {
 }
 ```
 
-We define routes using function names, allowing for clear and concise code. `JetPath` also supports pre and post-request hooks, providing extra flexibility for customizations. Additionally, `JetPath` includes inbuilt CORS hooks, things web dev needs.
+We define routes using function names, allowing for clear and concise code. `JetPath` also supports pre and post-request hooks, providing extra flexibility for customizations. Additionally, `JetPath` includes inbuilt CORS hooks, things everyone web dev needs :).
 
 ## It's time to JetPath, JetPath, Jet.
 
-JetPath is the game-changer you've been waiting for — a fast, minimalist framework that empowers you to build powerful server applications with ease. With its lightning speed, simplicity-driven design, and passionate community, `JetPath` is the ideal choice for your Node.js, Deno.js, or Bun.js project.
+JetPath is the game-changing innovation you've been waiting for — a fast, minimalist framework that empowers you to build powerful server applications with ease. With its lightning speed, simplicity-driven design, and passionate community, `JetPath` is the ideal choice for your Node.js, Deno.js, or Bun.js projects.
 
 ## My testimony
 
 Jetpath greatly reduced the code on all my node code-bases and let me focus on what's important.
 
-Wait i forgot to mention my apis are several orders of magnitude faster than previuos frameworks my projects are based on.
+Wait i forgot to mention my apis are several orders of magnitude faster than previous frameworks my projects are based on.
 
 Add your testimonies below
 
 ...
-
-### The Pizza Area
-
-<a href="https://www.buymeacoffee.com/fridaycandour"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=&slug=fridaycandour&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>
 
 Some read-world codes (copied with permission)
 
@@ -252,8 +280,6 @@ export async function Get_products_search$query(ctx: AppCTXType) {
     .exec();
   ctx.reply(search);
 }
-
-// if you wanna add your just dm me @Procal on the group.
 ```
 
 share the love, tell someone about JetPath. i told my friends and my mum.
@@ -274,3 +300,11 @@ currently we are working on integration with industry tools like
 10. file upload (in progress)
 
 This road map is short and narrow to what everyone would benenfit from the most, if you have any suggestions kindly reach out to me on the [HQ](https://t.me/uiedbookHQ).
+
+If you want to make npm packages for JetPath and need support, send a dm.
+
+dog names suggestions was provided by @da-favice.
+
+### The Pizza Area
+
+<a href="https://www.buymeacoffee.com/fridaycandour"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=&slug=fridaycandour&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" /></a>

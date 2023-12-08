@@ -7,59 +7,51 @@ import { URLSearchParams } from "node:url";
 import path from "node:path";
 import { cwd } from "node:process";
 
-const avoidErr = (cb: { (): any; (): any; (): void }) => {
-  try {
-    cb();
-    return true;
-  } catch (error) {
-    return false;
-  }
+export const UTILS = {
+  avoidErr(cb: { (): any; (): any; (): void }) {
+    try {
+      cb();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  },
+  getRutime() {
+    // @ts-ignore
+    const bun = UTILS.avoidErr(() => Bun);
+    // @ts-ignore
+    const deno = UTILS.avoidErr(() => Deno);
+    this.runtime = { bun, deno, node: !bun && !deno };
+  },
+  runtime: null as unknown as Record<string, boolean>,
+  decorators: {},
+  server() {
+    if (UTILS.runtime.node) {
+      return createServer((x, y) => {
+        JetPath_app(x, y);
+      });
+    }
+    if (UTILS.runtime.deno) {
+      return {
+        listen(port: number) {
+          // @ts-ignore
+          Deno.serve({ port: port }, JetPath_app);
+        },
+      };
+    }
+    if (UTILS.runtime.bun) {
+      return {
+        listen(port: number) {
+          // @ts-ignore
+          Bun.serve({ port, fetch: JetPath_app });
+        },
+      };
+    }
+    return;
+  },
 };
-
-const getRutime = () => {
-  // @ts-ignore
-  const bun = avoidErr(() => Bun);
-  // @ts-ignore
-  const deno = avoidErr(() => Deno);
-  const node = !bun && !deno;
-  return { bun, deno, node };
-};
-
-const runtime = getRutime();
-export let JetPath_server = { listen(port: number) {} };
-if (runtime.node) {
-  JetPath_server = createServer((x, y) => {
-    JetPath_app(x, y);
-  });
-  // @ts-ignore
-  // JetPath_server.on("error", (e) => {
-  //   if ((e as any).code === "EADDRINUSE") {
-  //     console.log("Address in use, retrying...");
-  //     setTimeout(() => {
-  //       // @ts-ignore
-  //       JetPath_server.close();
-  //       // @ts-ignore
-  //       JetPath_server.listen(port);
-  //     }, 1000);
-  //   }
-  // });
-}
-if (runtime.deno) {
-  JetPath_server = {
-    listen(port) {
-      // @ts-ignore
-      Deno.serve({ port: port }, JetPath_app);
-    },
-  };
-}
-if (runtime.bun) {
-  JetPath_server = {
-    listen(port) {
-      // @ts-ignore
-      Bun.serve({ port, fetch: JetPath_app });
-    },
-  };
-}
+// ? setting up the runtime check
+UTILS.getRutime();
 
 export let _JetPath_paths: Record<
   methods,
@@ -81,6 +73,7 @@ export const _JetPath_hooks: Record<
   POST: false as any,
   ERROR: false as any,
 };
+
 class JetPathErrors extends Error {
   constructor(message: string = "done") {
     super(message);
@@ -115,7 +108,11 @@ export const _JetPath_app_config = {
   },
 };
 
-const createCTX = (req: IncomingMessage): AppCTXType => ({
+const createCTX = (
+  req: IncomingMessage,
+  decorationObject: Record<string, Function> = {}
+): AppCTXType => ({
+  ...decorationObject,
   request: req,
   body: null,
   app: {},
@@ -206,7 +203,7 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
     if (this.body) {
       return this.body;
     }
-    if (!runtime.node) {
+    if (!UTILS.runtime.node) {
       // @ts-ignore
       return this.request.json();
     }
@@ -227,7 +224,7 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
     if (this.body) {
       return this.body;
     }
-    if (!runtime.node) {
+    if (!UTILS.runtime.node) {
       // @ts-ignore
       return this.request.text();
     }
@@ -242,25 +239,7 @@ const createCTX = (req: IncomingMessage): AppCTXType => ({
       });
     });
   },
-  // https://github.com/mscdex/busboy
-  // files() {
-  //  npm i busboy
-  // return new Promise<any>((r) => {
-  // if (req.method === "POST") {
-  //   const bb = busboy({ headers: req.headers });
-  //   bb.on("file", (name, file, info) => {
-  //     const saveTo = path.join(os.tmpdir(), `busboy-upload-${random()}`);
-  //     file.pipe(fs.createWriteStream(saveTo));
-  //   });
-  //   bb.on("close", () => {
-  //     res.writeHead(200, { Connection: "close" });
-  //     res.end(`That's all folks!`);
-  //   });
-  //   req.pipe(bb);
-  //   return;
-  // }
-  // });
-  // },
+
   //? load
   _1: undefined,
   //? header of response
@@ -279,7 +258,7 @@ const createResponse = (
   },
   ctx?: AppCTXType
 ) => {
-  if (!runtime.node) {
+  if (!UTILS.runtime.node) {
     if (ctx?.statusCode === 301 && ctx._2["Location"]) {
       return Response.redirect(ctx._2["Location"]);
     }
@@ -306,7 +285,7 @@ const JetPath_app = async (
   let searchParams: Record<string, string> = {};
   let r = checker(req.method as methods, req.url!);
   if (r) {
-    const ctx = createCTX(req); //? no closures more efficient
+    const ctx = createCTX(req, UTILS.decorators); //? no closures more efficient
     if (r.length > 1) {
       [r, routesParams, searchParams] = r as unknown as any[];
       ctx.params = routesParams;
@@ -405,6 +384,12 @@ export async function getHandlers(source: string, print: boolean) {
           } else {
             if ((_JetPath_hooks[params as string] as any) === false) {
               _JetPath_hooks[params as string] = module[p];
+            } else {
+              if (params === "DECORATOR") {
+                // ! DECORATOR point
+                const decorator = module[p]();
+                UTILS.decorators = Object.assign(UTILS.decorators, decorator);
+              }
             }
           }
         }
@@ -490,3 +475,23 @@ const checker = (method: methods, url: string) => {
   }
   return;
 };
+
+// https://github.com/mscdex/busboy
+// files() {
+//  npm i busboy
+// return new Promise<any>((r) => {
+// if (req.method === "POST") {
+//   const bb = busboy({ headers: req.headers });
+//   bb.on("file", (name, file, info) => {
+//     const saveTo = path.join(os.tmpdir(), `busboy-upload-${random()}`);
+//     file.pipe(fs.createWriteStream(saveTo));
+//   });
+//   bb.on("close", () => {
+//     res.writeHead(200, { Connection: "close" });
+//     res.end(`That's all folks!`);
+//   });
+//   req.pipe(bb);
+//   return;
+// }
+// });
+// },

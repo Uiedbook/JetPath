@@ -2,7 +2,8 @@ import { Stream } from "node:stream";
 import { IncomingMessage } from "node:http";
 
 /**
- * @param {{
+ * @param ctx {{
+ log(ctx: any): unknown;
  *  request: IncomingMessage;
  * reply(data: unknown, ContentType?: string): void;
  * throw(code: number, message: string): void;
@@ -13,11 +14,13 @@ import { IncomingMessage } from "node:http";
  * pipe(stream: Stream, message: string): void;
  * json(): Promise<Record<string, any>>;
  * text(): Promise<string>;
- *  }} ctx
+ *  }}
  */
+
+// /dogs
 export function GET_dogs(ctx) {
-  ctx.set("X-token", "boohoo");
-  ctx.reply({ foo: "bar" });
+  // ctx.set("X-token", "boohoo");
+  ctx.reply(ctx);
   // ctx.throw(400, "boohoo");
 }
 /**
@@ -102,7 +105,7 @@ export function hook__POST(ctx, data) {
 }
 
 /**
- * @param {{
+ * @param ctx {{
     reply: (data: any) => void;
     throw(code: number, message: string): void;
     code(code: number): void;
@@ -117,4 +120,31 @@ export function hook__ERROR(ctx, err) {
   console.log({ err });
   ctx.throw(400, "bad request!");
   console.log(err); // nop this won't run, JetPath took over control
+}
+
+// GET localhost:8080/default
+export async function GET_default(ctx) {
+  ctx.sendDefaultDoglist();
+}
+
+export function hook__DECORATOR() {
+  return {
+    sendDefaultDoglist() {
+      console.log(this);
+      this.reply({
+        types: [
+          "rottweiler",
+          "german sheepherd",
+          "boerbull",
+          "husky",
+          "neopolitan mastiff",
+          "pitbull",
+          "pug",
+          "eskimo",
+          "labrador",
+          "golden retrieval",
+        ],
+      });
+    },
+  };
 }
