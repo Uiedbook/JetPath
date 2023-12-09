@@ -169,7 +169,7 @@ const createCTX = (
           break;
         case "object":
           this._2["Content-Type"] = "application/json";
-          this._1 = JSON.stringify(message);
+          this._1 = JSON.stringify(code);
           break;
       }
     }
