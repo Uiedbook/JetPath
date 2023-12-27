@@ -126,11 +126,16 @@ export function hook__ERROR(ctx, err) {
 export async function GET_default(ctx) {
   ctx.sendDefaultDoglist();
 }
+// GET localhost:8080/user/:id
+export function GET_user$id(ctx) {
+  const id = ctx.id();
+  ctx.reply("you are " + id);
+}
 
 export function hook__DECORATOR() {
   return {
     sendDefaultDoglist() {
-      console.log(this);
+      // @ts-ignore
       this.reply({
         types: [
           "rottweiler",
@@ -145,6 +150,12 @@ export function hook__DECORATOR() {
           "golden retrieval",
         ],
       });
+    },
+    // @ts-ignore
+    id() {
+      // @ts-ignore
+      const id = this.params.id;
+      return id;
     },
   };
 }

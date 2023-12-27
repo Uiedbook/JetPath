@@ -1,0 +1,24 @@
+uploading files with JetPath
+
+https://medium.com/deno-the-complete-reference/handle-file-uploads-in-deno-ee14bd2b16d9
+
+https://bun.sh/guides/http/file-uploads
+
+websocket server
+
+https://medium.com/deno-the-complete-reference/native-web-sockets-client-server-in-deno-928678a65cf2
+
+creating a package for jetpath.
+https://blog.logrocket.com/websocket-tutorial-real-time-node-react/
+
+https://bun.sh/docs/api/websockets
+
+https://bun.sh/guides/http/stream-file
+
+https://examples.deno.land/http-server-streaming
+
+https://chankapure.medium.com/streaming-audio-and-video-files-in-node-js-a-how-to-guide-f5176b6361c6
+
+mancode is a premium package hosting, dev blogging and package documentation software.
+
+buy mancode.dev

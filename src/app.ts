@@ -388,7 +388,9 @@ export async function getHandlers(source: string, print: boolean) {
               if (params === "DECORATOR") {
                 // ! DECORATOR point
                 const decorator = module[p]();
-                UTILS.decorators = Object.assign(UTILS.decorators, decorator);
+                if (typeof decorator === "object") {
+                  UTILS.decorators = Object.assign(UTILS.decorators, decorator);
+                }
               }
             }
           }
