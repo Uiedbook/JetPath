@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import { Stream } from 'stream';
 
-type AppCTXType = {
+type AppCTXType<Type = {}> = {
     app: Record<string, unknown>;
     json(): Promise<Record<string, any>> | null;
     text(): Promise<string>;
@@ -22,9 +22,9 @@ type AppCTXType = {
     _2: Record<string, string>;
     _3: Stream | undefined;
     _4: boolean | undefined;
-};
-type allowedMethods = methods[];
+} & Type;
 type methods = "GET" | "POST" | "OPTIONS" | "DELETE" | "HEAD" | "PUT" | "PATCH";
+type allowedMethods = methods[];
 
 declare class JetPath {
     options: any;
