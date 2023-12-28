@@ -1,7 +1,7 @@
 import { IncomingMessage } from "http";
 import { Stream } from "stream";
 
-export type AppCTXType = {
+export type AppCTXType<Type = {}> = {
   app: Record<string, unknown>;
   // files(): Promise<any>;
   json(): Promise<Record<string, any>> | null;
@@ -26,9 +26,7 @@ export type AppCTXType = {
   _2: Record<string, string>;
   _3: Stream | undefined;
   _4: boolean | undefined;
-};
-
-export type allowedMethods = methods[];
+} & Type;
 
 export type methods =
   | "GET"
@@ -38,3 +36,5 @@ export type methods =
   | "HEAD"
   | "PUT"
   | "PATCH";
+
+export type allowedMethods = methods[];
