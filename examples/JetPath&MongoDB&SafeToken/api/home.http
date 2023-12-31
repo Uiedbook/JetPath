@@ -1,0 +1,60 @@
+GET http://localhost:8080 HTTP/1.1
+content-type: application/json
+
+###
+ 
+POST http://localhost:8080/user/register HTTP/1.1
+content-type: application/json
+
+ {
+    "username":"paul",
+    "firstName":"paul",
+    "lastName":"paul",
+    "password":"1111",
+    "email":"JetPath.checkpoint@gmail.com"
+ }
+###
+ 
+POST http://localhost:8080/user/reset/password HTTP/1.1
+content-type: application/json
+
+ { 
+    "password":"1111",
+    "email":"JetPath.checkpoint@gmail.com"
+ }
+###
+ 
+POST http://localhost:8080/user/otp HTTP/1.1
+content-type: application/json
+
+ {
+    "otp":"MfHi",
+    "email":"JetPath.checkpoint@gmail.com"
+ }
+ 
+###
+ 
+POST http://localhost:8080/user/login HTTP/1.1
+content-type: application/json
+
+ {
+    "password":"5EEkr8oeZnn4i7CN",
+    "email":"JetPath.checkpoint@gmail.com"
+ }
+
+
+###
+POST http://localhost:8080/user/update HTTP/1.1
+Authorization:685:f07c761808e739a2516ccadf7500f0c14b99da18717628db7a74c3e885f4d179a79116f494d787eaa3ad5bdcb92d55d125435a5f07d99fb36344cc516b0f96f72c6b03efac
+content-type: application/json
+
+ {
+    "password":"5EEkr8oeZnn4i7CN",
+    "email":"JetPath.checkpoint@gmail.com"
+ }
+
+###
+GET http://localhost:8080/user HTTP/1.1
+Authorization:855:baa0ad0ee1904e4c77b5191c020fd04c793059fd2f0a96863fa976082f9d90d330b5fcf7c526f91686b658310f4e53e14153caf130e2c79847d467dca9f99eda0e8da984c0
+ 
+

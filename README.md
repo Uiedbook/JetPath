@@ -30,6 +30,8 @@
 
 In this version, multi-runtime support is no-longer based on compartiblity but pure engine api(s).
 
+We Added Examples in the examples folder!
+
 - runing Node index.js starts a Node instance for your app.
 - runing Deno run index.ts starts a Deno instance for your app.
 - runing Bun index.ts starts a Bun instance for your app.
