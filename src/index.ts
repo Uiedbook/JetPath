@@ -30,7 +30,9 @@ export class JetPath {
       | boolean;
   }) {
     this.options = options || { printRoutes: true };
-    this.server = UTILS.server();
+    UTILS.server().then((s) => {
+      this.server = s;
+    });
   }
   async listen() {
     const port = this.options?.port || 8080;
@@ -43,7 +45,7 @@ export class JetPath {
     if (
       _JetPath_app_config["printRoutes" as keyof typeof _JetPath_app_config]
     ) {
-      console.log("JetPath: compiling paths...");
+      console.log("JetPath: compiling...");
       await getHandlers(this.options?.source!, true);
       console.log("JetPath: done.");
       console.log(_JetPath_hooks);
@@ -59,7 +61,7 @@ export class JetPath {
     } else {
       await getHandlers(this.options?.source!, false);
     }
-    console.log(`\nJetPath app listening on port ${port}...`);
+    console.log(`\nListening on http://localhost:${port}/`);
     this.server.listen(this.options?.port || 8080);
   }
 }
