@@ -191,9 +191,8 @@ ctx is th JetPath parameter your route functions are called with.
 export type AppCTXType = {
   // parse incoming data
   json(): Promise<Record<string, any>>;
-  text(): Promise<string>;
   // readOnly(s)
-  body: any; // only available after calling ctx.json() ot ctx.text()
+  body: any; // only available after calling ctx.json()
   search: Record<string, string>;
   params: Record<string, string>;
   request: IncomingMessage; // original reg object
@@ -201,12 +200,11 @@ export type AppCTXType = {
   // get and set headers and code
   get(field: string): string | undefined;
   set(field: string, value: string): void;
-  statusCode: number;
+  code: number;
   //Reply  methods
   reply(data: unknown, ContentType?: string): void;
   throw(code?: number | string, message?: string): void;
   redirect(url: string): void;
-  pipe(stream: Stream, message: string): void;
 };
 ```
 
