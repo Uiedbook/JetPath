@@ -32,9 +32,9 @@
   "homepage": "https://github.com/fridaycandour/jetpath#readme",
   "scripts": {
     "compile": "rm -rf lib && npm run build",
-    "node": "node tests/http/app.js",
-    "deno": "deno run --allow-all tests/http/app.js",
-    "bun": "bun -b tests/http/app.js",
+    "node": "node tests/app.js",
+    "deno": "deno run --allow-all tests/app.js",
+    "bun": "bun -b tests/app.js",
     "tests": "node --test tests/JetPath.test.js",
     "build": "tsup src/index.ts"
   },

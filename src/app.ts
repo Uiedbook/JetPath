@@ -8,6 +8,7 @@ import { corsHook } from "./cors";
 // type imports
 import { IncomingMessage, ServerResponse } from "node:http";
 import { AppCTXType, methods } from "./types";
+import { createServer } from "node:http";
 
 //? Noticed no http object was imported.
 
@@ -29,9 +30,8 @@ export const UTILS = {
   },
   runtime: null as unknown as Record<string, boolean>,
   decorators: {},
-  async server(): Promise<{ listen: any } | void> {
+  server(): { listen: any } | void {
     if (UTILS.runtime.node) {
-      const { createServer } = await import("node:http");
       return createServer((x, y) => {
         JetPath_app(x, y);
       });
