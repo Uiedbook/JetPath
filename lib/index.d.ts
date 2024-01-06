@@ -2,7 +2,7 @@ import { IncomingMessage } from 'http';
 
 type AppCTXType<Type = {}> = {
     json(): Promise<Record<string, any>> | null;
-    body?: unknown;
+    body?: any;
     code: number;
     search?: Record<string, string>;
     params?: Record<string, string>;

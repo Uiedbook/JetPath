@@ -4,7 +4,7 @@ import {
   _JetPath_paths,
   getHandlers,
   UTILS,
-} from "./app.js";
+} from "./primitives/functions";
 import { allowedMethods, methods } from "./types.js";
 
 export class JetPath {

@@ -1,10 +1,8 @@
 import { IncomingMessage } from "http";
-// import { Stream } from "stream";
 
 export type AppCTXType<Type = {}> = {
   json(): Promise<Record<string, any>> | null;
-  // text(): Promise<string>;
-  body?: unknown;
+  body?: any;
   code: number;
   search?: Record<string, string>;
   params?: Record<string, string>;

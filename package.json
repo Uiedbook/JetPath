@@ -33,8 +33,8 @@
   "scripts": {
     "compile": "rm -rf lib && npm run build",
     "node": "node tests/app.js",
-    "deno": "deno run --allow-all tests/app.js",
-    "bun": "bun -b tests/app.js",
+    "deno": "deno run --allow-all tests/app.ts",
+    "bun": "bun -b tests/app.ts",
     "tests": "node --test tests/JetPath.test.js",
     "build": "tsup src/index.ts"
   },

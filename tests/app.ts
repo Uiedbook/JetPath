@@ -1,6 +1,6 @@
 import { JetPath } from "../lib/index.js";
 
-const app = new JetPath({ port: 4000, source: "./tests", printRoutes: true });
+const app = new JetPath({ port: 4000, source: "./tests" });
 app.listen();
 
 // {
