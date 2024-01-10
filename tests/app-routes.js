@@ -36,12 +36,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hook__DECORATOR = exports.GET_user$id = exports.hook__ERROR = exports.hook__POST = exports.hook__PRE = exports.GET_ = exports.GET_dogs$$ = exports.GET_dogs$name$age$sex = exports.POST_dogs = exports.GET_dogs = void 0;
+exports.hook__DECORATOR = exports.GET_user$id = exports.hook__ERROR = exports.hook__POST = exports.hook__PRE = exports.GET_ = exports.GET_dogs$$ = exports.GET_dogs$name$age$sex = exports.POST_dogs = exports.GET_dogs$0 = exports.GET_dogs = void 0;
 // /dogs
 function GET_dogs(ctx) {
     ctx.reply(ctx); // ! error in nodejs
 }
 exports.GET_dogs = GET_dogs;
+// /dogs
+function GET_dogs$0(ctx) {
+    ctx.reply("all requests to /dogs/* ends on this page"); // ! error in nodejs
+}
+exports.GET_dogs$0 = GET_dogs$0;
 function POST_dogs(ctx) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {

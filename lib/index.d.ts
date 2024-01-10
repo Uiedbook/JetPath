@@ -1,4 +1,5 @@
 import { IncomingMessage } from 'http';
+import { Stream } from 'node:stream';
 
 type AppCTXType<Type = {}> = {
     json(): Promise<Record<string, any>> | null;
@@ -15,7 +16,9 @@ type AppCTXType<Type = {}> = {
     set(field: string, value: string): void;
     _1?: string | undefined;
     _2?: Record<string, string>;
+    _3?: Stream | undefined;
     _4?: boolean | undefined;
+    pipe(stream: Stream, ContentType: string): void;
 } & Type;
 type methods = "GET" | "POST" | "OPTIONS" | "DELETE" | "HEAD" | "PUT" | "PATCH";
 type allowedMethods = methods[];

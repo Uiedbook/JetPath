@@ -7,6 +7,7 @@ import { createServer } from "node:http";
 // type imports
 import { IncomingMessage, ServerResponse } from "node:http";
 import { AppCTXType, allowedMethods, methods } from "../types";
+import { Stream } from "node:stream";
 
 /**
  * an inbuilt CORS post hook
@@ -246,28 +247,31 @@ const createCTX = (
   decorationObject: Record<string, Function> = {}
 ): AppCTXType => ({
   request: req,
-  // body: null,
   code: 200,
   method: req.method!,
   reply(data: unknown, contentType: string) {
+    let ctype;
     switch (typeof data) {
       case "string":
-        contentType = !contentType ? "text/plain" : contentType;
+        ctype = "text/plain";
         this._1 = data;
         break;
       case "object":
-        contentType = "application/json";
+        ctype = "application/json";
         this._1 = JSON.stringify(data);
         break;
       default:
-        contentType = "text/plain";
+        ctype = "text/plain";
         this._1 = String(data);
         break;
     }
+    if (contentType) {
+      ctype = contentType;
+    }
     if (!this._2) {
       this._2 = {};
-      this._2["Content-Type"] = contentType;
     }
+    this._2["Content-Type"] = ctype;
     this._4 = true;
     throw errDone;
   },
@@ -327,18 +331,21 @@ const createCTX = (
       this._2[field] = value;
     }
   },
-
-  // pass(field: string, value: unknown) {
-  //   if (field && value) {
-  //     this.app[field] = value;
-  //   }
-  // },
-  // pipe(stream: Stream, ContentDisposition: string) {
-  //   this._2["Content-Disposition"] = ContentDisposition;
-  //   this._3 = stream;
-  //   this._4 = true;
-  //   throw errDone;
-  // },
+  pipe(stream: Stream, ContentType: string, name?: string) {
+    if (!this._2) {
+      this._2 = {};
+    }
+    this._2["Content-Disposition"] = `inline;filename="${
+      name || "unnamed.bin"
+    }"`;
+    this._2["Content-Type"] = ContentType;
+    if (!UTILS.runtime.node) {
+      return this.reply(stream, ContentType);
+    }
+    this._3 = stream;
+    this._4 = true;
+    throw errDone;
+  },
   json<Type = Record<string, any>>(): Promise<Type> {
     if (this.body) {
       return this.body as Promise<Type>;
@@ -404,6 +411,14 @@ const createResponse = (
       status: ctx?.code || 404,
       headers: ctx?._2 || {},
     });
+  }
+  if (ctx?._3) {
+    res.setHeader(
+      "Content-Type",
+      (ctx?._2 || {})["Content-Type"] || "text/plain"
+    );
+    ctx._3.pipe(res);
+    return undefined;
   }
   res.writeHead(ctx?.code || 404, ctx?._2 || { "Content-Type": "text/plain" });
   res.end(ctx?._1 || "Not found!");
@@ -489,6 +504,9 @@ const Handlerspath = (path: any) => {
   //? adding ?(s) in place
   path = path.split("$$");
   path = path.join("/?");
+  //? adding * in place
+  path = path.split("$0");
+  path = path.join("/*");
   //? adding :(s) in place
   path = path.split("$");
   path = path.join("/:");
@@ -571,43 +589,50 @@ const checker = (method: methods, url: string) => {
     return [routes[url.split("/?")[0] + "/?"], , search];
   }
 
-  //? place holder route check
+  //? place holder & * route checks
   for (const path in routes) {
-    if (!path.includes(":")) {
-      continue;
-    }
-    const urlFixtures = url.split("/");
-    const pathFixtures = path.split("/");
-    //? check for extra / in the route by normalize before checking
-    if (url.endsWith("/")) {
-      urlFixtures.pop();
-    }
-    let fixturesX = 0;
-    let fixturesY = 0;
-    //? length check of / (backslash)
-    if (pathFixtures.length === urlFixtures.length) {
-      for (let i = 0; i < pathFixtures.length; i++) {
-        //? let's jump place holders in the path since we can't determine from them
-        //? we increment that we skipped a position because we need the count later
-        if (pathFixtures[i].includes(":")) {
-          fixturesY++;
-          continue;
-        }
-        //? if it is part of the path then let increment a value for it
-        //? we will need it later
-        if (urlFixtures[i] === pathFixtures[i]) {
-          fixturesX++;
-        }
+    // ? placeholder check
+    if (path.includes(":")) {
+      const urlFixtures = url.split("/");
+      const pathFixtures = path.split("/");
+      //? check for extra / in the route by normalize before checking
+      if (url.endsWith("/")) {
+        urlFixtures.pop();
       }
-      //? if after the checks it all our count are equal then we got it correctly
-      if (fixturesX + fixturesY === pathFixtures.length) {
-        const routesParams: Record<string, string> = {};
+      let fixturesX = 0;
+      let fixturesY = 0;
+      //? length check of / (backslash)
+      if (pathFixtures.length === urlFixtures.length) {
         for (let i = 0; i < pathFixtures.length; i++) {
+          //? let's jump place holders in the path since we can't determine from them
+          //? we increment that we skipped a position because we need the count later
           if (pathFixtures[i].includes(":")) {
-            routesParams[pathFixtures[i].split(":")[1]] = urlFixtures[i];
+            fixturesY++;
+            continue;
+          }
+          //? if it is part of the path then let increment a value for it
+          //? we will need it later
+          if (urlFixtures[i] === pathFixtures[i]) {
+            fixturesX++;
           }
         }
-        return [routes[path], routesParams];
+        //? if after the checks it all our count are equal then we got it correctly
+        if (fixturesX + fixturesY === pathFixtures.length) {
+          const routesParams: Record<string, string> = {};
+          for (let i = 0; i < pathFixtures.length; i++) {
+            if (pathFixtures[i].includes(":")) {
+              routesParams[pathFixtures[i].split(":")[1]] = urlFixtures[i];
+            }
+          }
+          return [routes[path], routesParams];
+        }
+      }
+    }
+    // ? * check
+    if (path.includes("*")) {
+      const p = path.slice(0, -1);
+      if (url.startsWith(p)) {
+        return [routes[path], { extraPath: url.slice(p.length) }];
       }
     }
   }

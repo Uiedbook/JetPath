@@ -1,4 +1,5 @@
 import { IncomingMessage } from "http";
+import { Stream } from "node:stream";
 
 export type AppCTXType<Type = {}> = {
   json(): Promise<Record<string, any>> | null;
@@ -18,9 +19,9 @@ export type AppCTXType<Type = {}> = {
   set(field: string, value: string): void;
   _1?: string | undefined;
   _2?: Record<string, string>;
-  // _3?: Stream | undefined;
+  _3?: Stream | undefined;
   _4?: boolean | undefined;
-  // pipe(stream: Stream, message: string): void;
+  pipe(stream: Stream, ContentType: string): void;
   // app: Record<string, unknown>;
   // files(): Promise<any>;
   // pass(field: string, value: unknown): void;

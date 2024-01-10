@@ -4,6 +4,11 @@ export function GET_dogs(ctx: AppCTXType) {
   ctx.reply(ctx); // ! error in nodejs
 }
 
+// /dogs
+export function GET_dogs$0(ctx: AppCTXType) {
+  ctx.reply("all requests to /dogs/* ends on this page"); // ! error in nodejs
+}
+
 export async function POST_dogs(ctx: AppCTXType) {
   ctx.reply("enter skelter");
 }
