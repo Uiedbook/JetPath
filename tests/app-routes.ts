@@ -1,4 +1,4 @@
-import { AppCTXType } from "../lib/index";
+import { AppCTXType } from "../dist/index.js";
 // /dogs
 export function GET_dogs(ctx: AppCTXType) {
   ctx.reply(ctx); // ! error in nodejs

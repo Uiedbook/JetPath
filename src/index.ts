@@ -5,11 +5,16 @@ import {
   getHandlers,
   UTILS,
 } from "./primitives/functions";
-import { allowedMethods, methods } from "./types.js";
+import {
+  type allowedMethods,
+  type AppCTXType,
+  type methods,
+} from "./primitives/types.js";
 
 export class JetPath {
-  options: any;
-  server: any;
+  private options: any;
+  private server: any;
+  listening: boolean = false;
   constructor(options?: {
     source?: string;
     credentials?: any;
@@ -31,6 +36,15 @@ export class JetPath {
   }) {
     this.options = options || { printRoutes: true };
     this.server = UTILS.server();
+  }
+  decorate(decorations: Record<string, (ctx: AppCTXType) => void>) {
+    if (this.listening) {
+      throw new Error("Your app is listening new decorations can't be added.");
+    }
+    if (typeof decorations !== "object") {
+      throw new Error("could not add decorations to ctx");
+    }
+    UTILS.decorators = Object.assign(UTILS.decorators, decorations);
   }
   async listen() {
     const port = this.options?.port || 8080;
@@ -60,10 +74,11 @@ export class JetPath {
     } else {
       await getHandlers(this.options?.source!, false);
     }
+    this.listening = true;
     console.log(`\nListening on http://localhost:${port}/`);
     this.server.listen(this.options?.port || 8080);
   }
 }
 
 //? exports
-export type { AppCTXType } from "./types";
+export type { AppCTXType } from "./primitives/types";

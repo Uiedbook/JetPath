@@ -6,7 +6,7 @@ import { cwd } from "node:process";
 import { createServer } from "node:http";
 // type imports
 import { IncomingMessage, ServerResponse } from "node:http";
-import { AppCTXType, allowedMethods, methods } from "../types";
+import { type AppCTXType, type allowedMethods, type methods } from "./types";
 import { Stream } from "node:stream";
 
 /**
@@ -161,12 +161,12 @@ export const UTILS = {
   runtime: null as unknown as Record<string, boolean>,
   decorators: {},
   server(): { listen: any } | void {
-    if (UTILS.runtime.node) {
+    if (UTILS.runtime["node"]) {
       return createServer((x, y) => {
         JetPath_app(x, y);
       });
     }
-    if (UTILS.runtime.deno) {
+    if (UTILS.runtime["deno"]) {
       return {
         listen(port: number) {
           // @ts-ignore
@@ -174,7 +174,7 @@ export const UTILS = {
         },
       };
     }
-    if (UTILS.runtime.bun) {
+    if (UTILS.runtime["bun"]) {
       return {
         listen(port: number) {
           // @ts-ignore
@@ -217,7 +217,7 @@ class JetPathErrors extends Error {
 const errDone = new JetPathErrors();
 
 export const _JetPath_app_config = {
-  cors: undefined as unknown as (ctx: AppCTXType) => void,
+  cors: false as unknown as (ctx: AppCTXType) => void,
   set(this: any, opt: string, val: any) {
     if (opt === "cors" && val) {
       this.cors = corsHook({
@@ -246,6 +246,8 @@ const createCTX = (
   req: IncomingMessage,
   decorationObject: Record<string, Function> = {}
 ): AppCTXType => ({
+  ...decorationObject,
+  app: {},
   request: req,
   code: 200,
   method: req.method!,
@@ -279,8 +281,8 @@ const createCTX = (
     this.code = 301;
     if (!this._2) {
       this._2 = {};
-      this._2["Location"] = url;
     }
+    this._2["Location"] = url;
     this._1 = undefined;
     this._4 = true;
     throw errDone;
@@ -339,7 +341,7 @@ const createCTX = (
       name || "unnamed.bin"
     }"`;
     this._2["Content-Type"] = ContentType;
-    if (!UTILS.runtime.node) {
+    if (!UTILS.runtime["node"]) {
       return this.reply(stream, ContentType);
     }
     this._3 = stream;
@@ -350,7 +352,7 @@ const createCTX = (
     if (this.body) {
       return this.body as Promise<Type>;
     }
-    if (!UTILS.runtime.node) {
+    if (!UTILS.runtime["node"]) {
       return (this.request as unknown as Request).json() as Promise<Type>;
     }
     return new Promise<Type>((r) => {
@@ -366,24 +368,6 @@ const createCTX = (
       });
     });
   },
-  // text(): Promise<string> {
-  //   if (this.body) {
-  //     return this.body as Promise<string>;
-  //   }
-  //   if (!UTILS.runtime.node) {
-  //     return (this.request as unknown as Request).text();
-  //   }
-  //   return new Promise<string>((r) => {
-  //     let body = "";
-  //     this.request.on("data", (data: { toString: () => string }) => {
-  //       body += data.toString();
-  //     });
-  //     this.request.on("end", () => {
-  //       this.body = body;
-  //       r(body);
-  //     });
-  //   });
-  // },
   //? load
   // _1: undefined,
   //? header of response
@@ -394,7 +378,6 @@ const createCTX = (
   // _4: false,
   // params: {},
   // search: {},
-  ...decorationObject,
 });
 
 const createResponse = (
@@ -403,9 +386,9 @@ const createResponse = (
   },
   ctx?: AppCTXType
 ) => {
-  if (!UTILS.runtime.node) {
-    if (ctx?.code === 301 && ctx._2?.Location) {
-      return Response.redirect(ctx._2?.Location);
+  if (!UTILS.runtime["node"]) {
+    if (ctx?.code === 301 && ctx._2?.["Location"]) {
+      return Response.redirect(ctx._2?.["Location"]);
     }
     return new Response(ctx?._1 || "Not found!", {
       status: ctx?.code || 404,
@@ -443,26 +426,23 @@ const JetPath_app = async (
     }
     try {
       //? pre-request hooks here
-      _JetPath_hooks["PRE"] && (await _JetPath_hooks["PRE"]?.(ctx));
-      //? router
+      _JetPath_hooks["PRE"] && (await _JetPath_hooks["PRE"](ctx));
+      //? route handler call
       await (r as any)(ctx);
       //? post-request hooks here
       _JetPath_hooks["POST"] && (await _JetPath_hooks["POST"](ctx));
       // ? cors header
-      if (_JetPath_app_config.cors) {
-        _JetPath_app_config.cors(ctx);
-      }
-      // ? stream removed for a moment.
-      // !ctx._1 && ctx._3 && ctx._3.pipe(res);
+      _JetPath_app_config["cors"] && _JetPath_app_config.cors(ctx);
       return createResponse(res, ctx);
     } catch (error) {
-      //? report error to error hook
+      // ? complete request
       if (error instanceof JetPathErrors) {
         if (_JetPath_app_config.cors) {
           _JetPath_app_config.cors(ctx);
         }
         return createResponse(res, ctx);
       } else {
+        //? report error to error hook
         try {
           _JetPath_hooks["ERROR"] &&
             (await (

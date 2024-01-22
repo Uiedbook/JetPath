@@ -2,11 +2,10 @@
 #!/bin/bash
  
 
+
 echo "" 
-echo ""
-# npm run build
-echo  "  Building ...."
-npm run compile
+echo "" 
 echo  "  Packing ...."
-npm pack 
-mv **.tgz ~
+tsc --emitDeclarationOnly
+npm pack
+mv **.tgz ~/

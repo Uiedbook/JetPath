@@ -1,11 +1,4 @@
-import { JetPath } from "../../lib/index.js";
+import { JetPath } from "../../dist/index.js";
 
-const app = new JetPath();
+const app = new JetPath({ port: 3e3 });
 app.listen();
-
-// {
-//   source: "./tests/http/", // optional
-//   cors: true, // optional
-//   // port: 3000, // optional
-//   printRoutes: true,
-// }

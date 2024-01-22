@@ -1,22 +1,29 @@
 {
   "compilerOptions": {
-    "module": "esnext",
-    "target": "esnext",
+    // enable latest features
     "lib": ["es2022", "esnext", "dom", "dom.iterable"],
-    "declaration": true,
-    // "noEmit": true,
-    "strict": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "isolatedModules": true,
-    "checkJs": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
     "allowJs": true,
-    "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true,
-    "useDefineForClassFields": false,
-    "outDir": "JetPath"
+
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    // "noEmit": true,
+    "declaration": true,
+
+    // Best practices
+    "strict": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Some stricter flags
+    "useUnknownInCatchVariables": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "outDir": "./dist"
   },
-  "include": ["src", "tests", "tests/http"]
+  "include": ["src"]
 }

@@ -22,9 +22,8 @@ export type AppCTXType<Type = {}> = {
   _3?: Stream | undefined;
   _4?: boolean | undefined;
   pipe(stream: Stream, ContentType: string): void;
-  // app: Record<string, unknown>;
+  app: Record<string, any>;
   // files(): Promise<any>;
-  // pass(field: string, value: unknown): void;
 } & Type;
 
 export type methods =
