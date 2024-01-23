@@ -7,7 +7,7 @@ dotenv.config();
 const app = new JetPath({
   source: "lib",
   cors: true,
-  printRoutes: true,
+  displayRoutes: true,
 });
 
 try {

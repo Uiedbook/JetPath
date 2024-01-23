@@ -15,14 +15,14 @@ export async function POST_dogs(ctx: AppCTXType) {
 
 export async function GET_dogs$name$age$sex(ctx: AppCTXType) {
   // console.log(ctx.request.url, ctx.params);
-  const { name, age, sex } = ctx.params!;
+  const { name, age, sex } = ctx.params || {};
   ctx.reply(
     "hello " + name + " you are " + age + " years old and you are " + sex
   );
 }
 
 export async function GET_dogs$$(ctx: AppCTXType) {
-  const { name, age, sex } = ctx.search!;
+  const { name, age, sex } = ctx.search || {};
   ctx.reply(
     "hello " + name + " you are " + age + " years old and you are " + sex
   );
@@ -32,7 +32,7 @@ export async function GET_dogs$$(ctx: AppCTXType) {
  */
 export async function GET_(ctx: AppCTXType) {
   // ctx.redirect("http://localhost:8080/dogs");
-  throw new Error("tada");
+  throw new Error("tada your first error using JethPath");
 }
 
 /**
@@ -47,19 +47,19 @@ export function hook__POST(ctx: AppCTXType) {}
 
 export function hook__ERROR(ctx: AppCTXType, err: unknown) {
   console.log(err);
-  ctx.throw(400, "bad request!");
+  ctx.throw(400, String(err));
   console.log("booo2"); // nop this won't run, JetPath took over control
 }
 // GET localhost:8080/user/:id
-export function GET_user$id(ctx: AppCTXType<{ id: () => string }>) {
-  const id = ctx.id();
+export function GET_user$name(ctx: AppCTXType<{ name: () => string }>) {
+  const id = ctx.name();
   ctx.reply("you are " + id);
 }
 
 export function hook__DECORATOR() {
   return {
-    id(this: AppCTXType) {
-      const id = this.params!.id;
+    name(this: AppCTXType) {
+      const id = this.params?.name;
       return id;
     },
   };

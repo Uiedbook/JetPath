@@ -43,5 +43,8 @@
     "node": ">=14.0.0",
     "bun": ">=0.1.0"
   },
-  "private": false
+  "private": false,
+  "devDependencies": {
+    "@types/node": "^20.11.5"
+  }
 }

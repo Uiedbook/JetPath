@@ -6,7 +6,7 @@ export declare class JetPath {
     constructor(options?: {
         source?: string;
         credentials?: any;
-        printRoutes?: boolean;
+        displayRoutes?: boolean | "UI";
         port?: number;
         cors?: {
             allowMethods?: allowedMethods;

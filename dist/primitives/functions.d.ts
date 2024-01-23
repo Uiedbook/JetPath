@@ -17,7 +17,7 @@ import { type AppCTXType, type allowedMethods, type methods } from "./types";
  * @return {Function} cors post hook
  * @public
  */
-export declare function corsHook(_options: {
+export declare function corsHook(options: {
     exposeHeaders?: string[];
     allowMethods?: allowedMethods;
     allowHeaders: string[];
@@ -26,7 +26,7 @@ export declare function corsHook(_options: {
     credentials?: boolean;
     secureContext?: boolean;
     privateNetworkAccess?: any;
-    origin?: string;
+    origin: string[];
 }): Function;
 export declare const UTILS: {
     ae(cb: {

@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import {
   _JetPath_app_config,
   _JetPath_hooks,
@@ -10,6 +11,7 @@ import {
   type AppCTXType,
   type methods,
 } from "./primitives/types.js";
+import { html } from "./primitives/html";
 
 export class JetPath {
   private options: any;
@@ -18,7 +20,7 @@ export class JetPath {
   constructor(options?: {
     source?: string;
     credentials?: any;
-    printRoutes?: boolean;
+    displayRoutes?: boolean | "UI";
     port?: number;
     cors?:
       | {
@@ -34,7 +36,7 @@ export class JetPath {
         }
       | boolean;
   }) {
-    this.options = options || { printRoutes: true };
+    this.options = options || { displayRoutes: true };
     this.server = UTILS.server();
   }
   decorate(decorations: Record<string, (ctx: AppCTXType) => void>) {
@@ -56,27 +58,54 @@ export class JetPath {
 
     if (
       typeof this.options !== "object" ||
-      this.options.printRoutes !== false
+      this.options.displayRoutes !== false
     ) {
+      let c = 0,
+        t = "";
       console.log("JetPath: compiling...");
+      const startTime = performance.now();
       await getHandlers(this.options?.source!, true);
+      const endTime = performance.now();
       console.log("JetPath: done.");
       console.log(_JetPath_hooks);
       for (const k in _JetPath_paths) {
-        const r = _JetPath_paths[k as methods] as any;
+        const r = _JetPath_paths[k as methods];
         if (r && Object.keys(r).length) {
-          console.log("\n" + k + ": routes");
+          // console.log(`\n ${r} ${k} HTTP/1.1`);
           for (const p in r) {
-            console.log("'" + p + "'");
+            const api = `\n
+${k} http://localhost:${port}${p} HTTP/1.1
+
+###`;
+            if (this.options.displayRoutes === "UI") {
+              t += api;
+            } else {
+              console.log(api);
+            }
+            c += 1;
           }
         }
       }
+      if (this.options.displayRoutes === "UI") {
+        _JetPath_paths["GET"]["/JetPath/ui"] = (ctx) => {
+          ctx.reply(html.replace("'{JETPATH}'", `\`${t}\``), "text/html");
+        };
+        console.log(
+          `visit http://localhost:${port}/JetPath/ui to see the displayed routes in UI`
+        );
+      }
+
+      console.log(
+        `\n Parsed ${c} handlers in ${Math.round(
+          endTime - startTime
+        )} milliseconds`
+      );
     } else {
       await getHandlers(this.options?.source!, false);
     }
     this.listening = true;
     console.log(`\nListening on http://localhost:${port}/`);
-    this.server.listen(this.options?.port || 8080);
+    this.server.listen(port);
   }
 }
 

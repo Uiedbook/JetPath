@@ -28,7 +28,7 @@ import { Stream } from "node:stream";
  * @public
  */
 
-export function corsHook(_options: {
+export function corsHook(options: {
   exposeHeaders?: string[];
   allowMethods?: allowedMethods;
   allowHeaders: string[];
@@ -37,23 +37,8 @@ export function corsHook(_options: {
   credentials?: boolean;
   secureContext?: boolean;
   privateNetworkAccess?: any;
-  origin?: string;
+  origin: string[];
 }): Function {
-  const options: typeof _options = {
-    allowMethods: ["GET", "HEAD", "PUT", "POST", "DELETE", "PATCH"],
-    origin: "*",
-    secureContext: false,
-    keepHeadersOnError: false,
-    allowHeaders: [],
-  };
-
-  for (const key in _options) {
-    if (_options.hasOwnProperty(key)) {
-      options[key as keyof typeof _options] =
-        _options[key as keyof typeof _options];
-    }
-  }
-
   if (Array.isArray(options.allowMethods)) {
     options.allowMethods = options.allowMethods.join(
       ","
@@ -68,51 +53,31 @@ export function corsHook(_options: {
     options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
 
   return function cors(ctx: AppCTXType) {
-    let credentials = options.credentials;
-    const headersSet: Record<string, string> = {};
-
-    function set(key: string, value: string) {
-      ctx.set(key, value);
-      headersSet[key] = value;
-    }
-
-    if (ctx.method !== "OPTIONS") {
+    //? Add Vary header to indicate response varies based on the Origin header
+    ctx.set("Vary", "Origin");
+    if (options.credentials === true) {
+      ctx.set("Access-Control-Allow-Credentials", "true");
+    } else {
       //? Simple Cross-Origin Request, Actual Request, and Redirects
-      set("Access-Control-Allow-Origin", options.origin!);
-
-      //? Add Vary header to indicate response varies based on the Origin header
-      set("Vary", "Origin");
-      if (credentials === true) {
-        set("Access-Control-Allow-Credentials", "true");
-      }
-
+      ctx.set("Access-Control-Allow-Origin", options.origin!.join(","));
+    }
+    if (ctx.method !== "OPTIONS") {
       if (options.exposeHeaders) {
-        set("Access-Control-Expose-Headers", options.exposeHeaders.join(","));
+        ctx.set(
+          "Access-Control-Expose-Headers",
+          options.exposeHeaders.join(",")
+        );
       }
 
       if (options.secureContext) {
-        set("Cross-Origin-Opener-Policy", "same-origin");
-        set("Cross-Origin-Embedder-Policy", "require-corp");
+        ctx.set("Cross-Origin-Opener-Policy", "same-origin");
+        ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
       }
       if (options.allowHeaders) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
       }
     } else {
       //? Preflight Request
-
-      // If there is no Access-Control-Request-Method header or if parsing failed,
-      // do not set any additional headers and terminate this set of steps.
-      // The request is outside the scope of this specification.
-      if (!ctx.get("Access-Control-Request-Method")) {
-        // this not preflight request, ignore it
-        return;
-      }
-
-      ctx.set("Access-Control-Allow-Origin", options.origin!);
-
-      if (credentials === true) {
-        ctx.set("Access-Control-Allow-Credentials", "true");
-      }
 
       if (options.maxAge) {
         ctx.set("Access-Control-Max-Age", options.maxAge);
@@ -130,8 +95,8 @@ export function corsHook(_options: {
       }
 
       if (options.secureContext) {
-        set("Cross-Origin-Opener-Policy", "same-origin");
-        set("Cross-Origin-Embedder-Policy", "require-corp");
+        ctx.set("Cross-Origin-Opener-Policy", "same-origin");
+        ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
       }
 
       if (options.allowHeaders) {
@@ -219,15 +184,17 @@ const errDone = new JetPathErrors();
 export const _JetPath_app_config = {
   cors: false as unknown as (ctx: AppCTXType) => void,
   set(this: any, opt: string, val: any) {
-    if (opt === "cors" && val) {
+    if (opt === "cors" && val !== false) {
       this.cors = corsHook({
-        exposeHeaders: "",
-        allowMethods: "",
-        allowHeaders: "",
+        exposeHeaders: [],
+        allowMethods: [],
+        allowHeaders: ["Content-Type"],
         maxAge: "",
         keepHeadersOnError: true,
         secureContext: false,
         privateNetworkAccess: undefined,
+        origin: ["*"],
+        credentials: undefined,
         ...(typeof val === "object" ? val : {}),
       }) as any;
       if (Array.isArray(val["allowMethods"])) {
@@ -464,7 +431,7 @@ const JetPath_app = async (
       }
     }
   } else {
-    if (_JetPath_app_config.cors || req.method === "OPTIONS") {
+    if (_JetPath_app_config.cors && req.method === "OPTIONS") {
       const ctx = createCTX(req); //? no closures more efficient
       _JetPath_app_config.cors(ctx);
       return createResponse(res, ctx);
