@@ -6,7 +6,12 @@ import { cwd } from "node:process";
 import { createServer } from "node:http";
 // type imports
 import { IncomingMessage, ServerResponse } from "node:http";
-import { type AppCTXType, type allowedMethods, type methods } from "./types";
+import {
+  type AppCTXType,
+  type JetPathSchema,
+  type allowedMethods,
+  type methods,
+} from "./types";
 import { Stream } from "node:stream";
 
 /**
@@ -125,6 +130,7 @@ export const UTILS = {
   },
   runtime: null as unknown as Record<string, boolean>,
   decorators: {},
+  validators: {} as Record<string, JetPathSchema>,
   server(): { listen: any } | void {
     if (UTILS.runtime["node"]) {
       return createServer((x, y) => {
@@ -335,6 +341,15 @@ const createCTX = (
       });
     });
   },
+  validate(data: any) {
+    if (UTILS.validators[this.path]) {
+      return validate.apply(this, [UTILS.validators[this.path!], data]);
+    }
+    throw new Error("no validation BODY! for path " + this.path);
+  },
+  params: {},
+  search: {},
+  path: "/",
   //? load
   // _1: undefined,
   //? header of response
@@ -343,8 +358,6 @@ const createCTX = (
   // _3: undefined,
   //? used to know if the request has ended
   // _4: false,
-  // params: {},
-  // search: {},
 });
 
 const createResponse = (
@@ -381,16 +394,13 @@ const JetPath_app = async (
     req: IncomingMessage;
   }
 ) => {
-  let routesParams: Record<string, string> = {};
-  let searchParams: Record<string, string> = {};
-  let r = checker(req.method as methods, req.url!);
-  if (r) {
+  const paseredR = URLPARSER(req.method as methods, req.url!);
+  if (paseredR) {
     const ctx = createCTX(req, UTILS.decorators); //? no closures, more efficient
-    if (r.length > 1) {
-      [r, routesParams, searchParams] = r as unknown as any[];
-      ctx.params = routesParams;
-      ctx.search = searchParams;
-    }
+    const r = paseredR[0];
+    ctx.params = paseredR[1] as any;
+    ctx.search = paseredR[2] as any;
+    ctx.path = paseredR[3] as any;
     try {
       //? pre-request hooks here
       _JetPath_hooks["PRE"] && (await _JetPath_hooks["PRE"](ctx));
@@ -442,6 +452,7 @@ const JetPath_app = async (
 
 const Handlerspath = (path: any) => {
   if ((path as string).includes("hook__")) {
+    //? hooks in place
     return (path as string).split("hook__")[1];
   }
   //? adding /(s) in place
@@ -457,7 +468,7 @@ const Handlerspath = (path: any) => {
   //? adding :(s) in place
   path = path.split("$");
   path = path.join("/:");
-  if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS)/.test(method)) {
+  if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS|BODY)/.test(method)) {
     //? adding methods in place
     return [method, path] as [methods, string];
   }
@@ -477,10 +488,18 @@ export async function getHandlers(source: string, print: boolean) {
       for (const p in module) {
         const params = Handlerspath(p);
         if (params) {
+          if ((params[0] as any) === "BODY") {
+            // ! BODY parser
+            const validator = module[p];
+            if (typeof validator === "object") {
+              UTILS.validators[params[1]] = validator as JetPathSchema;
+            }
+          }
           if (
             typeof params !== "string" &&
             _JetPath_paths[params[0] as methods]
           ) {
+            // ! HTTP handler
             _JetPath_paths[params[0] as methods][params[1]] = module[p];
           } else {
             if ((_JetPath_hooks[params as string] as any) === false) {
@@ -508,13 +527,55 @@ export async function getHandlers(source: string, print: boolean) {
   }
 }
 
-const checker = (method: methods, url: string) => {
+function validate(this: AppCTXType, schema: JetPathSchema, data: any) {
+  const out: Record<string, any> = {};
+  let errout: string = "";
+  if (!data) this.throw("invalid ctx.body => " + data);
+  for (const [prop, value] of Object.entries(schema)) {
+    const { err, type, nullable, RegExp, validate } = value;
+    if (!data[prop] && nullable) {
+      continue;
+    }
+    if (!data[prop] && !nullable) {
+      if (err) {
+        errout = err;
+      }
+      errout = ` ${prop} is required`;
+    }
+    if (validate && !validate(data[prop])) {
+      if (err) {
+        errout = err;
+      }
+      errout = ` ${prop} must is invalid`;
+    }
+    if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
+      if (err) {
+        errout = err;
+      }
+      errout = ` ${prop} must is invalid`;
+    }
+    if (
+      typeof type === "function" &&
+      (!type(data[prop]) || typeof type(data[prop]) !== typeof type())
+    ) {
+      if (err) {
+        errout = err;
+      }
+      errout = ` ${prop} type is invalid ${data[prop]}`;
+    }
+    out[prop] = data[prop];
+  }
+  if (errout) this.throw({ detail: errout });
+  return out;
+}
+
+const URLPARSER = (method: methods, url: string) => {
   const routes = _JetPath_paths[method];
   if (url[0] !== "/") {
     url = url.slice(url.indexOf("/", 7));
   }
   if (routes[url]) {
-    return routes[url];
+    return [routes[url], {}, {}, url];
   }
   if (typeof routes === "function") {
     (routes as Function)();
@@ -522,7 +583,7 @@ const checker = (method: methods, url: string) => {
   }
   //? check for extra / in the route
   if (routes[url + "/"]) {
-    return routes[url];
+    return [routes[url], {}, {}, url];
   }
   //? check for search in the route
   if (url.includes("/?")) {
@@ -533,7 +594,11 @@ const checker = (method: methods, url: string) => {
         sraw[idx][0].includes("?") ? sraw[idx][0].split("?")[1] : sraw[idx][0]
       ] = sraw[idx][1];
     }
-    return [routes[url.split("/?")[0] + "/?"], , search];
+    const path = url.split("/?")[0] + "/?";
+    if (routes[path]) {
+      return [routes[path], {}, search, path];
+    }
+    return;
   }
 
   //? place holder & * route checks
@@ -571,7 +636,7 @@ const checker = (method: methods, url: string) => {
               routesParams[pathFixtures[i].split(":")[1]] = urlFixtures[i];
             }
           }
-          return [routes[path], routesParams];
+          return [routes[path], routesParams, {}, path];
         }
       }
     }
@@ -579,7 +644,7 @@ const checker = (method: methods, url: string) => {
     if (path.includes("*")) {
       const p = path.slice(0, -1);
       if (url.startsWith(p)) {
-        return [routes[path], { extraPath: url.slice(p.length) }];
+        return [routes[path], { extraPath: url.slice(p.length) }, {}, path];
       }
     }
   }

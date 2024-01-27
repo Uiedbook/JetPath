@@ -36,7 +36,7 @@
     "node": "node tests/app.js",
     "deno": "deno run --allow-all tests/app.ts",
     "bun": "bun -b tests/app.ts",
-    "tests": "node --test tests/JetPath.test.js",
+    "tests": "node --test tests/app.test.js",
     "build": "bun bundle.ts"
   },
   "engines": {
@@ -46,5 +46,8 @@
   "private": false,
   "devDependencies": {
     "@types/node": "^20.11.5"
+  },
+  "dependencies": {
+    "jetpath": "^1.2.6"
   }
 }

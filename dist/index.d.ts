@@ -23,4 +23,4 @@ export declare class JetPath {
     decorate(decorations: Record<string, (ctx: AppCTXType) => void>): void;
     listen(): Promise<void>;
 }
-export type { AppCTXType } from "./primitives/types";
+export type { AppCTXType, JetPathSchema } from "./primitives/types";

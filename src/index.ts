@@ -1,4 +1,3 @@
-import { readFileSync } from "fs";
 import {
   _JetPath_app_config,
   _JetPath_hooks,
@@ -11,7 +10,6 @@ import {
   type AppCTXType,
   type methods,
 } from "./primitives/types.js";
-import { html } from "./primitives/html";
 
 export class JetPath {
   private options: any;
@@ -73,9 +71,17 @@ export class JetPath {
         if (r && Object.keys(r).length) {
           // console.log(`\n ${r} ${k} HTTP/1.1`);
           for (const p in r) {
+            const b = UTILS.validators[p];
+            const j: Record<string, any> = {};
+            if (b) {
+              for (const ke in b) {
+                j[ke] = typeof (b[ke].type as any)();
+              }
+            }
+
             const api = `\n
 ${k} http://localhost:${port}${p} HTTP/1.1
-
+${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}
 ###`;
             if (this.options.displayRoutes === "UI") {
               t += api;
@@ -87,11 +93,11 @@ ${k} http://localhost:${port}${p} HTTP/1.1
         }
       }
       if (this.options.displayRoutes === "UI") {
-        _JetPath_paths["GET"]["/JetPath/ui"] = (ctx) => {
-          ctx.reply(html.replace("'{JETPATH}'", `\`${t}\``), "text/html");
+        _JetPath_paths["GET"]["/JetPath-ui"] = (ctx) => {
+          ctx.reply(`{view}`.replace("'{JETPATH}'", `\`${t}\``), "text/html");
         };
         console.log(
-          `visit http://localhost:${port}/JetPath/ui to see the displayed routes in UI`
+          `visit http://localhost:${port}/JetPath-ui to see the displayed routes in UI`
         );
       }
 
@@ -110,4 +116,4 @@ ${k} http://localhost:${port}${p} HTTP/1.1
 }
 
 //? exports
-export type { AppCTXType } from "./primitives/types";
+export type { AppCTXType, JetPathSchema } from "./primitives/types";

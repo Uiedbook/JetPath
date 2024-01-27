@@ -4,12 +4,14 @@ import { IncomingMessage } from "http";
 import { Stream } from "node:stream";
 export type AppCTXType<Type = {}> = {
     json(): Promise<Record<string, any>> | null;
+    validate(data: any): Record<string, any>;
     body?: any;
     code: number;
-    search?: Record<string, string>;
-    params?: Record<string, string>;
+    search: Record<string, string>;
+    params: Record<string, string>;
     request: IncomingMessage;
     method: string;
+    path: string;
     reply(data: unknown, ContentType?: string): void;
     throw(code?: number | string | Record<string, any> | unknown, message?: string | Record<string, any>): void;
     redirect(url: string): void;
@@ -22,5 +24,12 @@ export type AppCTXType<Type = {}> = {
     pipe(stream: Stream, ContentType: string): void;
     app: Record<string, any>;
 } & Type;
+export type JetPathSchema = Record<string, {
+    err?: string;
+    type?: string | number | object;
+    nullable?: boolean;
+    RegExp?: RegExp;
+    validate?: (value: any) => boolean;
+}>;
 export type methods = "GET" | "POST" | "OPTIONS" | "DELETE" | "HEAD" | "PUT" | "PATCH";
 export type allowedMethods = methods[];

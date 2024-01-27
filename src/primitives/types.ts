@@ -3,12 +3,14 @@ import { Stream } from "node:stream";
 
 export type AppCTXType<Type = {}> = {
   json(): Promise<Record<string, any>> | null;
+  validate(data: any): Record<string, any>;
   body?: any;
   code: number;
-  search?: Record<string, string>;
-  params?: Record<string, string>;
+  search: Record<string, string>;
+  params: Record<string, string>;
   request: IncomingMessage;
   method: string;
+  path: string;
   reply(data: unknown, ContentType?: string): void;
   throw(
     code?: number | string | Record<string, any> | unknown,
@@ -25,6 +27,16 @@ export type AppCTXType<Type = {}> = {
   app: Record<string, any>;
   // files(): Promise<any>;
 } & Type;
+export type JetPathSchema = Record<
+  string,
+  {
+    err?: string;
+    type?: string | number | object;
+    nullable?: boolean;
+    RegExp?: RegExp;
+    validate?: (value: any) => boolean;
+  }
+>;
 
 export type methods =
   | "GET"

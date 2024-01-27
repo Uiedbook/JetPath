@@ -64,6 +64,12 @@ async function getHandlers(source, print) {
       for (const p in module) {
         const params = Handlerspath(p);
         if (params) {
+          if (params[0] === "BODY") {
+            const validator = module[p];
+            if (typeof validator === "object") {
+              UTILS.validators[params[1]] = validator;
+            }
+          }
           if (typeof params !== "string" && _JetPath_paths[params[0]]) {
             _JetPath_paths[params[0]][params[1]] = module[p];
           } else {
@@ -86,6 +92,46 @@ async function getHandlers(source, print) {
     }
   }
 }
+var validate = function(schema, data) {
+  const out = {};
+  let errout = "";
+  if (!data)
+    this.throw("invalid ctx.body => " + data);
+  for (const [prop, value] of Object.entries(schema)) {
+    const { err, type, nullable, RegExp, validate: validate2 } = value;
+    if (!data[prop] && nullable) {
+      continue;
+    }
+    if (!data[prop] && !nullable) {
+      if (err) {
+        errout = err;
+      }
+      errout = ` ${prop} is required`;
+    }
+    if (validate2 && !validate2(data[prop])) {
+      if (err) {
+        errout = err;
+      }
+      errout = ` ${prop} must is invalid`;
+    }
+    if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
+      if (err) {
+        errout = err;
+      }
+      errout = ` ${prop} must is invalid`;
+    }
+    if (typeof type === "function" && (!type(data[prop]) || typeof type(data[prop]) !== typeof type())) {
+      if (err) {
+        errout = err;
+      }
+      errout = ` ${prop} type is invalid ${data[prop]}`;
+    }
+    out[prop] = data[prop];
+  }
+  if (errout)
+    this.throw({ detail: errout });
+  return out;
+};
 var UTILS = {
   ae(cb) {
     try {
@@ -102,6 +148,7 @@ var UTILS = {
   },
   runtime: null,
   decorators: {},
+  validators: {},
   server() {
     if (UTILS.runtime["node"]) {
       return createServer((x, y) => {
@@ -292,7 +339,16 @@ var createCTX = (req, decorationObject = {}) => ({
         r(this.body);
       });
     });
-  }
+  },
+  validate(data) {
+    if (UTILS.validators[this.path]) {
+      return validate.apply(this, [UTILS.validators[this.path], data]);
+    }
+    throw new Error("no validation BODY! for path " + this.path);
+  },
+  params: {},
+  search: {},
+  path: "/"
 });
 var createResponse = (res, ctx) => {
   if (!UTILS.runtime["node"]) {
@@ -314,16 +370,13 @@ var createResponse = (res, ctx) => {
   return;
 };
 var JetPath_app = async (req, res) => {
-  let routesParams = {};
-  let searchParams = {};
-  let r = checker(req.method, req.url);
-  if (r) {
+  const paseredR = URLPARSER(req.method, req.url);
+  if (paseredR) {
     const ctx = createCTX(req, UTILS.decorators);
-    if (r.length > 1) {
-      [r, routesParams, searchParams] = r;
-      ctx.params = routesParams;
-      ctx.search = searchParams;
-    }
+    const r = paseredR[0];
+    ctx.params = paseredR[1];
+    ctx.search = paseredR[2];
+    ctx.path = paseredR[3];
     try {
       _JetPath_hooks["PRE"] && await _JetPath_hooks["PRE"](ctx);
       await r(ctx);
@@ -373,25 +426,25 @@ var Handlerspath = (path2) => {
   path2 = path2.join("/*");
   path2 = path2.split("$");
   path2 = path2.join("/:");
-  if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS)/.test(method)) {
+  if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS|BODY)/.test(method)) {
     return [method, path2];
   }
   return;
 };
-var checker = (method, url) => {
+var URLPARSER = (method, url) => {
   const routes = _JetPath_paths[method];
   if (url[0] !== "/") {
     url = url.slice(url.indexOf("/", 7));
   }
   if (routes[url]) {
-    return routes[url];
+    return [routes[url], {}, {}, url];
   }
   if (typeof routes === "function") {
     routes();
     return;
   }
   if (routes[url + "/"]) {
-    return routes[url];
+    return [routes[url], {}, {}, url];
   }
   if (url.includes("/?")) {
     const sraw = [...new URLSearchParams(url).entries()];
@@ -399,7 +452,11 @@ var checker = (method, url) => {
     for (const idx in sraw) {
       search[sraw[idx][0].includes("?") ? sraw[idx][0].split("?")[1] : sraw[idx][0]] = sraw[idx][1];
     }
-    return [routes[url.split("/?")[0] + "/?"], , search];
+    const path2 = url.split("/?")[0] + "/?";
+    if (routes[path2]) {
+      return [routes[path2], {}, search, path2];
+    }
+    return;
   }
   for (const path2 in routes) {
     if (path2.includes(":")) {
@@ -427,22 +484,78 @@ var checker = (method, url) => {
               routesParams[pathFixtures[i].split(":")[1]] = urlFixtures[i];
             }
           }
-          return [routes[path2], routesParams];
+          return [routes[path2], routesParams, {}, path2];
         }
       }
     }
     if (path2.includes("*")) {
       const p = path2.slice(0, -1);
       if (url.startsWith(p)) {
-        return [routes[path2], { extraPath: url.slice(p.length) }];
+        return [routes[path2], { extraPath: url.slice(p.length) }, {}, path2];
       }
     }
   }
   return;
 };
 
-// src/primitives/html.ts
-var html = `<!DOCTYPE html>
+// src/index.ts
+class JetPath {
+  options;
+  server;
+  listening = false;
+  constructor(options) {
+    this.options = options || { displayRoutes: true };
+    this.server = UTILS.server();
+  }
+  decorate(decorations) {
+    if (this.listening) {
+      throw new Error("Your app is listening new decorations can't be added.");
+    }
+    if (typeof decorations !== "object") {
+      throw new Error("could not add decorations to ctx");
+    }
+    UTILS.decorators = Object.assign(UTILS.decorators, decorations);
+  }
+  async listen() {
+    const port = this.options?.port || 8080;
+    for (const [k, v] of Object.entries(this.options || {})) {
+      _JetPath_app_config.set(k, v);
+    }
+    if (typeof this.options !== "object" || this.options.displayRoutes !== false) {
+      let c = 0, t = "";
+      console.log("JetPath: compiling...");
+      const startTime = performance.now();
+      await getHandlers(this.options?.source, true);
+      const endTime = performance.now();
+      console.log("JetPath: done.");
+      console.log(_JetPath_hooks);
+      for (const k in _JetPath_paths) {
+        const r = _JetPath_paths[k];
+        if (r && Object.keys(r).length) {
+          for (const p in r) {
+            const b = UTILS.validators[p];
+            const j = {};
+            if (b) {
+              for (const ke in b) {
+                j[ke] = typeof b[ke].type();
+              }
+            }
+            const api = `\n
+${k} http://localhost:${port}${p} HTTP/1.1
+${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}
+###`;
+            if (this.options.displayRoutes === "UI") {
+              t += api;
+            } else {
+              console.log(api);
+            }
+            c += 1;
+          }
+        }
+      }
+      if (this.options.displayRoutes === "UI") {
+        _JetPath_paths["GET"]["/JetPath-ui"] = (ctx) => {
+          ctx.reply(`<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -520,8 +633,8 @@ var html = `<!DOCTYPE html>
       }
       textarea {
         margin-top: 0.4rem;
-        min-width: 60vw;
-        min-height: 10rem;
+        min-width: 50vw;
+        min-height: 3rem;
         padding: 1rem;
         border: 3px solid #007bff;
         border-radius: 20px;
@@ -558,13 +671,10 @@ var html = `<!DOCTYPE html>
         const requests = (apiDocumentation
           .split("###")
           .map((request) => request.trim())).filter((a)=>a !== "");
-
         return requests.map(parseRequest);
       }
-
       function parseRequest(requestString) {
         const lines = requestString.split("\\n").map((line) => line.trim());
-
         // Parse HTTP request line
         const requestLine = lines[0].split(" ");
         const method = requestLine[0];
@@ -633,6 +743,9 @@ var html = `<!DOCTYPE html>
           payloadContainer.innerHTML = "<strong>Payload:</strong><br>";
           const payloadTextarea = document.createElement("textarea");
           payloadTextarea.value = request.payload;
+          payloadTextarea.addEventListener("change",()=>{
+            request.payload = payloadTextarea.value;
+          })
           payloadContainer.appendChild(payloadTextarea);
           requestContainer.appendChild(payloadContainer);
         }
@@ -646,7 +759,7 @@ var html = `<!DOCTYPE html>
             url: urlInput.value.trim(),
             httpVersion: requestInfo.lastChild.textContent.trim(),
             headers: {},
-            payload: "",
+            payload: request.payload,
           };
 
           headersContainer.querySelectorAll("input").forEach((headerInput) => {
@@ -663,8 +776,7 @@ var html = `<!DOCTYPE html>
           }
 const keys = document.getElementById("keys");
 let keysHeaders={}
-try {
-  console.log(keys.value);
+try { 
   keysHeaders = JSON.parse(keys.value);
 } catch (error) {
   alert(error);
@@ -686,11 +798,8 @@ try {
 
         function showApiResponse(response) {
           responseContainer.innerHTML = "<strong>API Response:</strong><br>";
-          responseContainer.innerHTML += "<pre>"+JSON.stringify(
-            response,
-            null,
-            2
-          )+"</pre>";
+          responseContainer.innerHTML += "<pre><h3 style='color:"+(response.status<400?"green":"red")+"';>"+response.status+"</h3></pre>";
+          responseContainer.innerHTML += "<pre>"+response.body+"</pre>";
           responseContainer.scrollIntoView({
             behavior: "smooth",
             block: "end",
@@ -719,61 +828,9 @@ try {
       }
     </script>
   </body>
-</html>`;
-
-// src/index.ts
-class JetPath {
-  options;
-  server;
-  listening = false;
-  constructor(options) {
-    this.options = options || { displayRoutes: true };
-    this.server = UTILS.server();
-  }
-  decorate(decorations) {
-    if (this.listening) {
-      throw new Error("Your app is listening new decorations can't be added.");
-    }
-    if (typeof decorations !== "object") {
-      throw new Error("could not add decorations to ctx");
-    }
-    UTILS.decorators = Object.assign(UTILS.decorators, decorations);
-  }
-  async listen() {
-    const port = this.options?.port || 8080;
-    for (const [k, v] of Object.entries(this.options || {})) {
-      _JetPath_app_config.set(k, v);
-    }
-    if (typeof this.options !== "object" || this.options.displayRoutes !== false) {
-      let c = 0, t = "";
-      console.log("JetPath: compiling...");
-      const startTime = performance.now();
-      await getHandlers(this.options?.source, true);
-      const endTime = performance.now();
-      console.log("JetPath: done.");
-      console.log(_JetPath_hooks);
-      for (const k in _JetPath_paths) {
-        const r = _JetPath_paths[k];
-        if (r && Object.keys(r).length) {
-          for (const p in r) {
-            const api = `\n
-${k} http://localhost:${port}${p} HTTP/1.1
-
-###`;
-            if (this.options.displayRoutes === "UI") {
-              t += api;
-            } else {
-              console.log(api);
-            }
-            c += 1;
-          }
-        }
-      }
-      if (this.options.displayRoutes === "UI") {
-        _JetPath_paths["GET"]["/JetPath/ui"] = (ctx) => {
-          ctx.reply(html.replace("'{JETPATH}'", `\`${t}\``), "text/html");
+</html>`.replace("'{JETPATH}'", `\`${t}\``), "text/html");
         };
-        console.log(`visit http://localhost:${port}/JetPath/ui to see the displayed routes in UI`);
+        console.log(`visit http://localhost:${port}/JetPath-ui to see the displayed routes in UI`);
       }
       console.log(`\n Parsed ${c} handlers in ${Math.round(endTime - startTime)} milliseconds`);
     } else {

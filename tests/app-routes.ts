@@ -1,4 +1,4 @@
-import { AppCTXType } from "../dist/index.js";
+import { AppCTXType, JetPathSchema } from "../dist/index.js";
 // /dogs
 export function GET_dogs(ctx: AppCTXType) {
   ctx.reply(ctx); // ! error in nodejs
@@ -9,8 +9,13 @@ export function GET_dogs$0(ctx: AppCTXType) {
   ctx.reply("all requests to /dogs/* ends on this page"); // ! error in nodejs
 }
 
+export const BODY_dogs: JetPathSchema = {
+  name: { err: "please provide dog name", type: String },
+};
+
 export async function POST_dogs(ctx: AppCTXType) {
-  ctx.reply("enter skelter");
+  const newDog = ctx.validate(await ctx.json());
+  ctx.reply({ newDog });
 }
 
 export async function GET_dogs$name$age$sex(ctx: AppCTXType) {

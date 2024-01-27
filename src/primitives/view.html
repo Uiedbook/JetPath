@@ -76,8 +76,8 @@
       }
       textarea {
         margin-top: 0.4rem;
-        min-width: 60vw;
-        min-height: 10rem;
+        min-width: 50vw;
+        min-height: 3rem;
         padding: 1rem;
         border: 3px solid #007bff;
         border-radius: 20px;
@@ -114,13 +114,10 @@
         const requests = (apiDocumentation
           .split("###")
           .map((request) => request.trim())).filter((a)=>a !== "");
-
         return requests.map(parseRequest);
       }
-
       function parseRequest(requestString) {
         const lines = requestString.split("\\n").map((line) => line.trim());
-
         // Parse HTTP request line
         const requestLine = lines[0].split(" ");
         const method = requestLine[0];
@@ -189,6 +186,9 @@
           payloadContainer.innerHTML = "<strong>Payload:</strong><br>";
           const payloadTextarea = document.createElement("textarea");
           payloadTextarea.value = request.payload;
+          payloadTextarea.addEventListener("change",()=>{
+            request.payload = payloadTextarea.value;
+          })
           payloadContainer.appendChild(payloadTextarea);
           requestContainer.appendChild(payloadContainer);
         }
@@ -202,7 +202,7 @@
             url: urlInput.value.trim(),
             httpVersion: requestInfo.lastChild.textContent.trim(),
             headers: {},
-            payload: "",
+            payload: request.payload,
           };
 
           headersContainer.querySelectorAll("input").forEach((headerInput) => {
@@ -219,8 +219,7 @@
           }
 const keys = document.getElementById("keys");
 let keysHeaders={}
-try {
-  console.log(keys.value);
+try { 
   keysHeaders = JSON.parse(keys.value);
 } catch (error) {
   alert(error);
@@ -242,11 +241,8 @@ try {
 
         function showApiResponse(response) {
           responseContainer.innerHTML = "<strong>API Response:</strong><br>";
-          responseContainer.innerHTML += "<pre>"+JSON.stringify(
-            response,
-            null,
-            2
-          )+"</pre>";
+          responseContainer.innerHTML += "<pre><h3 style='color:"+(response.status<400?"green":"red")+"';>"+response.status+"</h3></pre>";
+          responseContainer.innerHTML += "<pre>"+response.body+"</pre>";
           responseContainer.scrollIntoView({
             behavior: "smooth",
             block: "end",

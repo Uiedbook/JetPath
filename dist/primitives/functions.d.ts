@@ -1,4 +1,4 @@
-import { type AppCTXType, type allowedMethods, type methods } from "./types";
+import { type AppCTXType, type JetPathSchema, type allowedMethods, type methods } from "./types";
 /**
  * an inbuilt CORS post hook
  *
@@ -37,6 +37,7 @@ export declare const UTILS: {
     set(): void;
     runtime: Record<string, boolean>;
     decorators: {};
+    validators: Record<string, JetPathSchema>;
     server(): {
         listen: any;
     } | void;
