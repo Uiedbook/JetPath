@@ -241,8 +241,8 @@ try {
 
         function showApiResponse(response) {
           responseContainer.innerHTML = "<strong>API Response:</strong><br>";
-          responseContainer.innerHTML += "<pre><h3 style='color:"+(response.status<400?"green":"red")+"';>"+response.status+"</h3></pre>";
-          responseContainer.innerHTML += "<pre>"+response.body+"</pre>";
+          responseContainer.innerHTML += "<pre><h3 style='color:"+((response.status||404)<400?"green":"red")+"';>"+(response.status||404)+"</h3></pre>";
+          responseContainer.innerHTML += "<pre>"+(response.body||"error")+"</pre>";
           responseContainer.scrollIntoView({
             behavior: "smooth",
             block: "end",
