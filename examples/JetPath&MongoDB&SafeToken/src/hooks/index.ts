@@ -1,5 +1,5 @@
 // Access handlers
-import { AppCTXType } from "jetpath";
+import { AppCTX } from "jetpath";
 import { sendEmail } from "../utils/emailer.js";
 import { USERS } from "../database/index.js";
 import { SafeToken } from "safetoken";
@@ -16,9 +16,7 @@ const Auth = new SafeToken({
 });
 
 // here is the auth access mapper how awesome it is
-export async function hook__PRE(
-  ctx: AppCTXType<{ getUser(this: AppCTXType): any }>
-) {
+export async function hook__PRE(ctx: AppCTX<{ getUser(this: AppCTX): any }>) {
   if (ctx.method !== "GET") {
     await ctx.json();
   }
@@ -33,11 +31,11 @@ export async function hook__PRE(
     ctx.throw();
   }
 }
-export async function hook__POST(ctx: AppCTXType) {
+export async function hook__POST(ctx: AppCTX) {
   ctx.throw();
 }
 // app error middleware, a very funny one
-export async function hook__ERROR(ctx: AppCTXType, err: any) {
+export async function hook__ERROR(ctx: AppCTX, err: any) {
   let errMessage = err.message || err;
   ctx.set("error", errMessage);
   if (ctx.request.statusCode! > 499) {
@@ -56,7 +54,7 @@ export async function hook__ERROR(ctx: AppCTXType, err: any) {
 // hook to decorate the CTX
 export function hook__DECORATOR() {
   return {
-    async getUser(this: AppCTXType): Promise<any> {
+    async getUser(this: AppCTX): Promise<any> {
       const accesToken = this.get("authorization");
       if (accesToken) {
         let credentials = Auth.verifyToken(accesToken);
@@ -88,14 +86,14 @@ export function hook__DECORATOR() {
         this.throw(JSON.stringify({ message: "Please Autheticate" }));
       }
     },
-    newAuth(this: AppCTXType, person: IUserDoc) {
+    newAuth(this: AppCTX, person: IUserDoc) {
       const credentials = JSON.stringify({ id: person._id, role: person.role });
       return {
         accessToken: Auth.newAccessToken(credentials),
         refreshToken: Auth.newRefreshToken(credentials),
       };
     },
-    getrt(this: AppCTXType): any {
+    getrt(this: AppCTX): any {
       const refreshToken = this.params.rftoken;
       if (refreshToken) {
         const credentials = Auth.verifyRefreshToken(refreshToken);

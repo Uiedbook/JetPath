@@ -7,7 +7,7 @@ import {
 } from "./primitives/functions";
 import {
   type allowedMethods,
-  type AppCTXType,
+  type AppCTX,
   type methods,
 } from "./primitives/types.js";
 
@@ -38,7 +38,7 @@ export class JetPath {
     this.options = options || { displayRoutes: true };
     this.server = UTILS.server();
   }
-  decorate(decorations: Record<string, (ctx: AppCTXType) => void>) {
+  decorate(decorations: Record<string, (ctx: AppCTX) => void>) {
     if (this.listening) {
       throw new Error("Your app is listening new decorations can't be added.");
     }
@@ -127,13 +127,12 @@ export class JetPath {
             const j: Record<string, any> = {};
             if (b) {
               for (const ke in b) {
-                j[ke] = b[ke].type;
+                j[ke] = b[ke].inputType || "text";
               }
             }
 
             const api = `\n
 ${k} [--host--]${p} HTTP/1.1
-content-type: application/json
 ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
 ###`;
             if (this.options.displayRoutes === "UI") {
@@ -169,4 +168,4 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
 }
 
 //? exports
-export type { AppCTXType, JetPathSchema } from "./primitives/types";
+export type { AppCTX, Schema } from "./primitives/types";

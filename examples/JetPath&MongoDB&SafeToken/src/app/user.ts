@@ -3,7 +3,7 @@ import { USERS } from "../database/index.js";
 import { put, schema } from "../utils/schema.js";
 import { sendEmail } from "../utils/emailer.js";
 import { EmailTemplate } from "../utils/index.js";
-import { AppCTXType } from "jetpath";
+import { AppCTX } from "jetpath";
 import { IUserDoc } from "../database/interfaces/interfaces.user.js";
 import { generateAlphanumericReference } from "../utils/referenceGenerator.js";
 dotenv.config();
@@ -32,7 +32,7 @@ const userData = new schema({
 });
 
 export async function POST_user_register(
-  ctx: AppCTXType<{
+  ctx: AppCTX<{
     newAuth(person: IUserDoc): {
       accessToken: string;
       refreshToken: string;
@@ -56,7 +56,7 @@ export async function POST_user_register(
   }
 }
 
-export async function POST_user_otp(ctx: AppCTXType) {
+export async function POST_user_otp(ctx: AppCTX) {
   if (!ctx.body.otp && ctx.body.email) {
     ctx.throw(400, { message: "no info provided" });
   }
@@ -120,7 +120,7 @@ async function createUser(userObject: {
   return false;
 }
 
-export async function GET_user(ctx: AppCTXType<{ user: IUserDoc }>) {
+export async function GET_user(ctx: AppCTX<{ user: IUserDoc }>) {
   const data = ctx.user;
   ctx.reply({
     data,

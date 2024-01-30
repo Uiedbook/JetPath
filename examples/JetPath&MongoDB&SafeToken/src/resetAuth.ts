@@ -5,7 +5,7 @@ dotenv.config();
 import { schema } from "./utils/schema.js";
 import { EmailTemplate } from "./utils/index.js";
 import { sendEmail } from "./utils/emailer.js";
-import { AppCTXType } from "jetpath";
+import { AppCTX } from "jetpath";
 import { generateAlphanumericReference } from "./utils/referenceGenerator.js";
 
 const resetData = new schema({
@@ -51,7 +51,7 @@ async function savePasswordAndSendEmail(personObject: {
   return false;
 }
 
-export async function POST_user_reset_password(ctx: AppCTXType) {
+export async function POST_user_reset_password(ctx: AppCTX) {
   await resetData.validateData(ctx.body);
   ctx.body.email = ctx.body.email.toLowerCase();
   const person = await savePasswordAndSendEmail(ctx.body);

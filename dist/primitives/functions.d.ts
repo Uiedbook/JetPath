@@ -1,4 +1,9 @@
-import { type AppCTXType, type JetPathSchema, type allowedMethods, type methods } from "./types";
+import {
+  type AppCTX,
+  type Schema,
+  type allowedMethods,
+  type methods,
+} from "./types";
 /**
  * an inbuilt CORS post hook
  *
@@ -18,34 +23,39 @@ import { type AppCTXType, type JetPathSchema, type allowedMethods, type methods 
  * @public
  */
 export declare function corsHook(options: {
-    exposeHeaders?: string[];
-    allowMethods?: allowedMethods;
-    allowHeaders: string[];
-    keepHeadersOnError?: boolean;
-    maxAge?: string;
-    credentials?: boolean;
-    secureContext?: boolean;
-    privateNetworkAccess?: any;
-    origin: string[];
+  exposeHeaders?: string[];
+  allowMethods?: allowedMethods;
+  allowHeaders: string[];
+  keepHeadersOnError?: boolean;
+  maxAge?: string;
+  credentials?: boolean;
+  secureContext?: boolean;
+  privateNetworkAccess?: any;
+  origin: string[];
 }): Function;
 export declare const UTILS: {
-    ae(cb: {
-        (): any;
-        (): any;
-        (): void;
-    }): boolean;
-    set(): void;
-    runtime: Record<string, boolean>;
-    decorators: {};
-    validators: Record<string, JetPathSchema>;
-    server(): {
-        listen: any;
-    } | void;
+  ae(cb: { (): any; (): any; (): void }): boolean;
+  set(): void;
+  runtime: Record<string, boolean>;
+  decorators: {};
+  validators: Record<string, Schema>;
+  server(): {
+    listen: any;
+  } | void;
 };
-export declare let _JetPath_paths: Record<methods, Record<string, (ctx: AppCTXType) => void | Promise<void>>>;
-export declare const _JetPath_hooks: Record<string, (ctx: AppCTXType) => void | Promise<void>>;
+export declare let _JetPath_paths: Record<
+  methods,
+  Record<string, (ctx: AppCTX) => void | Promise<void>>
+>;
+export declare const _JetPath_hooks: Record<
+  string,
+  (ctx: AppCTX) => void | Promise<void>
+>;
 export declare const _JetPath_app_config: {
-    cors: (ctx: AppCTXType) => void;
-    set(this: any, opt: string, val: any): void;
+  cors: (ctx: AppCTX) => void;
+  set(this: any, opt: string, val: any): void;
 };
-export declare function getHandlers(source: string, print: boolean): Promise<void>;
+export declare function getHandlers(
+  source: string,
+  print: boolean
+): Promise<void>;

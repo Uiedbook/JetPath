@@ -1,24 +1,40 @@
-import { AppCTXType, JetPathSchema } from "../dist/index.js";
+import { AppCTX, Schema } from "../dist/index.js";
 
-export async function GET_(ctx: AppCTXType) {
-  ctx.reply("hello world!");
-}
-export const BODY_pets: JetPathSchema = {
+//? Body validators
+
+export const BODY_pets: Schema = {
   name: { err: "please provide dog name", type: "string" },
-  imageUrl: { type: "string" },
+  image: { type: "string", nullable: true, inputType: "file" },
   age: { type: "number" },
 };
+export const BODY_petBy$id: Schema = {
+  name: { err: "please provide dog name", type: "string" },
+  image: { type: "string", nullable: true, inputType: "file" },
+  age: { type: "number" },
+};
+export const BODY_petImage$id: Schema = {
+  image: { type: "string", inputType: "file" },
+};
 
+// ? Routes
+
+// ? PETshop temperaly Database
 const pets: { id: string; imageUrl: string; name: string }[] = [];
 
+// ? /
+export async function GET_(ctx: AppCTX) {
+  ctx.reply("Welcome to Petshop!");
+}
+
 // List Pets: Retrieve a list of pets available in the shop
-export function GET_pets(ctx: AppCTXType) {
-  console.log("boohoo");
+// ? /pets
+export function GET_pets(ctx: AppCTX) {
   ctx.reply(pets);
 }
 
+// ? /petBy/19388
 // Get a Pet by ID: Retrieve detailed information about a specific pet by its unique identifier
-export function GET_petBy$id(ctx: AppCTXType) {
+export function GET_petBy$id(ctx: AppCTX) {
   const petId = ctx.params?.id;
   const pet = pets.find((p) => p.id === petId);
   if (pet) {
@@ -29,8 +45,9 @@ export function GET_petBy$id(ctx: AppCTXType) {
   }
 }
 
+// ? /pets
 // Add a New Pet: Add a new pet to the inventory
-export async function POST_pets(ctx: AppCTXType) {
+export async function POST_pets(ctx: AppCTX) {
   ctx.validate(await ctx.json());
   const newPet: { id: string; imageUrl: string; name: string } = ctx.body;
   // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
@@ -40,7 +57,9 @@ export async function POST_pets(ctx: AppCTXType) {
 }
 
 // Update a Pet: Modify the details of an existing pet
-export async function PUT_petBy$id(ctx: AppCTXType) {
+// ? /petBy/8766
+export async function PUT_petBy$id(ctx: AppCTX) {
+  ctx.validate(await ctx.json());
   const petId = ctx.params.id;
   const updatedPetData = await ctx.json();
   const index = pets.findIndex((p) => p.id === petId);
@@ -54,8 +73,9 @@ export async function PUT_petBy$id(ctx: AppCTXType) {
   }
 }
 
+// ? /petBy/8766
 // Delete a Pet: Remove a pet from the inventory
-export function DELETE_petBy$id(ctx: AppCTXType) {
+export function DELETE_petBy$id(ctx: AppCTX) {
   const petId = ctx.params.id;
   const index = pets.findIndex((p) => p.id === petId);
   if (index !== -1) {
@@ -67,13 +87,15 @@ export function DELETE_petBy$id(ctx: AppCTXType) {
   }
 }
 
+// ? /petImage/76554
 // Upload a Pet's Image: Add an image to a pet's profile
-export async function POST_petImage$id(ctx: AppCTXType) {
+export async function POST_petImage$id(ctx: AppCTX) {
   const petId = ctx.params.id;
-
   // @ts-ignore
+  console.log(ctx.request);
   const formdata = await ctx.request.formData();
-  const profilePicture = formdata.get("profilePicture");
+  console.log(formdata);
+  const profilePicture = formdata.get("image");
   if (!profilePicture) throw new Error("Must upload a profile picture.");
   console.log({ formdata, profilePicture });
 
@@ -94,7 +116,8 @@ export async function POST_petImage$id(ctx: AppCTXType) {
   }
 }
 
-export function hook__ERROR(ctx: AppCTXType, err: unknown) {
+// ? error hook
+export function hook__ERROR(ctx: AppCTX, err: unknown) {
   ctx.code = 400;
   console.log(err);
   ctx.reply(String(err));

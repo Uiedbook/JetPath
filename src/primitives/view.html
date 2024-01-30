@@ -123,7 +123,16 @@
         padding: 4px;
         border-radius: 4px;
         border: 1px #007bff5e solid;
-      }
+      } 
+
+    select {
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid #3498db;
+      border-radius: 5px;
+      outline: none;
+    }
+
     </style>
   </head>
   <body>
@@ -135,24 +144,27 @@
     <h3 class="request-container">Requests</h>
     <script>
       
-      function parseUPAPIBody(packer) { 
+      function parseUPAPIBody(packer) {
+        if (!packer) return;
  const result = {};
  let isSet = false;
   // Retrieve the child nodes of the input div (assuming each child is a div)
-  const divs = Array.from((packer?.children||[])); 
-  divs.forEach(div => { 
+  const divs = Array.from((packer.children)); 
+  divs.forEach(div => {
+    const input = div.querySelector('input');
+    isSet = true;
     const key = div.querySelector('span').textContent.replace(":", "");
-     // Extract the value from the div's content
-    const inputValue = div.querySelector('input').value;
-
+    if (input.type === "file") {
+         result[key] = input.value;
+         return;
+    }
     // Attempt to parse the value as JSON
     let value;
     try {
-      value = JSON.parse(inputValue);
-      isSet = true;
+      value = JSON.parse(input.value);
     } catch (error) {
       // If parsing as JSON fails, treat it as a string
-      value = inputValue;
+      value = input.value;
     }
  
     result[key] = value;
@@ -160,11 +172,10 @@
   if (!isSet) return;
   return result;
       }
-   
       function parseINAPIBody(apis) { 
         const packer = document.createElement("div");
         packer.className = "body-pack"
-        const packs = (k,v)=>"<div><span>"+k+":</span><input value='"+v+"'></input></div>" 
+        const packs = (k,v)=>"<div><span>"+k+":</span><input type='"+v+"'' name='"+k+"' value='"+v+"'></input></div>" 
         for (const api in apis) { 
           packer.innerHTML=packer.innerHTML+packs(api,apis[api]);
         }    
@@ -250,11 +261,15 @@
           payloadContainer.innerHTML = "<strong>Payload:</strong><br>"; 
           payloadContainer.appendChild(parseINAPIBody(JSON.parse(request.payload)));
           requestContainer.appendChild(payloadContainer);
+          const cts = document.createElement("div");
+          cts.id = "content-type-selector"
+          cts.innerHTML =   '<select id="content-type-dropdown"><option value="application/json">JSON</option><option value="multipart/form-data">Form Data</option><option value="application/x-www-form-urlencoded">Form URL Encoded</option></select>'           
+          requestContainer.appendChild(cts);
         }
 
         const testButton = document.createElement("button");
         testButton.classList.add("test-button");
-        testButton.textContent = "send";
+        testButton.textContent = "Send Request";
         testButton.addEventListener("click", async () => {
           const updatedRequest = {
             method: requestInfo.firstChild.textContent.trim(),
@@ -278,13 +293,14 @@
           }
 const keys = document.getElementById("keys");
 const keysHeaders =  parseUPAPIBody(keys); 
-const body = parseUPAPIBody(payloadContainer.querySelector(".body-pack"))
+const data = parseUPAPIBody(payloadContainer.querySelector(".body-pack"));
 const response = await testApi(
   updatedRequest.method,
   updatedRequest.url,
   Object.assign(updatedRequest.headers, keysHeaders),
-  body?JSON.stringify(body): undefined
-  );  
+  data||undefined,
+  requestContainer.getElementsByTagName("select")[0]?.value
+  );   
   showApiResponse(response);
         });
         requestContainer.appendChild(testButton);
@@ -293,11 +309,10 @@ const response = await testApi(
         document.body.appendChild(requestContainer);
         document.body.appendChild(responseContainer);
 
-        function showApiResponse(response) {
-          console.log(response);
+        function showApiResponse(response) { 
           responseContainer.innerHTML = "<strong>API Response:</strong><br>";
           responseContainer.innerHTML += "<pre><h3 style='color:"+((response.status||404)<400?"green":"red")+"';>"+(response.status||404)+"</h3></pre>";
-          responseContainer.innerHTML += "<pre>"+(response.body||"error")+"</pre>";
+          responseContainer.innerHTML += "<pre style='background-color:#007bff2e;padding:12px;border-radius:12px;text-wrap:balance; max-width: 590px;overflow-wrap: break-word;'>"+(response.body||"error")+"</pre>";
           responseContainer.scrollIntoView({
             behavior: "smooth",
             block: "end",
@@ -306,14 +321,37 @@ const response = await testApi(
         }
       });
 
-      async function testApi(method, url, headers, payload) {
-        try {
-          const response = await fetch(url, {
-            method,
+      async function testApi(method, url, headers={}, body, contentType='application/json') { 
+           headers["Content-Type"] = contentType;
+        // console.log({method, url, headers, body, contentType});
+       let response;
+       try {
+       if (contentType === 'application/json') {
+          response = await fetch(url, {
+            method ,
             headers,
-            body: payload,
+            body: JSON.stringify(body),
           });
-
+        }
+         if (contentType === 'multipart/form-data') {
+          const formData = new FormData(); 
+          for (const key in body) {
+            formData.append(key, body[key]);
+          }
+          response = await fetch(url, {
+            method ,
+            headers,
+            body: formData,
+          });
+        } 
+        if (contentType === 'application/x-www-form-urlencoded') {
+          const urlEncodedData = new URLSearchParams(body).toString();
+          response = await fetch(url, {
+            method ,
+            headers,
+            body: urlEncodedData,
+          });
+        } 
           const responseBody = await response.text();
           return {
             status: response.status,
@@ -321,6 +359,7 @@ const response = await testApi(
             body: responseBody,
           };
         } catch (error) {
+          console.log(error);
           return { error: error.message };
         }
       }

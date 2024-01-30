@@ -2,7 +2,7 @@ import { USERS } from "./database/index.js";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import { schema } from "./utils/schema.js";
-import { AppCTXType } from "jetpath";
+import { AppCTX } from "jetpath";
 import { IUserDoc } from "./database/interfaces/interfaces.user.js";
 dotenv.config();
 
@@ -24,7 +24,7 @@ function getPerson(personObject: { email: any }) {
 }
 
 export async function POST_user_login(
-  ctx: AppCTXType<{
+  ctx: AppCTX<{
     newAuth(person: IUserDoc): {
       accessToken: string;
       refreshToken: string;

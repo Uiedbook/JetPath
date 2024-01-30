@@ -1,4 +1,4 @@
-import { AppCTXType } from "jetpath";
+import { AppCTX } from "jetpath";
 import { USERS } from "../database/index.js";
 import { IUserDoc } from "../database/interfaces/interfaces.user.js";
 import { schema } from "../utils/schema.js";
@@ -35,7 +35,7 @@ const userDatah = new schema({
   additionalProps: false,
 });
 
-export async function POST_user_update(ctx: AppCTXType<{ user: IUserDoc }>) {
+export async function POST_user_update(ctx: AppCTX<{ user: IUserDoc }>) {
   await userDatah.validateData(ctx.body);
   const user = ctx.user;
   async function updateUser(UserObject: {

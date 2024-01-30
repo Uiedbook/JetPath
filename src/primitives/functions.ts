@@ -7,8 +7,8 @@ import { createServer } from "node:http";
 // type imports
 import { IncomingMessage, ServerResponse } from "node:http";
 import {
-  type AppCTXType,
-  type JetPathSchema,
+  type AppCTX,
+  type Schema,
   type allowedMethods,
   type methods,
 } from "./types";
@@ -58,7 +58,7 @@ export function corsHook(options: {
   options.keepHeadersOnError =
     options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
 
-  return function cors(ctx: AppCTXType) {
+  return function cors(ctx: AppCTX) {
     //? Add Vary header to indicate response varies based on the Origin header
     ctx.set("Vary", "Origin");
     if (options.credentials === true) {
@@ -131,7 +131,7 @@ export const UTILS = {
   },
   runtime: null as unknown as Record<string, boolean>,
   decorators: {},
-  validators: {} as Record<string, JetPathSchema>,
+  validators: {} as Record<string, Schema>,
   server(): { listen: any } | void {
     if (UTILS.runtime["node"]) {
       return createServer((x, y) => {
@@ -165,7 +165,7 @@ UTILS.set();
 
 export let _JetPath_paths: Record<
   methods,
-  Record<string, (ctx: AppCTXType) => void | Promise<void>>
+  Record<string, (ctx: AppCTX) => void | Promise<void>>
 > = {
   GET: {},
   POST: {},
@@ -177,7 +177,7 @@ export let _JetPath_paths: Record<
 };
 export const _JetPath_hooks: Record<
   string,
-  (ctx: AppCTXType) => void | Promise<void>
+  (ctx: AppCTX) => void | Promise<void>
 > = {
   PRE: false as any,
   POST: false as any,
@@ -193,7 +193,7 @@ class JetPathErrors extends Error {
 const errDone = new JetPathErrors();
 
 export const _JetPath_app_config = {
-  cors: false as unknown as (ctx: AppCTXType) => void,
+  cors: false as unknown as (ctx: AppCTX) => void,
   set(this: any, opt: string, val: any) {
     if (opt === "cors" && val !== false) {
       this.cors = corsHook({
@@ -223,7 +223,7 @@ export const _JetPath_app_config = {
 const createCTX = (
   req: IncomingMessage,
   decorationObject: Record<string, Function> = {}
-): AppCTXType => ({
+): AppCTX => ({
   ...decorationObject,
   app: {},
   request: req,
@@ -331,17 +331,17 @@ const createCTX = (
     this._4 = true;
     throw errDone;
   },
-  json<Type = Record<string, any>>(): Promise<Type> {
+  async json<Type = Record<string, any>>(): Promise<Type> {
     if (this.body) {
       return this.body as Promise<Type>;
     }
     if (!UTILS.runtime["node"]) {
-      return new Promise(async (r) => {
+      try {
         this.body = await (this.request as unknown as Request).json();
-        r(this.body);
-      }) as Promise<Type>;
+      } catch (error) {}
+      return this.body as Promise<Type>;
     }
-    return new Promise<Type>((r) => {
+    return await new Promise<Type>((r) => {
       let body = "";
       this.request.on("data", (data: { toString: () => string }) => {
         body += data.toString();
@@ -377,7 +377,7 @@ const createResponse = (
   res: ServerResponse<IncomingMessage> & {
     req: IncomingMessage;
   },
-  ctx?: AppCTXType
+  ctx?: AppCTX
 ) => {
   if (!UTILS.runtime["node"]) {
     if (ctx?.code === 301 && ctx._2?.["Location"]) {
@@ -440,10 +440,7 @@ const JetPath_app = async (
         try {
           _JetPath_hooks["ERROR"] &&
             (await (
-              _JetPath_hooks["ERROR"] as (
-                k: AppCTXType,
-                v: unknown
-              ) => Promise<any>
+              _JetPath_hooks["ERROR"] as (k: AppCTX, v: unknown) => Promise<any>
             )(ctx, error));
           if (_JetPath_app_config.cors) {
             _JetPath_app_config.cors(ctx);
@@ -509,7 +506,7 @@ export async function getHandlers(source: string, print: boolean) {
             // ! BODY parser
             const validator = module[p];
             if (typeof validator === "object") {
-              UTILS.validators[params[1]] = validator as JetPathSchema;
+              UTILS.validators[params[1]] = validator as Schema;
             }
           }
           if (
@@ -544,7 +541,7 @@ export async function getHandlers(source: string, print: boolean) {
   }
 }
 
-function validate(this: AppCTXType, schema: JetPathSchema, data: any) {
+function validate(this: AppCTX, schema: Schema, data: any) {
   const out: Record<string, any> = {};
   let errout: string = "";
   if (!data) this.throw("invalid ctx.body => " + data);

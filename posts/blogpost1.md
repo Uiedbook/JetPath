@@ -254,7 +254,7 @@ Add your testimonies below
 Some read-world codes (copied with permission)
 
 ```js
-export async function POST_admin_create_product(ctx: AppCTXType) {
+export async function POST_admin_create_product(ctx: AppCTX) {
   await productSchema.validateData(await ctx.json()).catch((e) => {
     ctx.throw(400, e); // code stopped executing here if erred
   }); // ignore it don't share my data validator library it's too fast.
@@ -266,7 +266,7 @@ export async function POST_admin_create_product(ctx: AppCTXType) {
   ctx.reply({ data, status: 201, message: "ok" });
 }
 
-export async function Get_products_search$query(ctx: AppCTXType) {
+export async function Get_products_search$query(ctx: AppCTX) {
   if (!ctx.params.query) return undefined; // post hook handovers
   const search = await Product.find({
     title: { $regex: ctx.params.query, $options: "i" },

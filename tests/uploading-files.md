@@ -35,7 +35,6 @@ https://bun.sh/guides/http/file-uploads
 // usage
 POST_upload_files(ctx) {
     const formdata = await ctx.request.formData();
-    const name = formdata.get('name');
     const profilePicture = formdata.get('profilePicture');
     if (!profilePicture) throw new Error('Must upload a profile picture.');
     // write profilePicture to disk

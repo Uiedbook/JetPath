@@ -1,7 +1,7 @@
 import { IncomingMessage } from "http";
 import { Stream } from "node:stream";
 
-export type AppCTXType<Type = {}> = {
+export type AppCTX<Type = {}> = {
   json(): Promise<Record<string, any>> | null;
   validate(data: any): Record<string, any>;
   body?: any;
@@ -27,11 +27,12 @@ export type AppCTXType<Type = {}> = {
   app: Record<string, any>;
   // files(): Promise<any>;
 } & Type;
-export type JetPathSchema = Record<
+export type Schema = Record<
   string,
   {
     err?: string;
     type: "string" | "number" | "object" | "boolean";
+    inputType?: string;
     nullable?: boolean;
     RegExp?: RegExp;
     validate?: (value: any) => boolean;

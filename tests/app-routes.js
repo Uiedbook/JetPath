@@ -47,7 +47,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hook__ERROR = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.BODY_pets = exports.GET_ = void 0;
+exports.hook__ERROR = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.BODY_petImage$id = exports.BODY_petBy$id = exports.BODY_pets = exports.GET_ = void 0;
 function GET_(ctx) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -59,13 +59,20 @@ function GET_(ctx) {
 exports.GET_ = GET_;
 exports.BODY_pets = {
     name: { err: "please provide dog name", type: "string" },
-    imageUrl: { type: "string" },
+    image: { type: "string", nullable: true, inputType: "file" },
     age: { type: "number" },
+};
+exports.BODY_petBy$id = {
+    name: { err: "please provide dog name", type: "string" },
+    image: { type: "string", nullable: true, inputType: "file" },
+    age: { type: "number" },
+};
+exports.BODY_petImage$id = {
+    image: { type: "string", inputType: "file" },
 };
 var pets = [];
 // List Pets: Retrieve a list of pets available in the shop
 function GET_pets(ctx) {
-    console.log("boohoo");
     ctx.reply(pets);
 }
 exports.GET_pets = GET_pets;
@@ -108,14 +115,18 @@ exports.POST_pets = POST_pets;
 // Update a Pet: Modify the details of an existing pet
 function PUT_petBy$id(ctx) {
     return __awaiter(this, void 0, void 0, function () {
-        var petId, updatedPetData, index;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var _a, _b, petId, updatedPetData, index;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    petId = ctx.params.id;
+                    _b = (_a = ctx).validate;
                     return [4 /*yield*/, ctx.json()];
                 case 1:
-                    updatedPetData = _a.sent();
+                    _b.apply(_a, [_c.sent()]);
+                    petId = ctx.params.id;
+                    return [4 /*yield*/, ctx.json()];
+                case 2:
+                    updatedPetData = _c.sent();
                     index = pets.findIndex(function (p) { return p.id === petId; });
                     if (index !== -1) {
                         // Update the existing pet's data
@@ -154,10 +165,13 @@ function POST_petImage$id(ctx) {
             switch (_a.label) {
                 case 0:
                     petId = ctx.params.id;
+                    // @ts-ignore
+                    console.log(ctx.request);
                     return [4 /*yield*/, ctx.request.formData()];
                 case 1:
                     formdata = _a.sent();
-                    profilePicture = formdata.get("profilePicture");
+                    console.log(formdata);
+                    profilePicture = formdata.get("image");
                     if (!profilePicture)
                         throw new Error("Must upload a profile picture.");
                     console.log({ formdata: formdata, profilePicture: profilePicture });
