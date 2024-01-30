@@ -21,12 +21,12 @@ export type AppCTXType<Type = {}> = {
     _2?: Record<string, string>;
     _3?: Stream | undefined;
     _4?: boolean | undefined;
-    pipe(stream: Stream, ContentType: string): void;
+    pipe(stream: Stream | string, ContentType: string): void;
     app: Record<string, any>;
 } & Type;
 export type JetPathSchema = Record<string, {
     err?: string;
-    type?: string | number | object;
+    type: "string" | "number" | "object" | "boolean";
     nullable?: boolean;
     RegExp?: RegExp;
     validate?: (value: any) => boolean;

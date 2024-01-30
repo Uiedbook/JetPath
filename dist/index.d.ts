@@ -1,13 +1,17 @@
 import { type allowedMethods, type AppCTXType } from "./primitives/types.js";
 export declare class JetPath {
+    server: any;
+    private listening;
     private options;
-    private server;
-    listening: boolean;
     constructor(options?: {
         source?: string;
         credentials?: any;
         displayRoutes?: boolean | "UI";
         port?: number;
+        publicPath?: {
+            route: string;
+            dir: string;
+        };
         cors?: {
             allowMethods?: allowedMethods;
             secureContext?: boolean;

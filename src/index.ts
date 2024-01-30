@@ -12,14 +12,15 @@ import {
 } from "./primitives/types.js";
 
 export class JetPath {
+  public server: any;
+  private listening: boolean = false;
   private options: any;
-  private server: any;
-  listening: boolean = false;
   constructor(options?: {
     source?: string;
     credentials?: any;
     displayRoutes?: boolean | "UI";
     port?: number;
+    publicPath?: { route: string; dir: string };
     cors?:
       | {
           allowMethods?: allowedMethods;
@@ -42,7 +43,8 @@ export class JetPath {
       throw new Error("Your app is listening new decorations can't be added.");
     }
     if (typeof decorations !== "object") {
-      throw new Error("could not add decorations to ctx");
+      console.log({ decorations });
+      throw new Error("could not add decoration to ctx");
     }
     UTILS.decorators = Object.assign(UTILS.decorators, decorations);
   }
@@ -52,6 +54,56 @@ export class JetPath {
     // ? seeting up app configs
     for (const [k, v] of Object.entries(this.options || {})) {
       _JetPath_app_config.set(k, v);
+    }
+    if (this.options.publicPath.route && this.options.publicPath.dir) {
+      _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = (ctx) => {
+        const fileName = ctx.params?.["extraPath"];
+        if (
+          fileName &&
+          ("/" + fileName).includes(this.options.publicPath.dir + "/")
+        ) {
+          let contentType;
+          switch (fileName.split(".")[1]) {
+            case "js":
+              contentType = "application/javascript";
+              break;
+            case "pdf":
+              contentType = "application/pdf";
+              break;
+            case "json":
+              contentType = "application/json";
+              break;
+            case "css":
+              contentType = "text/css; charset=utf-8";
+              break;
+            case "html":
+              contentType = "charset=utf-8";
+              break;
+            case "png":
+              contentType = "image/png";
+              break;
+            case "avif":
+              contentType = "image/avif";
+              break;
+            case "webp":
+              contentType = "image/webp";
+              break;
+            case "jpg":
+              contentType = "image/jpeg";
+              break;
+            case "svg":
+              contentType = "image/svg+xml";
+              break;
+            case "ico":
+              contentType = "image/vnd.microsoft.icon";
+              break;
+            default:
+              contentType = "text/plain";
+              break;
+          }
+          return ctx.pipe(fileName, contentType);
+        }
+      };
     }
 
     if (
@@ -65,7 +117,7 @@ export class JetPath {
       await getHandlers(this.options?.source!, true);
       const endTime = performance.now();
       console.log("JetPath: done.");
-      console.log(_JetPath_hooks);
+      // console.log(_JetPath_hooks);
       for (const k in _JetPath_paths) {
         const r = _JetPath_paths[k as methods];
         if (r && Object.keys(r).length) {
@@ -75,13 +127,14 @@ export class JetPath {
             const j: Record<string, any> = {};
             if (b) {
               for (const ke in b) {
-                j[ke] = typeof (b[ke].type as any)();
+                j[ke] = b[ke].type;
               }
             }
 
             const api = `\n
-${k} http://localhost:${port}${p} HTTP/1.1
-${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}
+${k} [--host--]${p} HTTP/1.1
+content-type: application/json
+${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
 ###`;
             if (this.options.displayRoutes === "UI") {
               t += api;

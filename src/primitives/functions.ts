@@ -13,6 +13,7 @@ import {
   type methods,
 } from "./types";
 import { Stream } from "node:stream";
+import { createReadStream } from "node:fs";
 
 /**
  * an inbuilt CORS post hook
@@ -149,7 +150,11 @@ export const UTILS = {
       return {
         listen(port: number) {
           // @ts-ignore
-          Bun.serve({ port, fetch: JetPath_app });
+          Bun.serve({
+            port,
+            fetch: JetPath_app,
+            websocket: _JetPath_paths?.POST?.["/websocket"]?.(undefined as any),
+          });
         },
       };
     }
@@ -306,7 +311,7 @@ const createCTX = (
       this._2[field] = value;
     }
   },
-  pipe(stream: Stream, ContentType: string, name?: string) {
+  pipe(stream: Stream | string, ContentType: string, name?: string) {
     if (!this._2) {
       this._2 = {};
     }
@@ -314,10 +319,15 @@ const createCTX = (
       name || "unnamed.bin"
     }"`;
     this._2["Content-Type"] = ContentType;
-    if (!UTILS.runtime["node"]) {
-      return this.reply(stream, ContentType);
+    if (typeof stream === "string") {
+      if (UTILS.runtime["bun"]) {
+        // @ts-ignore
+        stream = Bun.file(stream);
+      } else {
+        stream = createReadStream(stream);
+      }
     }
-    this._3 = stream;
+    this._3 = stream as Stream;
     this._4 = true;
     throw errDone;
   },
@@ -326,7 +336,10 @@ const createCTX = (
       return this.body as Promise<Type>;
     }
     if (!UTILS.runtime["node"]) {
-      return (this.request as unknown as Request).json() as Promise<Type>;
+      return new Promise(async (r) => {
+        this.body = await (this.request as unknown as Request).json();
+        r(this.body);
+      }) as Promise<Type>;
     }
     return new Promise<Type>((r) => {
       let body = "";
@@ -370,8 +383,14 @@ const createResponse = (
     if (ctx?.code === 301 && ctx._2?.["Location"]) {
       return Response.redirect(ctx._2?.["Location"]);
     }
+    if (ctx?._3) {
+      return new Response(ctx?._3 as unknown as BodyInit, {
+        status: 200,
+        headers: ctx?._2,
+      });
+    }
     return new Response(ctx?._1 || "Not found!", {
-      status: ctx?.code || 404,
+      status: ctx?.code,
       headers: ctx?._2 || {},
     });
   }
@@ -380,12 +399,10 @@ const createResponse = (
       "Content-Type",
       (ctx?._2 || {})["Content-Type"] || "text/plain"
     );
-    ctx._3.pipe(res);
-    return undefined;
+    return ctx._3.pipe(res);
   }
-  res.writeHead(ctx?.code || 404, ctx?._2 || { "Content-Type": "text/plain" });
+  res.writeHead(ctx?.code!, ctx?._2 || { "Content-Type": "text/plain" });
   res.end(ctx?._1 || "Not found!");
-  return undefined;
 };
 
 const JetPath_app = async (
@@ -539,29 +556,30 @@ function validate(this: AppCTXType, schema: JetPathSchema, data: any) {
     if (!data[prop] && !nullable) {
       if (err) {
         errout = err;
+      } else {
+        errout = `${prop} is required`;
       }
-      errout = ` ${prop} is required`;
     }
     if (validate && !validate(data[prop])) {
       if (err) {
         errout = err;
+      } else {
+        errout = `${prop} must is invalid`;
       }
-      errout = ` ${prop} must is invalid`;
     }
     if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
       if (err) {
         errout = err;
+      } else {
+        errout = `${prop} must is invalid`;
       }
-      errout = ` ${prop} must is invalid`;
     }
-    if (
-      typeof type === "function" &&
-      (!type(data[prop]) || typeof type(data[prop]) !== typeof type())
-    ) {
+    if (typeof type === "string" && type !== typeof data[prop]) {
       if (err) {
         errout = err;
+      } else {
+        errout = `${prop} type is invalid '${data[prop]}' `;
       }
-      errout = ` ${prop} type is invalid ${data[prop]}`;
     }
     out[prop] = data[prop];
   }

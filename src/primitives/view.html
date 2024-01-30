@@ -95,21 +95,86 @@
       textarea:focus {
         border: 3px solid #007bff5e;
       }
+      .url-input {
+        width: fit-content;
+        min-width: 40%;
+        padding: 4px 0.6rem;
+        margin: 4px 1rem;
+        
+      }
+      .body-pack {
+        border: 3px solid #007bff36;
+        padding: 1rem;
+        margin: 1rem 0px;
+        border-radius: 4px;
+      }
+      .body-pack div  {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .body-pack div:last-of-type {
+        margin-bottom: 0px;
+      }
+      .body-pack span {
+        margin: 6px;
+      }
+      .body-pack input {
+        padding: 4px;
+        border-radius: 4px;
+        border: 1px #007bff5e solid;
+      }
     </style>
   </head>
   <body>
     <header><img src="https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp" alt="JetPath" style="width: 7rem;" > <h1>JetPath API Preview</h1></header>
-    <div class="request-container">
-      <h4>headers:</h4>
-      <textarea id="keys">
- {
-   "Authetication": "Bearer ****"
-     
- }</textarea
-      >
+    <div class="request-container" id="auth-pack">
+      <h4>Auth headers:</h4> 
+      <div id="keys"></div>
     </div>
     <h3 class="request-container">Requests</h>
     <script>
+      
+      function parseUPAPIBody(packer) { 
+ const result = {};
+ let isSet = false;
+  // Retrieve the child nodes of the input div (assuming each child is a div)
+  const divs = Array.from((packer?.children||[])); 
+  divs.forEach(div => { 
+    const key = div.querySelector('span').textContent.replace(":", "");
+     // Extract the value from the div's content
+    const inputValue = div.querySelector('input').value;
+
+    // Attempt to parse the value as JSON
+    let value;
+    try {
+      value = JSON.parse(inputValue);
+      isSet = true;
+    } catch (error) {
+      // If parsing as JSON fails, treat it as a string
+      value = inputValue;
+    }
+ 
+    result[key] = value;
+  });
+  if (!isSet) return;
+  return result;
+      }
+   
+      function parseINAPIBody(apis) { 
+        const packer = document.createElement("div");
+        packer.className = "body-pack"
+        const packs = (k,v)=>"<div><span>"+k+":</span><input value='"+v+"'></input></div>" 
+        for (const api in apis) { 
+          packer.innerHTML=packer.innerHTML+packs(api,apis[api]);
+        }    
+        return packer;
+      }
+
+         document.getElementById("keys")?.appendChild(parseINAPIBody({
+   "Authetication": "Bearer ****",   
+ }))
+
       function parseApiDocumentation(apiDocumentation) {
         const requests = (apiDocumentation
           .split("###")
@@ -145,20 +210,20 @@
           payload,
         };
       }
-      // Example API documentation
-      const apiDocumentation = '{JETPATH}';
-
+      // API documentation
+      const apiDocumentation = '{JETPATH}'.replaceAll("[--host--]", location.origin);
       // Parse API documentation
       const parsedApi = parseApiDocumentation(apiDocumentation);
 
       // Display API documentation in UI and add testing functionality
-      parsedApi.forEach((request) => {
+      parsedApi.forEach((request) => { 
         const requestContainer = document.createElement("div");
         requestContainer.classList.add("request-container");
 
         const requestInfo = document.createElement("div");
         requestInfo.classList.add("request");
         const urlInput = document.createElement("input");
+        urlInput.className = "url-input"
         urlInput.type = "text";
         urlInput.value = request.url;
         requestInfo.appendChild(document.createTextNode(request.method + " "));
@@ -170,7 +235,7 @@
 
         const headersContainer = document.createElement("div");
         headersContainer.classList.add("headers");
-        headersContainer.innerHTML = "<strong>Headers:</strong>";
+        headersContainer.innerHTML = "<strong>Headers:</strong>"; 
         for (const [key, value] of Object.entries(request.headers)) {
           const headerInput = document.createElement("input");
           headerInput.type = "text";
@@ -178,24 +243,18 @@
           headersContainer.appendChild(document.createElement("br"));
           headersContainer.appendChild(headerInput);
         }
-        requestContainer.appendChild(headersContainer);
-
+   Object.keys(request.headers).length && requestContainer.appendChild(headersContainer);
+   const payloadContainer = document.createElement("div");
         if (request.payload) {
-          const payloadContainer = document.createElement("div");
           payloadContainer.classList.add("payload");
-          payloadContainer.innerHTML = "<strong>Payload:</strong><br>";
-          const payloadTextarea = document.createElement("textarea");
-          payloadTextarea.value = request.payload;
-          payloadTextarea.addEventListener("change",()=>{
-            request.payload = payloadTextarea.value;
-          })
-          payloadContainer.appendChild(payloadTextarea);
+          payloadContainer.innerHTML = "<strong>Payload:</strong><br>"; 
+          payloadContainer.appendChild(parseINAPIBody(JSON.parse(request.payload)));
           requestContainer.appendChild(payloadContainer);
         }
 
         const testButton = document.createElement("button");
         testButton.classList.add("test-button");
-        testButton.textContent = "Test API";
+        testButton.textContent = "send";
         testButton.addEventListener("click", async () => {
           const updatedRequest = {
             method: requestInfo.firstChild.textContent.trim(),
@@ -218,28 +277,24 @@
             updatedRequest.payload = request.payload.trim();
           }
 const keys = document.getElementById("keys");
-let keysHeaders={}
-try { 
-  keysHeaders = JSON.parse(keys.value);
-} catch (error) {
-  alert(error);
-}
-          const response = await testApi(
-            updatedRequest.method,
-            updatedRequest.url,
-            Object.assign(updatedRequest.headers, keysHeaders),
-            updatedRequest.payload || undefined
-          ); 
-          showApiResponse(response);
+const keysHeaders =  parseUPAPIBody(keys); 
+const body = parseUPAPIBody(payloadContainer.querySelector(".body-pack"))
+const response = await testApi(
+  updatedRequest.method,
+  updatedRequest.url,
+  Object.assign(updatedRequest.headers, keysHeaders),
+  body?JSON.stringify(body): undefined
+  );  
+  showApiResponse(response);
         });
         requestContainer.appendChild(testButton);
-
         const responseContainer = document.createElement("div");
         responseContainer.classList.add("response-container");
         document.body.appendChild(requestContainer);
         document.body.appendChild(responseContainer);
 
         function showApiResponse(response) {
+          console.log(response);
           responseContainer.innerHTML = "<strong>API Response:</strong><br>";
           responseContainer.innerHTML += "<pre><h3 style='color:"+((response.status||404)<400?"green":"red")+"';>"+(response.status||404)+"</h3></pre>";
           responseContainer.innerHTML += "<pre>"+(response.body||"error")+"</pre>";

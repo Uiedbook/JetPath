@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -36,100 +47,149 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hook__DECORATOR = exports.GET_user$name = exports.hook__ERROR = exports.hook__POST = exports.hook__PRE = exports.GET_ = exports.GET_dogs$$ = exports.GET_dogs$name$age$sex = exports.POST_dogs = exports.BODY_dogs = exports.GET_dogs$0 = exports.GET_dogs = void 0;
-// /dogs
-function GET_dogs(ctx) {
-    ctx.reply(ctx); // ! error in nodejs
-}
-exports.GET_dogs = GET_dogs;
-// /dogs
-function GET_dogs$0(ctx) {
-    ctx.reply("all requests to /dogs/* ends on this page"); // ! error in nodejs
-}
-exports.GET_dogs$0 = GET_dogs$0;
-exports.BODY_dogs = {
-    name: { err: "please provide dog name", type: String },
-};
-function POST_dogs(ctx) {
+exports.hook__ERROR = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.BODY_pets = exports.GET_ = void 0;
+function GET_(ctx) {
     return __awaiter(this, void 0, void 0, function () {
-        var newDog, _a, _b;
+        return __generator(this, function (_a) {
+            ctx.reply("hello world!");
+            return [2 /*return*/];
+        });
+    });
+}
+exports.GET_ = GET_;
+exports.BODY_pets = {
+    name: { err: "please provide dog name", type: "string" },
+    imageUrl: { type: "string" },
+    age: { type: "number" },
+};
+var pets = [];
+// List Pets: Retrieve a list of pets available in the shop
+function GET_pets(ctx) {
+    console.log("boohoo");
+    ctx.reply(pets);
+}
+exports.GET_pets = GET_pets;
+// Get a Pet by ID: Retrieve detailed information about a specific pet by its unique identifier
+function GET_petBy$id(ctx) {
+    var _a;
+    var petId = (_a = ctx.params) === null || _a === void 0 ? void 0 : _a.id;
+    var pet = pets.find(function (p) { return p.id === petId; });
+    if (pet) {
+        ctx.reply(pet);
+    }
+    else {
+        ctx.code = 404;
+        ctx.reply({ message: "Pet not found" });
+    }
+}
+exports.GET_petBy$id = GET_petBy$id;
+// Add a New Pet: Add a new pet to the inventory
+function POST_pets(ctx) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _a, _b, newPet;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     _b = (_a = ctx).validate;
                     return [4 /*yield*/, ctx.json()];
                 case 1:
-                    newDog = _b.apply(_a, [_c.sent()]);
-                    ctx.reply({ newDog: newDog });
+                    _b.apply(_a, [_c.sent()]);
+                    newPet = ctx.body;
+                    // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
+                    newPet.id = String(Date.now());
+                    pets.push(newPet);
+                    ctx.reply({ message: "Pet added successfully", pet: newPet });
                     return [2 /*return*/];
             }
         });
     });
 }
-exports.POST_dogs = POST_dogs;
-function GET_dogs$name$age$sex(ctx) {
+exports.POST_pets = POST_pets;
+// Update a Pet: Modify the details of an existing pet
+function PUT_petBy$id(ctx) {
     return __awaiter(this, void 0, void 0, function () {
-        var _a, name, age, sex;
-        return __generator(this, function (_b) {
-            _a = ctx.params || {}, name = _a.name, age = _a.age, sex = _a.sex;
-            ctx.reply("hello " + name + " you are " + age + " years old and you are " + sex);
-            return [2 /*return*/];
-        });
-    });
-}
-exports.GET_dogs$name$age$sex = GET_dogs$name$age$sex;
-function GET_dogs$$(ctx) {
-    return __awaiter(this, void 0, void 0, function () {
-        var _a, name, age, sex;
-        return __generator(this, function (_b) {
-            _a = ctx.search || {}, name = _a.name, age = _a.age, sex = _a.sex;
-            ctx.reply("hello " + name + " you are " + age + " years old and you are " + sex);
-            return [2 /*return*/];
-        });
-    });
-}
-exports.GET_dogs$$ = GET_dogs$$;
-/**
- * @param {{ redirect: (arg0: string) => void; }} ctx
- */
-function GET_(ctx) {
-    return __awaiter(this, void 0, void 0, function () {
+        var petId, updatedPetData, index;
         return __generator(this, function (_a) {
-            // ctx.redirect("http://localhost:8080/dogs");
-            throw new Error("tada your first error using JethPath");
+            switch (_a.label) {
+                case 0:
+                    petId = ctx.params.id;
+                    return [4 /*yield*/, ctx.json()];
+                case 1:
+                    updatedPetData = _a.sent();
+                    index = pets.findIndex(function (p) { return p.id === petId; });
+                    if (index !== -1) {
+                        // Update the existing pet's data
+                        pets[index] = __assign(__assign({}, pets[index]), updatedPetData);
+                        ctx.reply({ message: "Pet updated successfully", pet: pets[index] });
+                    }
+                    else {
+                        ctx.code = 404;
+                        ctx.reply({ message: "Pet not found" });
+                    }
+                    return [2 /*return*/];
+            }
         });
     });
 }
-exports.GET_ = GET_;
-/**
- * @param {any} ctx
- */
-function hook__PRE(ctx) {
-    // console.log("PRE function boohoo");
-    // console.log(ctx);
+exports.PUT_petBy$id = PUT_petBy$id;
+// Delete a Pet: Remove a pet from the inventory
+function DELETE_petBy$id(ctx) {
+    var petId = ctx.params.id;
+    var index = pets.findIndex(function (p) { return p.id === petId; });
+    if (index !== -1) {
+        var deletedPet = pets.splice(index, 1)[0];
+        ctx.reply({ message: "Pet deleted successfully", pet: deletedPet });
+    }
+    else {
+        ctx.code = 404;
+        ctx.reply({ message: "Pet not found" });
+    }
 }
-exports.hook__PRE = hook__PRE;
-function hook__POST(ctx) { }
-exports.hook__POST = hook__POST;
+exports.DELETE_petBy$id = DELETE_petBy$id;
+// Upload a Pet's Image: Add an image to a pet's profile
+function POST_petImage$id(ctx) {
+    return __awaiter(this, void 0, void 0, function () {
+        var petId, formdata, profilePicture, index;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    petId = ctx.params.id;
+                    return [4 /*yield*/, ctx.request.formData()];
+                case 1:
+                    formdata = _a.sent();
+                    profilePicture = formdata.get("profilePicture");
+                    if (!profilePicture)
+                        throw new Error("Must upload a profile picture.");
+                    console.log({ formdata: formdata, profilePicture: profilePicture });
+                    index = pets.findIndex(function (p) { return p.id === petId; });
+                    if (!(index !== -1)) return [3 /*break*/, 3];
+                    // Attach the image URL to the pet's profile (in a real scenario, consider storing images externally)
+                    pets[index].imageUrl = "/images/".concat(petId, ".png");
+                    // write profilePicture to disk
+                    // @ts-ignore
+                    return [4 /*yield*/, Bun.write(pets[index].imageUrl, profilePicture)];
+                case 2:
+                    // write profilePicture to disk
+                    // @ts-ignore
+                    _a.sent();
+                    ctx.reply({
+                        message: "Image uploaded successfully",
+                        imageUrl: pets[index].imageUrl,
+                    });
+                    return [3 /*break*/, 4];
+                case 3:
+                    ctx.code = 404;
+                    ctx.reply({ message: "Pet not found" });
+                    _a.label = 4;
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.POST_petImage$id = POST_petImage$id;
 function hook__ERROR(ctx, err) {
+    ctx.code = 400;
     console.log(err);
-    ctx.throw(400, String(err));
-    console.log("booo2"); // nop this won't run, JetPath took over control
+    ctx.reply(String(err));
 }
 exports.hook__ERROR = hook__ERROR;
-// GET localhost:8080/user/:id
-function GET_user$name(ctx) {
-    var id = ctx.name();
-    ctx.reply("you are " + id);
-}
-exports.GET_user$name = GET_user$name;
-function hook__DECORATOR() {
-    return {
-        name: function () {
-            var _a;
-            var id = (_a = this.params) === null || _a === void 0 ? void 0 : _a.name;
-            return id;
-        },
-    };
-}
-exports.hook__DECORATOR = hook__DECORATOR;

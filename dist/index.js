@@ -4,6 +4,7 @@ import {URLSearchParams} from "node:url";
 import path from "node:path";
 import {cwd} from "node:process";
 import {createServer} from "node:http";
+import {createReadStream} from "node:fs";
 function corsHook(options) {
   if (Array.isArray(options.allowMethods)) {
     options.allowMethods = options.allowMethods.join(",");
@@ -105,26 +106,30 @@ var validate = function(schema, data) {
     if (!data[prop] && !nullable) {
       if (err) {
         errout = err;
+      } else {
+        errout = `${prop} is required`;
       }
-      errout = ` ${prop} is required`;
     }
     if (validate2 && !validate2(data[prop])) {
       if (err) {
         errout = err;
+      } else {
+        errout = `${prop} must is invalid`;
       }
-      errout = ` ${prop} must is invalid`;
     }
     if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
       if (err) {
         errout = err;
+      } else {
+        errout = `${prop} must is invalid`;
       }
-      errout = ` ${prop} must is invalid`;
     }
-    if (typeof type === "function" && (!type(data[prop]) || typeof type(data[prop]) !== typeof type())) {
+    if (typeof type === "string" && type !== typeof data[prop]) {
       if (err) {
         errout = err;
+      } else {
+        errout = `${prop} type is invalid '${data[prop]}' `;
       }
-      errout = ` ${prop} type is invalid ${data[prop]}`;
     }
     out[prop] = data[prop];
   }
@@ -165,7 +170,11 @@ var UTILS = {
     if (UTILS.runtime["bun"]) {
       return {
         listen(port) {
-          Bun.serve({ port, fetch: JetPath_app });
+          Bun.serve({
+            port,
+            fetch: JetPath_app,
+            websocket: _JetPath_paths?.POST?.["/websocket"]?.(undefined)
+          });
         }
       };
     }
@@ -312,8 +321,12 @@ var createCTX = (req, decorationObject = {}) => ({
     }
     this._2["Content-Disposition"] = `inline;filename="${name || "unnamed.bin"}"`;
     this._2["Content-Type"] = ContentType;
-    if (!UTILS.runtime["node"]) {
-      return this.reply(stream, ContentType);
+    if (typeof stream === "string") {
+      if (UTILS.runtime["bun"]) {
+        stream = Bun.file(stream);
+      } else {
+        stream = createReadStream(stream);
+      }
     }
     this._3 = stream;
     this._4 = true;
@@ -324,7 +337,10 @@ var createCTX = (req, decorationObject = {}) => ({
       return this.body;
     }
     if (!UTILS.runtime["node"]) {
-      return this.request.json();
+      return new Promise(async (r) => {
+        this.body = await this.request.json();
+        r(this.body);
+      });
     }
     return new Promise((r) => {
       let body = "";
@@ -355,19 +371,23 @@ var createResponse = (res, ctx) => {
     if (ctx?.code === 301 && ctx._2?.["Location"]) {
       return Response.redirect(ctx._2?.["Location"]);
     }
+    if (ctx?._3) {
+      return new Response(ctx?._3, {
+        status: 200,
+        headers: ctx?._2
+      });
+    }
     return new Response(ctx?._1 || "Not found!", {
-      status: ctx?.code || 404,
+      status: ctx?.code,
       headers: ctx?._2 || {}
     });
   }
   if (ctx?._3) {
     res.setHeader("Content-Type", (ctx?._2 || {})["Content-Type"] || "text/plain");
-    ctx._3.pipe(res);
-    return;
+    return ctx._3.pipe(res);
   }
-  res.writeHead(ctx?.code || 404, ctx?._2 || { "Content-Type": "text/plain" });
+  res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
   res.end(ctx?._1 || "Not found!");
-  return;
 };
 var JetPath_app = async (req, res) => {
   const paseredR = URLPARSER(req.method, req.url);
@@ -500,9 +520,9 @@ var URLPARSER = (method, url) => {
 
 // src/index.ts
 class JetPath {
-  options;
   server;
   listening = false;
+  options;
   constructor(options) {
     this.options = options || { displayRoutes: true };
     this.server = UTILS.server();
@@ -512,7 +532,8 @@ class JetPath {
       throw new Error("Your app is listening new decorations can't be added.");
     }
     if (typeof decorations !== "object") {
-      throw new Error("could not add decorations to ctx");
+      console.log({ decorations });
+      throw new Error("could not add decoration to ctx");
     }
     UTILS.decorators = Object.assign(UTILS.decorators, decorations);
   }
@@ -521,6 +542,53 @@ class JetPath {
     for (const [k, v] of Object.entries(this.options || {})) {
       _JetPath_app_config.set(k, v);
     }
+    if (this.options.publicPath.route && this.options.publicPath.dir) {
+      _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = (ctx) => {
+        const fileName = ctx.params?.["extraPath"];
+        if (fileName && ("/" + fileName).includes(this.options.publicPath.dir + "/")) {
+          let contentType;
+          switch (fileName.split(".")[1]) {
+            case "js":
+              contentType = "application/javascript";
+              break;
+            case "pdf":
+              contentType = "application/pdf";
+              break;
+            case "json":
+              contentType = "application/json";
+              break;
+            case "css":
+              contentType = "text/css; charset=utf-8";
+              break;
+            case "html":
+              contentType = "charset=utf-8";
+              break;
+            case "png":
+              contentType = "image/png";
+              break;
+            case "avif":
+              contentType = "image/avif";
+              break;
+            case "webp":
+              contentType = "image/webp";
+              break;
+            case "jpg":
+              contentType = "image/jpeg";
+              break;
+            case "svg":
+              contentType = "image/svg+xml";
+              break;
+            case "ico":
+              contentType = "image/vnd.microsoft.icon";
+              break;
+            default:
+              contentType = "text/plain";
+              break;
+          }
+          return ctx.pipe(fileName, contentType);
+        }
+      };
+    }
     if (typeof this.options !== "object" || this.options.displayRoutes !== false) {
       let c = 0, t = "";
       console.log("JetPath: compiling...");
@@ -528,7 +596,6 @@ class JetPath {
       await getHandlers(this.options?.source, true);
       const endTime = performance.now();
       console.log("JetPath: done.");
-      console.log(_JetPath_hooks);
       for (const k in _JetPath_paths) {
         const r = _JetPath_paths[k];
         if (r && Object.keys(r).length) {
@@ -537,12 +604,13 @@ class JetPath {
             const j = {};
             if (b) {
               for (const ke in b) {
-                j[ke] = typeof b[ke].type();
+                j[ke] = b[ke].type;
               }
             }
             const api = `\n
-${k} http://localhost:${port}${p} HTTP/1.1
-${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}
+${k} [--host--]${p} HTTP/1.1
+content-type: application/json
+${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
 ###`;
             if (this.options.displayRoutes === "UI") {
               t += api;
@@ -652,21 +720,86 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}
       textarea:focus {
         border: 3px solid #007bff5e;
       }
+      .url-input {
+        width: fit-content;
+        min-width: 40%;
+        padding: 4px 0.6rem;
+        margin: 4px 1rem;
+        
+      }
+      .body-pack {
+        border: 3px solid #007bff36;
+        padding: 1rem;
+        margin: 1rem 0px;
+        border-radius: 4px;
+      }
+      .body-pack div  {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .body-pack div:last-of-type {
+        margin-bottom: 0px;
+      }
+      .body-pack span {
+        margin: 6px;
+      }
+      .body-pack input {
+        padding: 4px;
+        border-radius: 4px;
+        border: 1px #007bff5e solid;
+      }
     </style>
   </head>
   <body>
     <header><img src="https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp" alt="JetPath" style="width: 7rem;" > <h1>JetPath API Preview</h1></header>
-    <div class="request-container">
-      <h4>headers:</h4>
-      <textarea id="keys">
- {
-   "Authetication": "Bearer ****"
-     
- }</textarea
-      >
+    <div class="request-container" id="auth-pack">
+      <h4>Auth headers:</h4> 
+      <div id="keys"></div>
     </div>
     <h3 class="request-container">Requests</h>
     <script>
+      
+      function parseUPAPIBody(packer) { 
+ const result = {};
+ let isSet = false;
+  // Retrieve the child nodes of the input div (assuming each child is a div)
+  const divs = Array.from((packer?.children||[])); 
+  divs.forEach(div => { 
+    const key = div.querySelector('span').textContent.replace(":", "");
+     // Extract the value from the div's content
+    const inputValue = div.querySelector('input').value;
+
+    // Attempt to parse the value as JSON
+    let value;
+    try {
+      value = JSON.parse(inputValue);
+      isSet = true;
+    } catch (error) {
+      // If parsing as JSON fails, treat it as a string
+      value = inputValue;
+    }
+ 
+    result[key] = value;
+  });
+  if (!isSet) return;
+  return result;
+      }
+   
+      function parseINAPIBody(apis) { 
+        const packer = document.createElement("div");
+        packer.className = "body-pack"
+        const packs = (k,v)=>"<div><span>"+k+":</span><input value='"+v+"'></input></div>" 
+        for (const api in apis) { 
+          packer.innerHTML=packer.innerHTML+packs(api,apis[api]);
+        }    
+        return packer;
+      }
+
+         document.getElementById("keys")?.appendChild(parseINAPIBody({
+   "Authetication": "Bearer ****",   
+ }))
+
       function parseApiDocumentation(apiDocumentation) {
         const requests = (apiDocumentation
           .split("###")
@@ -702,20 +835,20 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}
           payload,
         };
       }
-      // Example API documentation
-      const apiDocumentation = '{JETPATH}';
-
+      // API documentation
+      const apiDocumentation = '{JETPATH}'.replaceAll("[--host--]", location.origin);
       // Parse API documentation
       const parsedApi = parseApiDocumentation(apiDocumentation);
 
       // Display API documentation in UI and add testing functionality
-      parsedApi.forEach((request) => {
+      parsedApi.forEach((request) => { 
         const requestContainer = document.createElement("div");
         requestContainer.classList.add("request-container");
 
         const requestInfo = document.createElement("div");
         requestInfo.classList.add("request");
         const urlInput = document.createElement("input");
+        urlInput.className = "url-input"
         urlInput.type = "text";
         urlInput.value = request.url;
         requestInfo.appendChild(document.createTextNode(request.method + " "));
@@ -727,7 +860,7 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}
 
         const headersContainer = document.createElement("div");
         headersContainer.classList.add("headers");
-        headersContainer.innerHTML = "<strong>Headers:</strong>";
+        headersContainer.innerHTML = "<strong>Headers:</strong>"; 
         for (const [key, value] of Object.entries(request.headers)) {
           const headerInput = document.createElement("input");
           headerInput.type = "text";
@@ -735,24 +868,18 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}
           headersContainer.appendChild(document.createElement("br"));
           headersContainer.appendChild(headerInput);
         }
-        requestContainer.appendChild(headersContainer);
-
+   Object.keys(request.headers).length && requestContainer.appendChild(headersContainer);
+   const payloadContainer = document.createElement("div");
         if (request.payload) {
-          const payloadContainer = document.createElement("div");
           payloadContainer.classList.add("payload");
-          payloadContainer.innerHTML = "<strong>Payload:</strong><br>";
-          const payloadTextarea = document.createElement("textarea");
-          payloadTextarea.value = request.payload;
-          payloadTextarea.addEventListener("change",()=>{
-            request.payload = payloadTextarea.value;
-          })
-          payloadContainer.appendChild(payloadTextarea);
+          payloadContainer.innerHTML = "<strong>Payload:</strong><br>"; 
+          payloadContainer.appendChild(parseINAPIBody(JSON.parse(request.payload)));
           requestContainer.appendChild(payloadContainer);
         }
 
         const testButton = document.createElement("button");
         testButton.classList.add("test-button");
-        testButton.textContent = "Test API";
+        testButton.textContent = "send";
         testButton.addEventListener("click", async () => {
           const updatedRequest = {
             method: requestInfo.firstChild.textContent.trim(),
@@ -775,28 +902,24 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}
             updatedRequest.payload = request.payload.trim();
           }
 const keys = document.getElementById("keys");
-let keysHeaders={}
-try { 
-  keysHeaders = JSON.parse(keys.value);
-} catch (error) {
-  alert(error);
-}
-          const response = await testApi(
-            updatedRequest.method,
-            updatedRequest.url,
-            Object.assign(updatedRequest.headers, keysHeaders),
-            updatedRequest.payload || undefined
-          ); 
-          showApiResponse(response);
+const keysHeaders =  parseUPAPIBody(keys); 
+const body = parseUPAPIBody(payloadContainer.querySelector(".body-pack"))
+const response = await testApi(
+  updatedRequest.method,
+  updatedRequest.url,
+  Object.assign(updatedRequest.headers, keysHeaders),
+  body?JSON.stringify(body): undefined
+  );  
+  showApiResponse(response);
         });
         requestContainer.appendChild(testButton);
-
         const responseContainer = document.createElement("div");
         responseContainer.classList.add("response-container");
         document.body.appendChild(requestContainer);
         document.body.appendChild(responseContainer);
 
         function showApiResponse(response) {
+          console.log(response);
           responseContainer.innerHTML = "<strong>API Response:</strong><br>";
           responseContainer.innerHTML += "<pre><h3 style='color:"+((response.status||404)<400?"green":"red")+"';>"+(response.status||404)+"</h3></pre>";
           responseContainer.innerHTML += "<pre>"+(response.body||"error")+"</pre>";

@@ -5,7 +5,7 @@
   <h1 align="center">JetPath</h1>
 
   <p align="center">
-    JetPath - A fast and minimalist framework for Node, Deno and Bun.js. Embrace a new server-side DX with speed included.
+    JetPath 🚀 - A fast and minimalist framework for Node, Deno and Bun.js. Embrace a new dev DX!
     <br/>
     <br/>
     <a href="https://github.com/uiedbook/JetPath#examples"><strong>Explore JetPath APIs »</strong></a>
@@ -28,14 +28,21 @@
 
 ## Latest version info
 
-In this version, multi-runtime support is no-longer based on compartiblity but pure engine api(s).
+In this version, we added/tested these features on all runtimes.
+
+1. auto-generated api documentation UI (JethPath UI).
+2. streaming via ctx.pipe(stream||filename).
+3. file uploads [check this example](tests/uploading-files.md)
+4. support for websockets [check this example](tests/websockets-usage.md).
+5. Logger usage - (we tested pino/winston).
+
+In this version (not this latest), multi-runtime support is no-longer based on compartiblity but pure engine api(s).
 
 We Added Examples in the examples folder!
 
 - running Node index.js starts a Node instance for your app.
 - running Deno run index.ts starts a Deno instance for your app.
 - running Bun index.ts starts a Bun instance for your app.
-
 - looking into serverless
 
 this version we fixed issues with the inbuilt cors hook.
@@ -44,7 +51,7 @@ this version we fixed issues with the inbuilt cors hook.
 
 # Rationale
 
-JetPath is a Small(7kb) gzipped Server-side framework that is Fast and Easy to use.
+JetPath is a Small Server-side framework that is Fast and Easy to use.
 
 [benchmark repo](https://github.com/FridayCandour/jetpath-benchmark)
 
@@ -59,7 +66,7 @@ JetPath is a Small(7kb) gzipped Server-side framework that is Fast and Easy to u
 
 In JetPath, unlike express, fastify or other Javascript base server-side framworks, JetPath is designed as a light, simple and but powerful, using the an intuitive route as function name system. you can be able to design and manage your api(s) with the smallest granularity possible.
 
-This benefits are very lovely and delighting, trust me you have never written javascript app in this manner before and you should definitely check this out for a new taste beyound what the mainstream offers, an eciting DX.
+This benefits are very lovely and delighting, but trust me you have never written javascript app in this manner before and you should definitely check this out for a new taste beyound what the mainstream offers, an eciting DX.
 
 --
 
@@ -192,11 +199,8 @@ When improvements and changes rolls out, we will quickly update this page and th
 
 currently we are working on integration with industry tools like
 
-1. Logger (can use pino/winston)
-2. http stream (done)
 3. Swagger (can be used but JetPath has one inbuilt)
-4. Web Socket (in the next releases)
-5. file upload (in the next release)
+4. file upload (in the next release)
 
 ## Apache 2.0 Lincenced
 
