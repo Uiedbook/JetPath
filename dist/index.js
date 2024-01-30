@@ -543,7 +543,7 @@ class JetPath {
     for (const [k, v] of Object.entries(this.options || {})) {
       _JetPath_app_config.set(k, v);
     }
-    if (this.options.publicPath.route && this.options.publicPath.dir) {
+    if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
       _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = (ctx) => {
         const fileName = ctx.params?.["extraPath"];
         if (fileName && ("/" + fileName).includes(this.options.publicPath.dir + "/")) {
@@ -590,7 +590,7 @@ class JetPath {
         }
       };
     }
-    if (typeof this.options !== "object" || this.options.displayRoutes !== false) {
+    if (typeof this.options !== "object" || this.options?.displayRoutes !== false) {
       let c = 0, t = "";
       console.log("JetPath: compiling...");
       const startTime = performance.now();
