@@ -145,11 +145,11 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         }
       }
       if (this.options.displayRoutes === "UI") {
-        _JetPath_paths["GET"]["/JetPath-ui"] = (ctx) => {
+        _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
           ctx.reply(`{view}`.replace("'{JETPATH}'", `\`${t}\``), "text/html");
         };
         console.log(
-          `visit http://localhost:${port}/JetPath-ui to see the displayed routes in UI`
+          `visit http://localhost:${port}/api-doc to see the displayed routes in UI`
         );
       }
 

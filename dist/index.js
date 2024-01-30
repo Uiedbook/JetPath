@@ -622,7 +622,7 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         }
       }
       if (this.options.displayRoutes === "UI") {
-        _JetPath_paths["GET"]["/JetPath-ui"] = (ctx) => {
+        _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
           ctx.reply(`<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -634,14 +634,14 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #f4f4f4;
+        background-color: #f4f4f4 !important;
         color: #333;
       }
 
       header {
-        background-color: #007bff; 
+        background-color: #007bff !important; 
         text-align: center;
-        color: #fff;
+        color: #fff !important;
         font-size: 24px;
         margin-bottom: 20px;
         display: flex;
@@ -653,10 +653,10 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
       .request-container {
         margin: 20px;
         padding: 20px;
-        border: 1px solid #ccc;
+        border: 1px solid #ccc !important;
         border-radius: 5px;
-        background-color: #fff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #fff !important;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) !important;
         transition: transform 0.3s ease-in-out;
         display: flex;
         flex-direction: column;
@@ -665,6 +665,11 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
 
       .request {
         margin-bottom: 10px;
+        color: #333 !important;
+      }
+      strong,.body-pack *, h4 {
+        margin-bottom: 10px;
+        color: #333 !important;
       }
 
       .headers,
@@ -677,24 +682,28 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
       }
 
       .test-button {
-        background-color: #007bff;
-        color: #fff;
-        border: none;
-        padding: 10px 18px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease-in-out;
+        background-color: #007bff !important;
+    color: #fff !important;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+    max-width: 560px;
+    margin: auto;
+    width: 100%;
+    margin: 1rem auto;
       }
 
       .test-button:hover {
-        background-color: #0056b3;
+        background-color: #0056b3 !important;
       }
 
       .response-container {
-        border: 1px solid #ccc;
+        border: 1px solid #ccc !important;
         border-radius: 5px;
-        background-color: #fff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #fff !important;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         display: none;
         margin: 20px;
         padding: 20px;
@@ -704,7 +713,7 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         min-width: 50vw;
         min-height: 3rem;
         padding: 1rem;
-        border: 3px solid #007bff;
+        border: 3px solid #007bff !important;
         border-radius: 20px;
         outline: none;
       }
@@ -713,12 +722,12 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         min-width: 30vw;
         min-height: 5rem;
         padding: 0.6rem;
-        border: 2px solid #007bff;
+        border: 2px solid #007bff !important;
         border-radius: 10px;
         outline: none;
       }
       textarea:focus {
-        border: 3px solid #007bff5e;
+        border: 3px solid #007bff5e !important;
       }
       .url-input {
         width: fit-content;
@@ -728,7 +737,7 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         
       }
       .body-pack {
-        border: 3px solid #007bff36;
+        border: 3px solid #007bff36 !important;
         padding: 1rem;
         margin: 1rem 0px;
         border-radius: 4px;
@@ -747,13 +756,13 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
       .body-pack input {
         padding: 4px;
         border-radius: 4px;
-        border: 1px #007bff5e solid;
+        border: 1px #007bff5e solid !important;
       } 
 
     select {
       padding: 10px;
       font-size: 16px;
-      border: 2px solid #3498db;
+      border: 2px solid #3498db !important;
       border-radius: 5px;
       outline: none;
     }
@@ -864,9 +873,9 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         urlInput.value = request.url;
         requestInfo.appendChild(document.createTextNode(request.method + " "));
         requestInfo.appendChild(urlInput);
-        requestInfo.appendChild(
-          document.createTextNode(" " + request.httpVersion)
-        );
+        // requestInfo.appendChild(
+        //   document.createTextNode(" " + request.httpVersion)
+        // );
         requestContainer.appendChild(requestInfo);
 
         const headersContainer = document.createElement("div");
@@ -937,7 +946,7 @@ const response = await testApi(
         function showApiResponse(response) { 
           responseContainer.innerHTML = "<strong>API Response:</strong><br>";
           responseContainer.innerHTML += "<pre><h3 style='color:"+((response.status||404)<400?"green":"red")+"';>"+(response.status||404)+"</h3></pre>";
-          responseContainer.innerHTML += "<pre style='background-color:#007bff2e;padding:12px;border-radius:12px;text-wrap:balance; max-width: 590px;overflow-wrap: break-word;'>"+(response.body||"error")+"</pre>";
+          responseContainer.innerHTML += "<pre style='background-color:#007bff2e;padding:12px;border-radius:12px;text-wrap:balance; max-width: 690px;overflow-wrap: break-word;'>"+(response.body||"error")+"</pre>";
           responseContainer.scrollIntoView({
             behavior: "smooth",
             block: "end",
@@ -992,7 +1001,7 @@ const response = await testApi(
   </body>
 </html>`.replace("'{JETPATH}'", `\`${t}\``), "text/html");
         };
-        console.log(`visit http://localhost:${port}/JetPath-ui to see the displayed routes in UI`);
+        console.log(`visit http://localhost:${port}/api-doc to see the displayed routes in UI`);
       }
       console.log(`\n Parsed ${c} handlers in ${Math.round(endTime - startTime)} milliseconds`);
     } else {
