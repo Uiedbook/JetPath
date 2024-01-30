@@ -379,7 +379,7 @@ var createResponse = (res, ctx) => {
       });
     }
     return new Response(ctx?._1 || "Not found!", {
-      status: ctx?.code,
+      status: ctx?.code || 404,
       headers: ctx?._2 || {}
     });
   }
@@ -387,7 +387,7 @@ var createResponse = (res, ctx) => {
     res.setHeader("Content-Type", (ctx?._2 || {})["Content-Type"] || "text/plain");
     return ctx._3.pipe(res);
   }
-  res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
+  res.writeHead(ctx?.code || 404, ctx?._2 || { "Content-Type": "text/plain" });
   res.end(ctx?._1 || "Not found!");
 };
 var JetPath_app = async (req, res) => {
