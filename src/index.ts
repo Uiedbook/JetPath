@@ -16,6 +16,11 @@ export class JetPath {
   private listening: boolean = false;
   private options: any;
   constructor(options?: {
+    documentation?: {
+      name?: string;
+      info?: string;
+      color?: string;
+    };
     source?: string;
     credentials?: any;
     displayRoutes?: boolean | "UI";
@@ -43,7 +48,7 @@ export class JetPath {
       throw new Error("Your app is listening new decorations can't be added.");
     }
     if (typeof decorations !== "object") {
-      console.log({ decorations });
+      // console.log({ decorations });
       throw new Error("could not add decoration to ctx");
     }
     UTILS.decorators = Object.assign(UTILS.decorators, decorations);
@@ -146,7 +151,28 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
       }
       if (this.options.displayRoutes === "UI") {
         _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
-          ctx.reply(`{view}`.replace("'{JETPATH}'", `\`${t}\``), "text/html");
+          ctx.reply(
+            `{view}`
+              .replace("'{JETPATH}'", `\`${t}\``)
+              .replaceAll(
+                "{NAME}",
+                this.options?.documentation?.name || "JethPath API Doc"
+              )
+              .replaceAll(
+                "JETPATHCOLOR",
+                this.options?.documentation?.color || "#007bff"
+              )
+              .replaceAll(
+                "{LOGO}",
+                this.options?.documentation?.color || "#007bff"
+              )
+              .replaceAll(
+                "{INFO}",
+                this.options?.documentation?.info ||
+                  "This is a JethPath api preview."
+              ),
+            "text/html"
+          );
         };
         console.log(
           `visit http://localhost:${port}/api-doc to see the displayed routes in UI`

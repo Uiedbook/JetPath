@@ -533,7 +533,6 @@ class JetPath {
       throw new Error("Your app is listening new decorations can't be added.");
     }
     if (typeof decorations !== "object") {
-      console.log({ decorations });
       throw new Error("could not add decoration to ctx");
     }
     UTILS.decorators = Object.assign(UTILS.decorators, decorations);
@@ -628,8 +627,11 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JetPath API Preview</title>
+    <title>{NAME} API Preview</title>
     <style>
+      :root {
+        ---app: JETPATHCOLOR;
+      }
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         margin: 0;
@@ -639,7 +641,7 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
       }
 
       header {
-        background-color: #007bff !important; 
+        background-color: JETPATHCOLOR !important; 
         text-align: center;
         color: #fff !important;
         font-size: 24px;
@@ -682,7 +684,7 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
       }
 
       .test-button {
-        background-color: #007bff !important;
+        background-color: JETPATHCOLOR !important;
     color: #fff !important;
     border: none;
     padding: 1rem 2rem;
@@ -696,7 +698,7 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
       }
 
       .test-button:hover {
-        background-color: #0056b3 !important;
+        background-color: JETPATHCOLORb3 !important;
       }
 
       .response-container {
@@ -713,7 +715,7 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         min-width: 50vw;
         min-height: 3rem;
         padding: 1rem;
-        border: 3px solid #007bff !important;
+        border: 3px solid JETPATHCOLOR !important;
         border-radius: 20px;
         outline: none;
       }
@@ -722,12 +724,12 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         min-width: 30vw;
         min-height: 5rem;
         padding: 0.6rem;
-        border: 2px solid #007bff !important;
+        border: 2px solid JETPATHCOLOR !important;
         border-radius: 10px;
         outline: none;
       }
       textarea:focus {
-        border: 3px solid #007bff5e !important;
+        border: 3px solid JETPATHCOLOR5e !important;
       }
       .url-input {
         width: fit-content;
@@ -737,7 +739,7 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
         
       }
       .body-pack {
-        border: 3px solid #007bff36 !important;
+        border: 3px solid JETPATHCOLOR36 !important;
         padding: 1rem;
         margin: 1rem 0px;
         border-radius: 4px;
@@ -756,13 +758,13 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
       .body-pack input {
         padding: 4px;
         border-radius: 4px;
-        border: 1px #007bff5e solid !important;
+        border: 1px JETPATHCOLOR5e solid !important;
       } 
 
     select {
       padding: 10px;
       font-size: 16px;
-      border: 2px solid #3498db !important;
+      border: 2px solid JETPATHCOLOR90 !important;
       border-radius: 5px;
       outline: none;
     }
@@ -770,7 +772,11 @@ ${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n
     </style>
   </head>
   <body>
-    <header><img src="https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp" alt="JetPath" style="width: 7rem;" > <h1>JetPath API Preview</h1></header>
+    <header><img src="{LOGO}" alt="{NAME}" style="width: 7rem;" > <h1>{NAME}</h1></header>
+    <div style="margin-left: 2rem;">
+      <span>Project info:</span>
+      <span>{INFO}</span>
+    </div>
     <div class="request-container" id="auth-pack">
       <h4>Auth headers:</h4> 
       <div id="keys"></div>
@@ -946,7 +952,7 @@ const response = await testApi(
         function showApiResponse(response) { 
           responseContainer.innerHTML = "<strong>API Response:</strong><br>";
           responseContainer.innerHTML += "<pre><h3 style='color:"+((response.status||404)<400?"green":"red")+"';>"+(response.status||404)+"</h3></pre>";
-          responseContainer.innerHTML += "<pre style='background-color:#007bff2e;padding:12px;border-radius:12px;text-wrap:balance; max-width: 690px;overflow-wrap: break-word;'>"+(response.body||"error")+"</pre>";
+          responseContainer.innerHTML += "<pre style='background-color:JETPATHCOLOR2e;padding:12px;border-radius:12px;text-wrap:balance; max-width: 690px;overflow-wrap: break-word;'>"+(response.body||"error")+"</pre>";
           responseContainer.scrollIntoView({
             behavior: "smooth",
             block: "end",
@@ -999,7 +1005,7 @@ const response = await testApi(
       }
     </script>
   </body>
-</html>`.replace("'{JETPATH}'", `\`${t}\``), "text/html");
+</html>`.replace("'{JETPATH}'", `\`${t}\``).replaceAll("{NAME}", this.options?.documentation?.name || "JethPath API Doc").replaceAll("JETPATHCOLOR", this.options?.documentation?.color || "#007bff").replaceAll("{LOGO}", this.options?.documentation?.color || "#007bff").replaceAll("{INFO}", this.options?.documentation?.info || "This is a JethPath api preview."), "text/html");
         };
         console.log(`visit http://localhost:${port}/api-doc to see the displayed routes in UI`);
       }

@@ -4,6 +4,11 @@ export declare class JetPath {
     private listening;
     private options;
     constructor(options?: {
+        documentation?: {
+            name?: string;
+            info?: string;
+            color?: string;
+        };
         source?: string;
         credentials?: any;
         displayRoutes?: boolean | "UI";
