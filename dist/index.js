@@ -99,6 +99,8 @@ var validate = function(schema, data) {
   if (!data)
     this.throw("invalid ctx.body => " + data);
   for (const [prop, value] of Object.entries(schema)) {
+    if (prop === "BODY_info" || prop == "BODY_method")
+      continue;
     const { err, type, nullable, RegExp, validate: validate2 } = value;
     if (!data[prop] && nullable) {
       continue;

@@ -546,6 +546,7 @@ function validate(this: AppCTX, schema: Schema, data: any) {
   let errout: string = "";
   if (!data) this.throw("invalid ctx.body => " + data);
   for (const [prop, value] of Object.entries(schema)) {
+    if (prop === "BODY_info" || prop == "BODY_method") continue;
     const { err, type, nullable, RegExp, validate } = value;
     if (!data[prop] && nullable) {
       continue;
