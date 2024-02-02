@@ -628,6 +628,7 @@ ${b && (b.BODY_method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{NAME} API Preview</title>
+    <link rel="shortcut icon" href="https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon.webp" type="image/webp">
     <style>
       :root {
         ---app: JETPATHCOLOR;

@@ -1,5 +1,3 @@
-/// <reference types="node" />
-/// <reference types="node" />
 import { IncomingMessage } from "http";
 import { Stream } from "node:stream";
 export type AppCTX<Type = {}> = {
