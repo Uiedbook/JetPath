@@ -604,6 +604,8 @@ class JetPath {
             const j = {};
             if (b) {
               for (const ke in b) {
+                if (ke === "BODY_info" || ke == "BODY_method")
+                  continue;
                 j[ke] = b[ke]?.inputType || "text";
               }
             }
@@ -882,7 +884,7 @@ ${b && (b.BODY_method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) 
         const requestContainer = document.createElement("div");
         requestContainer.classList.add("request-container");
         if (request.comment) {
-          const comment = document.createElement("h3");
+          const comment = document.createElement("h4");
           comment.innerText = request.comment;
           requestContainer.appendChild(comment);
         }

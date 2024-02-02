@@ -132,6 +132,7 @@ export class JetPath {
             const j: Record<string, any> = {};
             if (b) {
               for (const ke in b) {
+                if (ke === "BODY_info" || ke == "BODY_method") continue;
                 j[ke] = (b[ke as "BODY_info"] as any)?.inputType || "text";
               }
             }
