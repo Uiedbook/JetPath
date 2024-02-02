@@ -9,6 +9,7 @@ import {
   type allowedMethods,
   type AppCTX,
   type methods,
+  type Schema,
 } from "./primitives/types.js";
 
 export class JetPath {
@@ -20,7 +21,6 @@ export class JetPath {
       name?: string;
       info?: string;
       color?: string;
-      logo?: string;
     };
     source?: string;
     credentials?: any;
@@ -123,7 +123,7 @@ export class JetPath {
       await getHandlers(this.options?.source!, true);
       const endTime = performance.now();
       console.log("JetPath: done.");
-
+      // console.log(_JetPath_hooks);
       for (const k in _JetPath_paths) {
         const r = _JetPath_paths[k as methods];
         if (r && Object.keys(r).length) {
@@ -135,18 +135,11 @@ export class JetPath {
                 j[ke] = (b[ke as "BODY_info"] as any)?.inputType || "text";
               }
             }
+
             const api = `\n
 ${k} [--host--]${p} HTTP/1.1
-${
-  b && (b.BODY_method === k && k !== "GET" ? k : "")
-    ? "\n" + JSON.stringify(j)
-    : ""
-}\n${
-              b &&
-              (b.BODY_method === k && k !== "GET" ? k : "") &&
-              b?.["BODY_info"]
-                ? "#" + b?.["BODY_info"] + "-JETE"
-                : ""
+${b && k !== "GET" ? "\n" + JSON.stringify(j) : ""}\n${
+              b?.["BODY_info"] ? "#" + b?.["BODY_info"] + "-JETE" : ""
             }
 ###`;
             if (this.options.displayRoutes === "UI") {
@@ -173,8 +166,7 @@ ${
               )
               .replaceAll(
                 "{LOGO}",
-                this.options?.documentation?.logo ||
-                  "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
+                this.options?.documentation?.color || "#007bff"
               )
               .replaceAll(
                 "{INFO}",

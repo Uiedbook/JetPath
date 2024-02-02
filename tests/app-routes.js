@@ -47,35 +47,44 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hook__ERROR = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.BODY_petImage$id = exports.BODY_petBy$id = exports.BODY_pets = exports.GET_ = void 0;
-function GET_(ctx) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            ctx.reply("hello world!");
-            return [2 /*return*/];
-        });
-    });
-}
-exports.GET_ = GET_;
+exports.hook__ERROR = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.GET_ = exports.BODY_petImage$id = exports.BODY_petBy$id = exports.BODY_pets = void 0;
+//? Body validators
 exports.BODY_pets = {
     name: { err: "please provide dog name", type: "string" },
     image: { type: "string", nullable: true, inputType: "file" },
     age: { type: "number" },
+    BODY_method: "POST",
 };
 exports.BODY_petBy$id = {
     name: { err: "please provide dog name", type: "string" },
     image: { type: "string", nullable: true, inputType: "file" },
     age: { type: "number" },
+    BODY_info: "This api allows you to access a pet with it's ID",
+    BODY_method: "PUT",
 };
 exports.BODY_petImage$id = {
     image: { type: "string", inputType: "file" },
 };
+// ? Routes
+// ? PETshop temperaly Database
 var pets = [];
+// ? /
+function GET_(ctx) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            ctx.reply("Welcome to Petshop!");
+            return [2 /*return*/];
+        });
+    });
+}
+exports.GET_ = GET_;
 // List Pets: Retrieve a list of pets available in the shop
+// ? /pets
 function GET_pets(ctx) {
     ctx.reply(pets);
 }
 exports.GET_pets = GET_pets;
+// ? /petBy/19388
 // Get a Pet by ID: Retrieve detailed information about a specific pet by its unique identifier
 function GET_petBy$id(ctx) {
     var _a;
@@ -90,6 +99,7 @@ function GET_petBy$id(ctx) {
     }
 }
 exports.GET_petBy$id = GET_petBy$id;
+// ? /pets
 // Add a New Pet: Add a new pet to the inventory
 function POST_pets(ctx) {
     return __awaiter(this, void 0, void 0, function () {
@@ -113,6 +123,7 @@ function POST_pets(ctx) {
 }
 exports.POST_pets = POST_pets;
 // Update a Pet: Modify the details of an existing pet
+// ? /petBy/8766
 function PUT_petBy$id(ctx) {
     return __awaiter(this, void 0, void 0, function () {
         var _a, _b, petId, updatedPetData, index;
@@ -143,6 +154,7 @@ function PUT_petBy$id(ctx) {
     });
 }
 exports.PUT_petBy$id = PUT_petBy$id;
+// ? /petBy/8766
 // Delete a Pet: Remove a pet from the inventory
 function DELETE_petBy$id(ctx) {
     var petId = ctx.params.id;
@@ -157,6 +169,7 @@ function DELETE_petBy$id(ctx) {
     }
 }
 exports.DELETE_petBy$id = DELETE_petBy$id;
+// ? /petImage/76554
 // Upload a Pet's Image: Add an image to a pet's profile
 function POST_petImage$id(ctx) {
     return __awaiter(this, void 0, void 0, function () {
@@ -201,6 +214,7 @@ function POST_petImage$id(ctx) {
     });
 }
 exports.POST_petImage$id = POST_petImage$id;
+// ? error hook
 function hook__ERROR(ctx, err) {
     ctx.code = 400;
     console.log(err);

@@ -1,10 +1,10 @@
 // src/primitives/functions.ts
-import {opendir} from "node:fs/promises";
-import {URLSearchParams} from "node:url";
+import { opendir } from "node:fs/promises";
+import { URLSearchParams } from "node:url";
 import path from "node:path";
-import {cwd} from "node:process";
-import {createServer} from "node:http";
-import {createReadStream} from "node:fs";
+import { cwd } from "node:process";
+import { createServer } from "node:http";
+import { createReadStream } from "node:fs";
 function corsHook(options) {
   if (Array.isArray(options.allowMethods)) {
     options.allowMethods = options.allowMethods.join(",");
@@ -12,7 +12,8 @@ function corsHook(options) {
   if (options.maxAge) {
     options.maxAge = String(options.maxAge);
   }
-  options.keepHeadersOnError = options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
+  options.keepHeadersOnError =
+    options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
   return function cors(ctx) {
     ctx.set("Vary", "Origin");
     if (options.credentials === true) {
@@ -22,7 +23,10 @@ function corsHook(options) {
     }
     if (ctx.method !== "OPTIONS") {
       if (options.exposeHeaders) {
-        ctx.set("Access-Control-Expose-Headers", options.exposeHeaders.join(","));
+        ctx.set(
+          "Access-Control-Expose-Headers",
+          options.exposeHeaders.join(",")
+        );
       }
       if (options.secureContext) {
         ctx.set("Cross-Origin-Opener-Policy", "same-origin");
@@ -35,7 +39,10 @@ function corsHook(options) {
       if (options.maxAge) {
         ctx.set("Access-Control-Max-Age", options.maxAge);
       }
-      if (options.privateNetworkAccess && ctx.get("Access-Control-Request-Private-Network")) {
+      if (
+        options.privateNetworkAccess &&
+        ctx.get("Access-Control-Request-Private-Network")
+      ) {
         ctx.set("Access-Control-Allow-Private-Network", "true");
       }
       if (options.allowMethods) {
@@ -60,7 +67,7 @@ async function getHandlers(source, print) {
   }
   const dir = await opendir(source);
   for await (const dirent of dir) {
-    if (dirent.isFile() && dirent.name.endsWith(".js")) {
+    if (dirent.isFile() && dirent.s.endsWith(".js")) {
       const module = await import(path.resolve(source + "/" + dirent.name));
       for (const p in module) {
         const params = Handlerspath(p);
@@ -88,16 +95,19 @@ async function getHandlers(source, print) {
         }
       }
     }
-    if (dirent.isDirectory() && dirent.name !== "node_modules" && dirent.name !== ".git") {
+    if (
+      dirent.isDirectory() &&
+      dirent.name !== "node_modules" &&
+      dirent.name !== ".git"
+    ) {
       await getHandlers(source + "/" + dirent.name, print);
     }
   }
 }
-var validate = function(schema, data) {
+var validate = function (schema, data) {
   const out = {};
   let errout = "";
-  if (!data)
-    this.throw("invalid ctx.body => " + data);
+  if (!data) this.throw("invalid ctx.body => " + data);
   for (const [prop, value] of Object.entries(schema)) {
     const { err, type, nullable, RegExp, validate: validate2 } = value;
     if (!data[prop] && nullable) {
@@ -133,8 +143,7 @@ var validate = function(schema, data) {
     }
     out[prop] = data[prop];
   }
-  if (errout)
-    this.throw({ detail: errout });
+  if (errout) this.throw({ detail: errout });
   return out;
 };
 var UTILS = {
@@ -164,7 +173,7 @@ var UTILS = {
       return {
         listen(port) {
           Deno.serve({ port }, JetPath_app);
-        }
+        },
       };
     }
     if (UTILS.runtime["bun"]) {
@@ -173,12 +182,12 @@ var UTILS = {
           Bun.serve({
             port,
             fetch: JetPath_app,
-            websocket: _JetPath_paths?.POST?.["/websocket"]?.(undefined)
+            websocket: _JetPath_paths?.POST?.["/websocket"]?.(undefined),
           });
-        }
+        },
       };
     }
-  }
+  },
 };
 UTILS.set();
 var _JetPath_paths = {
@@ -188,12 +197,12 @@ var _JetPath_paths = {
   PUT: {},
   PATCH: {},
   DELETE: {},
-  OPTIONS: {}
+  OPTIONS: {},
 };
 var _JetPath_hooks = {
   PRE: false,
   POST: false,
-  ERROR: false
+  ERROR: false,
 };
 
 class JetPathErrors extends Error {
@@ -201,7 +210,7 @@ class JetPathErrors extends Error {
     super(message);
   }
 }
-var errDone = new JetPathErrors;
+var errDone = new JetPathErrors();
 var _JetPath_app_config = {
   cors: false,
   set(opt, val) {
@@ -216,7 +225,7 @@ var _JetPath_app_config = {
         privateNetworkAccess: undefined,
         origin: ["*"],
         credentials: undefined,
-        ...typeof val === "object" ? val : {}
+        ...(typeof val === "object" ? val : {}),
       });
       if (Array.isArray(val["allowMethods"])) {
         _JetPath_paths = {};
@@ -227,7 +236,7 @@ var _JetPath_app_config = {
       return;
     }
     this[opt] = val;
-  }
+  },
 };
 var createCTX = (req, decorationObject = {}) => ({
   ...decorationObject,
@@ -319,7 +328,9 @@ var createCTX = (req, decorationObject = {}) => ({
     if (!this._2) {
       this._2 = {};
     }
-    this._2["Content-Disposition"] = `inline;filename="${name || "unnamed.bin"}"`;
+    this._2["Content-Disposition"] = `inline;filename="${
+      name || "unnamed.bin"
+    }"`;
     this._2["Content-Type"] = ContentType;
     if (typeof stream === "string") {
       if (UTILS.runtime["bun"]) {
@@ -339,8 +350,7 @@ var createCTX = (req, decorationObject = {}) => ({
     if (!UTILS.runtime["node"]) {
       try {
         this.body = await this.request.json();
-      } catch (error) {
-      }
+      } catch (error) {}
       return this.body;
     }
     return await new Promise((r) => {
@@ -351,8 +361,7 @@ var createCTX = (req, decorationObject = {}) => ({
       this.request.on("end", () => {
         try {
           this.body = JSON.parse(body);
-        } catch (error) {
-        }
+        } catch (error) {}
         r(this.body);
       });
     });
@@ -365,7 +374,7 @@ var createCTX = (req, decorationObject = {}) => ({
   },
   params: {},
   search: {},
-  path: "/"
+  path: "/",
 });
 var createResponse = (res, ctx) => {
   if (!UTILS.runtime["node"]) {
@@ -375,16 +384,19 @@ var createResponse = (res, ctx) => {
     if (ctx?._3) {
       return new Response(ctx?._3, {
         status: 200,
-        headers: ctx?._2
+        headers: ctx?._2,
       });
     }
     return new Response(ctx?._1 || "Not found!", {
       status: ctx?.code || 404,
-      headers: ctx?._2 || {}
+      headers: ctx?._2 || {},
     });
   }
   if (ctx?._3) {
-    res.setHeader("Content-Type", (ctx?._2 || {})["Content-Type"] || "text/plain");
+    res.setHeader(
+      "Content-Type",
+      (ctx?._2 || {})["Content-Type"] || "text/plain"
+    );
     return ctx._3.pipe(res);
   }
   res.writeHead(ctx?.code || 404, ctx?._2 || { "Content-Type": "text/plain" });
@@ -399,9 +411,9 @@ var JetPath_app = async (req, res) => {
     ctx.search = paseredR[2];
     ctx.path = paseredR[3];
     try {
-      _JetPath_hooks["PRE"] && await _JetPath_hooks["PRE"](ctx);
+      _JetPath_hooks["PRE"] && (await _JetPath_hooks["PRE"](ctx));
       await r(ctx);
-      _JetPath_hooks["POST"] && await _JetPath_hooks["POST"](ctx);
+      _JetPath_hooks["POST"] && (await _JetPath_hooks["POST"](ctx));
       _JetPath_app_config["cors"] && _JetPath_app_config.cors(ctx);
       return createResponse(res, ctx);
     } catch (error) {
@@ -412,7 +424,8 @@ var JetPath_app = async (req, res) => {
         return createResponse(res, ctx);
       } else {
         try {
-          _JetPath_hooks["ERROR"] && await _JetPath_hooks["ERROR"](ctx, error);
+          _JetPath_hooks["ERROR"] &&
+            (await _JetPath_hooks["ERROR"](ctx, error));
           if (_JetPath_app_config.cors) {
             _JetPath_app_config.cors(ctx);
           }
@@ -471,7 +484,9 @@ var URLPARSER = (method, url) => {
     const sraw = [...new URLSearchParams(url).entries()];
     const search = {};
     for (const idx in sraw) {
-      search[sraw[idx][0].includes("?") ? sraw[idx][0].split("?")[1] : sraw[idx][0]] = sraw[idx][1];
+      search[
+        sraw[idx][0].includes("?") ? sraw[idx][0].split("?")[1] : sraw[idx][0]
+      ] = sraw[idx][1];
     }
     const path2 = url.split("/?")[0] + "/?";
     if (routes[path2]) {
@@ -489,7 +504,7 @@ var URLPARSER = (method, url) => {
       let fixturesX = 0;
       let fixturesY = 0;
       if (pathFixtures.length === urlFixtures.length) {
-        for (let i = 0;i < pathFixtures.length; i++) {
+        for (let i = 0; i < pathFixtures.length; i++) {
           if (pathFixtures[i].includes(":")) {
             fixturesY++;
             continue;
@@ -500,7 +515,7 @@ var URLPARSER = (method, url) => {
         }
         if (fixturesX + fixturesY === pathFixtures.length) {
           const routesParams = {};
-          for (let i = 0;i < pathFixtures.length; i++) {
+          for (let i = 0; i < pathFixtures.length; i++) {
             if (pathFixtures[i].includes(":")) {
               routesParams[pathFixtures[i].split(":")[1]] = urlFixtures[i];
             }
@@ -545,7 +560,10 @@ class JetPath {
     if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
       _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = (ctx) => {
         const fileName = ctx.params?.["extraPath"];
-        if (fileName && ("/" + fileName).includes(this.options.publicPath.dir + "/")) {
+        if (
+          fileName &&
+          ("/" + fileName).includes(this.options.publicPath.dir + "/")
+        ) {
           let contentType;
           switch (fileName.split(".")[1]) {
             case "js":
@@ -589,8 +607,12 @@ class JetPath {
         }
       };
     }
-    if (typeof this.options !== "object" || this.options?.displayRoutes !== false) {
-      let c = 0, t = "";
+    if (
+      typeof this.options !== "object" ||
+      this.options?.displayRoutes !== false
+    ) {
+      let c = 0,
+        t = "";
       console.log("JetPath: compiling...");
       const startTime = performance.now();
       await getHandlers(this.options?.source, true);
@@ -609,7 +631,17 @@ class JetPath {
             }
             const api = `\n
 ${k} [--host--]${p} HTTP/1.1
-${b && (b.BODY_method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) : ""}\n${b && (b.BODY_method === k && k !== "GET" ? k : "") && b?.["BODY_info"] ? "#" + b?.["BODY_info"] + "-JETE" : ""}
+${
+  b && (b.BODY_method === k && k !== "GET" ? k : "")
+    ? "\n" + JSON.stringify(j)
+    : ""
+}\n${
+              b &&
+              (b.BODY_method === k && k !== "GET" ? k : "") &&
+              b?.["BODY_info"]
+                ? "#" + b?.["BODY_info"] + "-JETE"
+                : ""
+            }
 ###`;
             if (this.options.displayRoutes === "UI") {
               t += api;
@@ -622,7 +654,8 @@ ${b && (b.BODY_method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) 
       }
       if (this.options.displayRoutes === "UI") {
         _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
-          ctx.reply(`<!DOCTYPE html>
+          ctx.reply(
+            `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1021,11 +1054,38 @@ const response = await testApi(
     </script> 
        <a>2024 Alrights reserved {NAME}</a>
   </body>
-</html>`.replace("'{JETPATH}'", `\`${t}\``).replaceAll("{NAME}", this.options?.documentation?.name || "JethPath API Doc").replaceAll("JETPATHCOLOR", this.options?.documentation?.color || "#007bff").replaceAll("{LOGO}", this.options?.documentation?.logo || "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp").replaceAll("{INFO}", this.options?.documentation?.info || "This is a JethPath api preview."), "text/html");
+</html>`
+              .replace("'{JETPATH}'", `\`${t}\``)
+              .replaceAll(
+                "{NAME}",
+                this.options?.documentation?.name || "JethPath API Doc"
+              )
+              .replaceAll(
+                "JETPATHCOLOR",
+                this.options?.documentation?.color || "#007bff"
+              )
+              .replaceAll(
+                "{LOGO}",
+                this.options?.documentation?.logo ||
+                  "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
+              )
+              .replaceAll(
+                "{INFO}",
+                this.options?.documentation?.info ||
+                  "This is a JethPath api preview."
+              ),
+            "text/html"
+          );
         };
-        console.log(`visit http://localhost:${port}/api-doc to see the displayed routes in UI`);
+        console.log(
+          `visit http://localhost:${port}/api-doc to see the displayed routes in UI`
+        );
       }
-      console.log(`\n Parsed ${c} handlers in ${Math.round(endTime - startTime)} milliseconds`);
+      console.log(
+        `\n Parsed ${c} handlers in ${Math.round(
+          endTime - startTime
+        )} milliseconds`
+      );
     } else {
       await getHandlers(this.options?.source, false);
     }
@@ -1034,6 +1094,4 @@ const response = await testApi(
     this.server.listen(port);
   }
 }
-export {
-  JetPath
-};
+export { JetPath };

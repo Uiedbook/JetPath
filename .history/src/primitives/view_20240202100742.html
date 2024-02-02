@@ -15,7 +15,6 @@
         background-color: #f4f4f4 !important;
         color: #333;
       }
-      .big-request-container {width: 100vw; min-height: 100vh;}
 
       header {
         background-color: JETPATHCOLOR !important; 
@@ -159,7 +158,6 @@
       <div id="keys"></div>
     </div>
     <h3 class="request-container">Requests</h>
-      <div id="big-request-container"></div>
     <script>
       
       function parseUPAPIBody(packer) {
@@ -233,7 +231,7 @@
         const payloadIndex = lines.indexOf("") + 1;
         let payload =
           payloadIndex !== 0 ? lines.slice(payloadIndex).join("\\n") : null;
-          let comment = "";
+          let comment;
           if (payload?.includes("#")) {
             comment = payload.slice(payload.indexOf("#")+1, payload.indexOf("-JETE") );
             payload = payload.replace(["#" , comment ,"-JETE"].join(""),"" ) 
@@ -253,14 +251,12 @@
       const parsedApi = parseApiDocumentation(apiDocumentation);
       // Display API documentation in UI and add testing functionality
       parsedApi.map( async (request) => {
-        
+        console.log(request);
         const requestContainer = document.createElement("div");
         requestContainer.classList.add("request-container");
-        if (request.comment) {
-          const comment = document.createElement("h3");
-          comment.innerText = request.comment;
-          requestContainer.appendChild(comment);
-        }
+        const comment = document.createElement("h3");
+        comment.innerText = request.comment;
+        requestContainer.appendChild(comment);
         const requestInfo = document.createElement("div");
         requestInfo.classList.add("request");
         const urlInput = document.createElement("input");
@@ -336,9 +332,8 @@ const response = await testApi(
         requestContainer.appendChild(testButton);
         const responseContainer = document.createElement("div");
         responseContainer.classList.add("response-container");
-        const body = document.getElementById("big-request-container")
-         body.appendChild(requestContainer);
-         body.appendChild(responseContainer);
+        document.body.appendChild(requestContainer);
+        document.body.appendChild(responseContainer);
 
         function showApiResponse(response) { 
           responseContainer.innerHTML = "<strong>API Response:</strong><br>";
@@ -394,7 +389,11 @@ const response = await testApi(
           return { error: error.message };
         }
       }
-    </script> 
-       <a>2024 Alrights reserved {NAME}</a>
+    </script>
+    <footer>
+ 
+<img src="{LOGO}" alt="{NAME}" style="max-width: 70px;">
+       <p>2024 Alrights reserved {NAME}</p>
+    </footer>
   </body>
 </html>

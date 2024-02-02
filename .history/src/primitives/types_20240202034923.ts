@@ -41,7 +41,6 @@ export type Schema =
     >
   | {
       BODY_info?: string;
-      BODY_method?: methods;
     };
 
 export type methods =

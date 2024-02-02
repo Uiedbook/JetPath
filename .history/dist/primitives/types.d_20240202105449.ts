@@ -1,6 +1,7 @@
+/// <reference types="node" />
+/// <reference types="node" />
 import { IncomingMessage } from "http";
 import { Stream } from "node:stream";
-
 export type AppCTX<Type = {}> = {
   json(): Promise<Record<string, any>> | null;
   validate(data: any): Record<string, any>;
@@ -25,7 +26,6 @@ export type AppCTX<Type = {}> = {
   _4?: boolean | undefined;
   pipe(stream: Stream | string, ContentType: string): void;
   app: Record<string, any>;
-  // files(): Promise<any>;
 } & Type;
 export type Schema =
   | Record<
@@ -43,7 +43,6 @@ export type Schema =
       BODY_info?: string;
       BODY_method?: methods;
     };
-
 export type methods =
   | "GET"
   | "POST"
@@ -52,5 +51,4 @@ export type methods =
   | "HEAD"
   | "PUT"
   | "PATCH";
-
 export type allowedMethods = methods[];

@@ -9,6 +9,7 @@ const app = new JetPath({
 
     This doc provides you with a simple read and write Api to The PetShop API
     `,
+    color: "#808080",
     logo: "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp",
   },
   source: "tests",

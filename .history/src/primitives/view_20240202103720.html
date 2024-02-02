@@ -253,14 +253,12 @@
       const parsedApi = parseApiDocumentation(apiDocumentation);
       // Display API documentation in UI and add testing functionality
       parsedApi.map( async (request) => {
-        
+        console.log(request);
         const requestContainer = document.createElement("div");
         requestContainer.classList.add("request-container");
-        if (request.comment) {
-          const comment = document.createElement("h3");
-          comment.innerText = request.comment;
-          requestContainer.appendChild(comment);
-        }
+        const comment = document.createElement("h3");
+        comment.innerText = request.comment;
+        requestContainer.appendChild(comment);
         const requestInfo = document.createElement("div");
         requestInfo.classList.add("request");
         const urlInput = document.createElement("input");

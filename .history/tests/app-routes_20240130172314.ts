@@ -6,14 +6,11 @@ export const BODY_pets: Schema = {
   name: { err: "please provide dog name", type: "string" },
   image: { type: "string", nullable: true, inputType: "file" },
   age: { type: "number" },
-  BODY_method: "POST",
 };
 export const BODY_petBy$id: Schema = {
   name: { err: "please provide dog name", type: "string" },
   image: { type: "string", nullable: true, inputType: "file" },
   age: { type: "number" },
-  BODY_info: "This api allows you to access a pet with it's ID",
-  BODY_method: "PUT",
 };
 export const BODY_petImage$id: Schema = {
   image: { type: "string", inputType: "file" },

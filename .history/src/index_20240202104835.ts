@@ -123,6 +123,8 @@ export class JetPath {
       await getHandlers(this.options?.source!, true);
       const endTime = performance.now();
       console.log("JetPath: done.");
+      // console.log(_JetPath_hooks);
+      console.log(UTILS.validators);
 
       for (const k in _JetPath_paths) {
         const r = _JetPath_paths[k as methods];
@@ -135,19 +137,19 @@ export class JetPath {
                 j[ke] = (b[ke as "BODY_info"] as any)?.inputType || "text";
               }
             }
+            console.log(
+              b && (b.BODY_method === k && k !== "GET" ? k : ""),
+
+              { b, k }
+            );
+
             const api = `\n
 ${k} [--host--]${p} HTTP/1.1
 ${
   b && (b.BODY_method === k && k !== "GET" ? k : "")
     ? "\n" + JSON.stringify(j)
     : ""
-}\n${
-              b &&
-              (b.BODY_method === k && k !== "GET" ? k : "") &&
-              b?.["BODY_info"]
-                ? "#" + b?.["BODY_info"] + "-JETE"
-                : ""
-            }
+}\n${b?.["BODY_info"] ? "#" + b?.["BODY_info"] + "-JETE" : ""}
 ###`;
             if (this.options.displayRoutes === "UI") {
               t += api;
