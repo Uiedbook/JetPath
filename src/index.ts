@@ -1,3 +1,4 @@
+import { access } from "node:fs/promises";
 import {
   _JetPath_app_config,
   _JetPath_hooks,
@@ -62,7 +63,9 @@ export class JetPath {
       _JetPath_app_config.set(k, v);
     }
     if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
-      _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = (ctx) => {
+      _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (
+        ctx
+      ) => {
         const fileName = ctx.params?.["extraPath"];
         if (
           fileName &&
@@ -107,7 +110,14 @@ export class JetPath {
               contentType = "text/plain";
               break;
           }
+          try {
+            await access(fileName);
+          } catch (error) {
+            return ctx.throw();
+          }
           return ctx.pipe(fileName, contentType);
+        } else {
+          return ctx.throw();
         }
       };
     }

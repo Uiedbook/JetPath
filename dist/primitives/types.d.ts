@@ -1,9 +1,11 @@
+/// <reference types="node" />
+/// <reference types="node" />
 import { IncomingMessage } from "http";
 import { Stream } from "node:stream";
 export type AppCTX<Type = {}> = {
     json(): Promise<Record<string, any>> | null;
     validate(data: any): Record<string, any>;
-    body?: any;
+    body?: Record<string, any>;
     code: number;
     search: Record<string, string>;
     params: Record<string, string>;

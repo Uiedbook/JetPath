@@ -45,6 +45,6 @@
   },
   "private": false,
   "devDependencies": {
-    "@types/node": "^20.11.5"
+    "@types/node": "^20.11.16"
   }
 }

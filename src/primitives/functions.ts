@@ -134,7 +134,7 @@ export const UTILS = {
   validators: {} as Record<string, Schema>,
   server(): { listen: any } | void {
     if (UTILS.runtime["node"]) {
-      return createServer((x, y) => {
+      return createServer((x: any, y: any) => {
         JetPath_app(x, y);
       });
     }
