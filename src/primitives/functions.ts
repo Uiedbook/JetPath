@@ -76,8 +76,8 @@ export function corsHook(options: {
       }
 
       if (options.secureContext) {
-        ctx.set("Cross-Origin-Opener-Policy", "same-origin");
-        ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
+        ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
+        ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
       }
       if (options.allowHeaders) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
@@ -203,7 +203,7 @@ export const _JetPath_app_config = {
         maxAge: "",
         keepHeadersOnError: true,
         secureContext: false,
-        privateNetworkAccess: undefined,
+        privateNetworkAccess: false,
         origin: ["*"],
         credentials: undefined,
         ...(typeof val === "object" ? val : {}),
