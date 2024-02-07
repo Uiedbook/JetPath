@@ -63,7 +63,8 @@ exports.BODY_petBy$id = {
     BODY_method: "PUT",
 };
 exports.BODY_petImage$id = {
-    image: { type: "string", inputType: "file" },
+    image: { type: "string", nullable: true, inputType: "file" },
+    BODY_method: "POST",
 };
 // ? Routes
 // ? PETshop temperaly Database

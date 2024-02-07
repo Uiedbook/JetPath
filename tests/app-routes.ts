@@ -16,7 +16,8 @@ export const BODY_petBy$id: Schema = {
   BODY_method: "PUT",
 };
 export const BODY_petImage$id: Schema = {
-  image: { type: "string", inputType: "file" },
+  image: { type: "string", nullable: true, inputType: "file" },
+  BODY_method: "POST",
 };
 
 // ? Routes
@@ -95,7 +96,7 @@ export function DELETE_petBy$id(ctx: AppCTX) {
 export async function POST_petImage$id(ctx: AppCTX) {
   const petId = ctx.params.id;
   // @ts-ignore
-  console.log(ctx.request);
+  console.log({ r: ctx.request });
   const formdata = await ctx.request.formData();
   console.log(formdata);
   const profilePicture = formdata.get("image");

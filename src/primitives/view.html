@@ -66,9 +66,39 @@ a:focus {
 }
 
 img {
-  max-width: 100%;
+  max-width: 90%;
   height: auto;
 }
+body {
+  background-color: grey;
+}
+
+.code {
+  white-space: pre;
+  font-family: Consolas, monospace;
+  background-color: #ffffff;
+  padding:12px;
+  border-radius:8px;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+.code .string {
+  color: #d6582b;
+}
+.code .number {
+  color: #188c62;
+}
+.code .boolean,
+.code .null {
+  color: #0824ff;
+}
+.code .key {
+  color: #3456b9;
+}
+.code-container {
+  background-color: white;
+}
+
 .section-title h2 {
   font-size: 36px;
   font-weight: 700;
@@ -349,8 +379,38 @@ span.GET {
   br,
   svg,
   $if,
-  strong,
+  strong 
 } from "https://unpkg.com/cradova/dist/index.js";
+
+    function syntaxHighlight(json) {
+  if (typeof json != "string") {
+    json = JSON.stringify(json, null, "\t");
+  }
+  
+  json = json
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  
+  return json.replace(
+    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+    function(match) {
+      var cls = "number";
+      if (/^"/.test(match)) {
+        if (/:$/.test(match)) {
+          cls = "key";
+        } else {
+          cls = "string";
+        }
+      } else if (/true|false/.test(match)) {
+        cls = "boolean";
+      } else if (/null/.test(match)) {
+        cls = "null";
+      }
+      return '<span class="' + cls + '">' + match + "</span>";
+    }
+  );
+}
 
 const body = document.getElementById("big-request-container");
 function parseUPAPIBody(packer) {
@@ -364,7 +424,7 @@ function parseUPAPIBody(packer) {
     isSet = true;
     const key = div.querySelector("span").textContent.replace(":", "");
     if (input.type === "file") {
-      result[key.trim()] = input.value;
+      result[key.trim()] = input.files[0];
       return;
     }
     // Attempt to parse the value as JSON
@@ -477,13 +537,23 @@ function showApiResponse(response, id) {
       })
     )
   );
-  responseContainer.append(
-    svg(
-      "<pre style='background-color:JETPATHCOLOR2e;padding:8px;border-radius:8px;text-wrap:balance; overflow-wrap: break-word;'>" +
-        (response.body || "error") +
-        "</pre>"
-    )
-  );
+  if (response?.body.includes("{")||response?.body.includes("[")) {
+    const cid = "x"+Date.now();
+        responseContainer.append(
+      div({className:"code-container"}, 
+      div({id:cid, className:"code"}), 
+      )
+    );
+document.getElementById(cid).innerHTML = syntaxHighlight(response.body);
+  } else {
+    responseContainer.append(
+      svg(
+        "<pre style='background-color:JETPATHCOLOR2e;padding:8px;border-radius:8px;text-wrap:balance; overflow-wrap: break-word;'>" +
+          (response.body || "error") +
+          "</pre>"
+      )
+    );
+  }
   responseContainer.scrollIntoView({
     behavior: "smooth",
     block: "end",
@@ -626,6 +696,7 @@ async function testApi(
     if (contentType === "multipart/form-data") {
       const formData = new FormData();
       for (const key in body) {
+        console.log(key ,  body[key])
         formData.append(key, body[key]);
       }
       response = await fetch(url, {
