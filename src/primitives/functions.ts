@@ -58,8 +58,7 @@ export function corsHook(options: {
   options.keepHeadersOnError =
     options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
 
-  return function cors(ctx: AppCTX) {
-    console.log({ ctxA: ctx });
+  return function cors(ctx: AppCTX) { 
 
     //? Add Vary header to indicate response varies based on the Origin header
     ctx.set("Vary", "Origin");
@@ -110,8 +109,7 @@ export function corsHook(options: {
       if (options.allowHeaders) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
       }
-      ctx.code = 204;
-      console.log({ ctxB: ctx });
+      ctx.code = 204; 
     }
   };
 }
