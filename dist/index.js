@@ -17,7 +17,6 @@ function corsHook(options) {
   }
   options.keepHeadersOnError = options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
   return function cors(ctx) {
-    console.log({ ctxA: ctx });
     ctx.set("Vary", "Origin");
     if (options.credentials === true) {
       ctx.set("Access-Control-Allow-Credentials", "true");
@@ -53,7 +52,6 @@ function corsHook(options) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
       }
       ctx.code = 204;
-      console.log({ ctxB: ctx });
     }
   };
 }
