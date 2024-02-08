@@ -61,6 +61,9 @@ export class JetPath {
     // ? seeting up app configs
     for (const [k, v] of Object.entries(this.options || {})) {
       _JetPath_app_config.set(k, v);
+      if (!_JetPath_app_config["cors"]) {
+        _JetPath_app_config.set("cors", true);
+      }
     }
     if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
       _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (

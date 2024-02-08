@@ -33,7 +33,7 @@ import { createReadStream } from "node:fs";
  * @return {Function} cors post hook
  * @public
  */
-
+// TODO: fixe expose headers on error not working
 export function corsHook(options: {
   exposeHeaders?: string[];
   allowMethods?: allowedMethods;
@@ -59,6 +59,8 @@ export function corsHook(options: {
     options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
 
   return function cors(ctx: AppCTX) {
+    console.log({ ctxA: ctx });
+
     //? Add Vary header to indicate response varies based on the Origin header
     ctx.set("Vary", "Origin");
     if (options.credentials === true) {
@@ -109,6 +111,7 @@ export function corsHook(options: {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
       }
       ctx.code = 204;
+      console.log({ ctxB: ctx });
     }
   };
 }
@@ -401,6 +404,7 @@ const createResponse = (
     );
     return ctx._3.pipe(res);
   }
+
   res.writeHead(ctx?.code || 404, ctx?._2 || { "Content-Type": "text/plain" });
   res.end(ctx?._1 || "Not found!");
 };
@@ -412,6 +416,7 @@ const JetPath_app = async (
   }
 ) => {
   const paseredR = URLPARSER(req.method as methods, req.url!);
+
   if (paseredR) {
     const ctx = createCTX(req, UTILS.decorators); //? no closures, more efficient
     const r = paseredR[0];
@@ -419,6 +424,8 @@ const JetPath_app = async (
     ctx.search = paseredR[2] as any;
     ctx.path = paseredR[3] as any;
     try {
+      //? add cors headers
+      _JetPath_app_config.cors(ctx);
       //? pre-request hooks here
       _JetPath_hooks["PRE"] && (await _JetPath_hooks["PRE"](ctx));
       //? route handler call
@@ -426,14 +433,14 @@ const JetPath_app = async (
       //? post-request hooks here
       _JetPath_hooks["POST"] && (await _JetPath_hooks["POST"](ctx));
       // ? cors header
-      _JetPath_app_config["cors"] && _JetPath_app_config.cors(ctx);
+      // _JetPath_app_config["cors"] && _JetPath_app_config.cors(ctx);
       return createResponse(res, ctx);
     } catch (error) {
       // ? complete request
       if (error instanceof JetPathErrors) {
-        if (_JetPath_app_config.cors) {
-          _JetPath_app_config.cors(ctx);
-        }
+        // if (_JetPath_app_config.cors) {
+        //   _JetPath_app_config.cors(ctx);
+        // }
         return createResponse(res, ctx);
       } else {
         //? report error to error hook
@@ -442,14 +449,14 @@ const JetPath_app = async (
             (await (
               _JetPath_hooks["ERROR"] as (k: AppCTX, v: unknown) => Promise<any>
             )(ctx, error));
-          if (_JetPath_app_config.cors) {
-            _JetPath_app_config.cors(ctx);
-          }
+          // if (_JetPath_app_config.cors) {
+          //   _JetPath_app_config.cors(ctx);
+          // }
           return createResponse(res, ctx);
         } catch (error) {
-          if (_JetPath_app_config.cors) {
-            _JetPath_app_config.cors(ctx);
-          }
+          // if (_JetPath_app_config.cors) {
+          //   _JetPath_app_config.cors(ctx);
+          // }
           return createResponse(res, ctx);
         }
       }

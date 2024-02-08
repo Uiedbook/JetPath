@@ -17,6 +17,7 @@ function corsHook(options) {
   }
   options.keepHeadersOnError = options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
   return function cors(ctx) {
+    console.log({ ctxA: ctx });
     ctx.set("Vary", "Origin");
     if (options.credentials === true) {
       ctx.set("Access-Control-Allow-Credentials", "true");
@@ -52,6 +53,7 @@ function corsHook(options) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
       }
       ctx.code = 204;
+      console.log({ ctxB: ctx });
     }
   };
 }
@@ -404,28 +406,19 @@ var JetPath_app = async (req, res) => {
     ctx.search = paseredR[2];
     ctx.path = paseredR[3];
     try {
+      _JetPath_app_config.cors(ctx);
       _JetPath_hooks["PRE"] && await _JetPath_hooks["PRE"](ctx);
       await r(ctx);
       _JetPath_hooks["POST"] && await _JetPath_hooks["POST"](ctx);
-      _JetPath_app_config["cors"] && _JetPath_app_config.cors(ctx);
       return createResponse(res, ctx);
     } catch (error) {
       if (error instanceof JetPathErrors) {
-        if (_JetPath_app_config.cors) {
-          _JetPath_app_config.cors(ctx);
-        }
         return createResponse(res, ctx);
       } else {
         try {
           _JetPath_hooks["ERROR"] && await _JetPath_hooks["ERROR"](ctx, error);
-          if (_JetPath_app_config.cors) {
-            _JetPath_app_config.cors(ctx);
-          }
           return createResponse(res, ctx);
         } catch (error2) {
-          if (_JetPath_app_config.cors) {
-            _JetPath_app_config.cors(ctx);
-          }
           return createResponse(res, ctx);
         }
       }
@@ -546,6 +539,9 @@ class JetPath {
     const port = this.options?.port || 8080;
     for (const [k, v] of Object.entries(this.options || {})) {
       _JetPath_app_config.set(k, v);
+      if (!_JetPath_app_config["cors"]) {
+        _JetPath_app_config.set("cors", true);
+      }
     }
     if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
       _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (ctx) => {
