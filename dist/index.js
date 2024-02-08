@@ -373,6 +373,7 @@ var createCTX = (req, decorationObject = {}) => ({
   path: "/"
 });
 var createResponse = (res, ctx) => {
+  _JetPath_app_config.cors(ctx);
   if (!UTILS.runtime["node"]) {
     if (ctx?.code === 301 && ctx._2?.["Location"]) {
       return Response.redirect(ctx._2?.["Location"]);
@@ -404,7 +405,6 @@ var JetPath_app = async (req, res) => {
     ctx.search = paseredR[2];
     ctx.path = paseredR[3];
     try {
-      _JetPath_app_config.cors(ctx);
       _JetPath_hooks["PRE"] && await _JetPath_hooks["PRE"](ctx);
       await r(ctx);
       _JetPath_hooks["POST"] && await _JetPath_hooks["POST"](ctx);
@@ -422,12 +422,7 @@ var JetPath_app = async (req, res) => {
       }
     }
   } else {
-    if (_JetPath_app_config.cors && req.method === "OPTIONS") {
-      const ctx = createCTX(req);
-      _JetPath_app_config.cors(ctx);
-      return createResponse(res, ctx);
-    }
-    return createResponse(res);
+    return createResponse(res, createCTX(req));
   }
 };
 var Handlerspath = (path2) => {
@@ -450,17 +445,10 @@ var Handlerspath = (path2) => {
 };
 var URLPARSER = (method, url) => {
   const routes = _JetPath_paths[method];
-  if (url[0] !== "/") {
+  if (!UTILS.runtime["node"]) {
     url = url.slice(url.indexOf("/", 7));
   }
   if (routes[url]) {
-    return [routes[url], {}, {}, url];
-  }
-  if (typeof routes === "function") {
-    routes();
-    return;
-  }
-  if (routes[url + "/"]) {
     return [routes[url], {}, {}, url];
   }
   if (url.includes("/?")) {
