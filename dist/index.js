@@ -38,15 +38,8 @@ function corsHook(options) {
       if (options.maxAge) {
         ctx.set("Access-Control-Max-Age", options.maxAge);
       }
-      if (options.privateNetworkAccess && ctx.get("Access-Control-Request-Private-Network")) {
-        ctx.set("Access-Control-Allow-Private-Network", "true");
-      }
       if (options.allowMethods) {
         ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
-      }
-      if (options.secureContext) {
-        ctx.set("Cross-Origin-Opener-Policy", "same-origin");
-        ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
       }
       if (options.allowHeaders) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
