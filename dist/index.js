@@ -398,25 +398,26 @@ var JetPath_app = async (req, res) => {
     ctx.search = paseredR[2];
     ctx.path = paseredR[3];
     try {
-      _JetPath_hooks["PRE"] && await _JetPath_hooks["PRE"](ctx);
+      await _JetPath_hooks?.["PRE"](ctx);
       await r(ctx);
-      _JetPath_hooks["POST"] && await _JetPath_hooks["POST"](ctx);
+      await _JetPath_hooks?.["POST"](ctx);
       return createResponse(res, ctx);
     } catch (error) {
       if (error instanceof JetPathErrors) {
         return createResponse(res, ctx);
       } else {
         try {
-          _JetPath_hooks["ERROR"] && await _JetPath_hooks["ERROR"](ctx, error);
+          await _JetPath_hooks["ERROR"]?.(ctx, error);
+          //! if expose headers on error is
+          //! false remove this line so the last return will take effect;
           return createResponse(res, ctx);
         } catch (error2) {
           return createResponse(res, ctx);
         }
       }
     }
-  } else {
-    return createResponse(res, createCTX(req));
   }
+  return createResponse(res, createCTX(req));
 };
 var Handlerspath = (path2) => {
   if (path2.includes("hook__")) {
@@ -501,8 +502,16 @@ class JetPath {
   server;
   listening = false;
   options;
+  port;
   constructor(options) {
+    this.port = this.options?.port || 8080;
     this.options = options || { displayRoutes: true };
+    for (const [k, v] of Object.entries(this.options)) {
+      _JetPath_app_config.set(k, v);
+    }
+    if (!options?.cors) {
+      _JetPath_app_config.set("cors", true);
+    }
     this.server = UTILS.server();
   }
   decorate(decorations) {
@@ -515,13 +524,6 @@ class JetPath {
     UTILS.decorators = Object.assign(UTILS.decorators, decorations);
   }
   async listen() {
-    const port = this.options?.port || 8080;
-    for (const [k, v] of Object.entries(this.options || {})) {
-      _JetPath_app_config.set(k, v);
-      if (!_JetPath_app_config["cors"]) {
-        _JetPath_app_config.set("cors", true);
-      }
-    }
     if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
       _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (ctx) => {
         const fileName = ctx.params?.["extraPath"];
@@ -1344,15 +1346,15 @@ async function testApi(
   </body>
 </html>`.replace("'{JETPATH}'", `\`${t}\``).replaceAll("{NAME}", this.options?.documentation?.name || "JethPath API Doc").replaceAll("JETPATHCOLOR", this.options?.documentation?.color || "#007bff").replaceAll("{LOGO}", this.options?.documentation?.logo || "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp").replaceAll("{INFO}", this.options?.documentation?.info || "This is a JethPath api preview."), "text/html");
         };
-        console.log(`visit http://localhost:${port}/api-doc to see the displayed routes in UI`);
+        console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
       }
       console.log(`\n Parsed ${c} handlers in ${Math.round(endTime - startTime)} milliseconds`);
     } else {
       await getHandlers(this.options?.source, false);
     }
     this.listening = true;
-    console.log(`\nListening on http://localhost:${port}/`);
-    this.server.listen(port);
+    console.log(`\nListening on http://localhost:${this.port}/`);
+    this.server.listen(this.port);
   }
 }
 export {
