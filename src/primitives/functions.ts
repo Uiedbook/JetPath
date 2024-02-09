@@ -494,7 +494,7 @@ export async function getHandlers(source: string, print: boolean) {
             // ! HTTP handler
             _JetPath_paths[params[0] as methods][params[1]] = module[p];
           } else {
-            if ((_JetPath_hooks[params as string] as any) === false) {
+            if ("POST-PRE-ERROR".includes(params as string)) {
               _JetPath_hooks[params as string] = module[p];
             } else {
               if (params === "DECORATOR") {

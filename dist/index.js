@@ -70,7 +70,7 @@ async function getHandlers(source, print) {
           if (typeof params !== "string" && _JetPath_paths[params[0]]) {
             _JetPath_paths[params[0]][params[1]] = module[p];
           } else {
-            if (_JetPath_hooks[params] === false) {
+            if ("POST-PRE-ERROR".includes(params)) {
               _JetPath_hooks[params] = module[p];
             } else {
               if (params === "DECORATOR") {
