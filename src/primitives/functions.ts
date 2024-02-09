@@ -423,32 +423,30 @@ const JetPath_app = async (
     ctx.path = paseredR[3] as any;
     try {
       //? pre-request hooks here
-      _JetPath_hooks["PRE"] && (await _JetPath_hooks["PRE"](ctx));
+      await _JetPath_hooks?.["PRE"](ctx);
       //? route handler call
       await (r as any)(ctx);
       //? post-request hooks here
-      _JetPath_hooks["POST"] && (await _JetPath_hooks["POST"](ctx));
+      await _JetPath_hooks?.["POST"](ctx);
       return createResponse(res, ctx);
-    } catch (error) {
-      // ? complete request
+    } catch (error) { 
       if (error instanceof JetPathErrors) {
         return createResponse(res, ctx);
       } else {
         //? report error to error hook
         try {
-          _JetPath_hooks["ERROR"] &&
-            (await (
-              _JetPath_hooks["ERROR"] as (k: AppCTX, v: unknown) => Promise<any>
-            )(ctx, error));
+          // @ts-ignore
+          await _JetPath_hooks["ERROR"]?.(ctx, error);
+          //! if expose headers on error is
+          //! false remove this line so the last return will take effect;
           return createResponse(res, ctx);
         } catch (error) {
           return createResponse(res, ctx);
         }
       }
     }
-  } else {
-    return createResponse(res, createCTX(req));
   }
+  return createResponse(res, createCTX(req));
 };
 
 const Handlerspath = (path: any) => {

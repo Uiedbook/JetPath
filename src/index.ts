@@ -16,6 +16,7 @@ export class JetPath {
   public server: any;
   private listening: boolean = false;
   private options: any;
+  port: number;
   constructor(options?: {
     documentation?: {
       name?: string;
@@ -42,7 +43,16 @@ export class JetPath {
         }
       | boolean;
   }) {
+    this.port = this.options?.port || 8080;
     this.options = options || { displayRoutes: true };
+    // ? setting http routes automatically
+    // ? seeting up app configs
+    for (const [k, v] of Object.entries(this.options)) {
+      _JetPath_app_config.set(k, v);
+    }
+    if (!options?.cors) {
+      _JetPath_app_config.set("cors", true);
+    }
     this.server = UTILS.server();
   }
   decorate(decorations: Record<string, (ctx: AppCTX) => void>) {
@@ -56,15 +66,6 @@ export class JetPath {
     UTILS.decorators = Object.assign(UTILS.decorators, decorations);
   }
   async listen() {
-    const port = this.options?.port || 8080;
-    // ? setting http routes automatically
-    // ? seeting up app configs
-    for (const [k, v] of Object.entries(this.options || {})) {
-      _JetPath_app_config.set(k, v);
-      if (!_JetPath_app_config["cors"]) {
-        _JetPath_app_config.set("cors", true);
-      }
-    }
     if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
       _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (
         ctx
@@ -199,7 +200,7 @@ ${
           );
         };
         console.log(
-          `visit http://localhost:${port}/api-doc to see the displayed routes in UI`
+          `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
         );
       }
 
@@ -212,8 +213,8 @@ ${
       await getHandlers(this.options?.source!, false);
     }
     this.listening = true;
-    console.log(`\nListening on http://localhost:${port}/`);
-    this.server.listen(port);
+    console.log(`\nListening on http://localhost:${this.port}/`);
+    this.server.listen(this.port);
   }
 }
 
