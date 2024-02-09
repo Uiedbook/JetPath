@@ -203,7 +203,7 @@ var _JetPath_app_config = {
       this.cors = corsHook({
         exposeHeaders: [],
         allowMethods: [],
-        allowHeaders: ["Content-Type"],
+        allowHeaders: ["*"],
         maxAge: "",
         keepHeadersOnError: true,
         secureContext: false,
