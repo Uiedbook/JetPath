@@ -174,36 +174,33 @@ ${
         }
       }
       if (this.options.displayRoutes === "UI") {
-        _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
-          ctx.reply(
-            `{view}`
-              .replace("'{JETPATH}'", `\`${t}\``)
-              .replaceAll(
-                "{NAME}",
-                this.options?.documentation?.name || "JethPath API Doc"
-              )
-              .replaceAll(
-                "JETPATHCOLOR",
-                this.options?.documentation?.color || "#007bff"
-              )
-              .replaceAll(
-                "{LOGO}",
-                this.options?.documentation?.logo ||
-                  "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
-              )
-              .replaceAll(
-                "{INFO}",
-                this.options?.documentation?.info ||
-                  "This is a JethPath api preview."
-              ),
-            "text/html"
+        const UI = `{view}`
+          .replace("'{JETPATH}'", `\`${t}\``)
+          .replaceAll(
+            "{NAME}",
+            this.options?.documentation?.name || "JethPath API Doc"
+          )
+          .replaceAll(
+            "JETPATHCOLOR",
+            this.options?.documentation?.color || "#007bff"
+          )
+          .replaceAll(
+            "{LOGO}",
+            this.options?.documentation?.logo ||
+              "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
+          )
+          .replaceAll(
+            "{INFO}",
+            this.options?.documentation?.info ||
+              "This is a JethPath api preview."
           );
+        _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
+          ctx.reply(UI, "text/html");
         };
         console.log(
           `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
         );
       }
-
       console.log(
         `\n Parsed ${c} handlers in ${Math.round(
           endTime - startTime

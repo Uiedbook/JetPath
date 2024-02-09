@@ -178,11 +178,7 @@ export let _JetPath_paths: Record<
 export const _JetPath_hooks: Record<
   string,
   (ctx: AppCTX) => void | Promise<void>
-> = {
-  PRE: false as any,
-  POST: false as any,
-  ERROR: false as any,
-};
+> = {};
 
 class JetPathErrors extends Error {
   constructor(message: string = "done") {
@@ -377,7 +373,8 @@ const createResponse = (
   res: ServerResponse<IncomingMessage> & {
     req: IncomingMessage;
   },
-  ctx: AppCTX
+  ctx: AppCTX,
+  four04?: boolean
 ) => {
   //? add cors headers
   _JetPath_app_config.cors(ctx);
@@ -391,21 +388,17 @@ const createResponse = (
         headers: ctx?._2,
       });
     }
-    return new Response(ctx?._1 || "Not found!", {
+    return new Response(ctx?._1 || (four04 ? "Not found" : undefined), {
       status: ctx?.code || 404,
-      headers: ctx?._2 || {},
+      headers: ctx?._2,
     });
   }
   if (ctx?._3) {
-    res.setHeader(
-      "Content-Type",
-      (ctx?._2 || {})["Content-Type"] || "text/plain"
-    );
+    res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
     return ctx._3.pipe(res);
   }
-
-  res.writeHead(ctx?.code || 404, ctx?._2 || { "Content-Type": "text/plain" });
-  res.end(ctx?._1 || "Not found!");
+  res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
+  res.end(ctx?._1 || (four04 ? "Not found" : undefined));
 };
 
 const JetPath_app = async (
@@ -423,13 +416,13 @@ const JetPath_app = async (
     ctx.path = paseredR[3] as any;
     try {
       //? pre-request hooks here
-      await _JetPath_hooks?.["PRE"](ctx);
+      await _JetPath_hooks["PRE"]?.(ctx);
       //? route handler call
       await (r as any)(ctx);
       //? post-request hooks here
-      await _JetPath_hooks?.["POST"](ctx);
+      await _JetPath_hooks["POST"]?.(ctx);
       return createResponse(res, ctx);
-    } catch (error) { 
+    } catch (error) {
       if (error instanceof JetPathErrors) {
         return createResponse(res, ctx);
       } else {
@@ -446,7 +439,7 @@ const JetPath_app = async (
       }
     }
   }
-  return createResponse(res, createCTX(req));
+  return createResponse(res, createCTX(req), true);
 };
 
 const Handlerspath = (path: any) => {

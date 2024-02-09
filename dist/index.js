@@ -188,11 +188,7 @@ var _JetPath_paths = {
   DELETE: {},
   OPTIONS: {}
 };
-var _JetPath_hooks = {
-  PRE: false,
-  POST: false,
-  ERROR: false
-};
+var _JetPath_hooks = {};
 
 class JetPathErrors extends Error {
   constructor(message = "done") {
@@ -365,7 +361,7 @@ var createCTX = (req, decorationObject = {}) => ({
   search: {},
   path: "/"
 });
-var createResponse = (res, ctx) => {
+var createResponse = (res, ctx, four04) => {
   _JetPath_app_config.cors(ctx);
   if (!UTILS.runtime["node"]) {
     if (ctx?.code === 301 && ctx._2?.["Location"]) {
@@ -377,17 +373,17 @@ var createResponse = (res, ctx) => {
         headers: ctx?._2
       });
     }
-    return new Response(ctx?._1 || "Not found!", {
+    return new Response(ctx?._1 || (four04 ? "Not found" : undefined), {
       status: ctx?.code || 404,
-      headers: ctx?._2 || {}
+      headers: ctx?._2
     });
   }
   if (ctx?._3) {
-    res.setHeader("Content-Type", (ctx?._2 || {})["Content-Type"] || "text/plain");
+    res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
     return ctx._3.pipe(res);
   }
-  res.writeHead(ctx?.code || 404, ctx?._2 || { "Content-Type": "text/plain" });
-  res.end(ctx?._1 || "Not found!");
+  res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
+  res.end(ctx?._1 || (four04 ? "Not found" : undefined));
 };
 var JetPath_app = async (req, res) => {
   const paseredR = URLPARSER(req.method, req.url);
@@ -398,9 +394,9 @@ var JetPath_app = async (req, res) => {
     ctx.search = paseredR[2];
     ctx.path = paseredR[3];
     try {
-      await _JetPath_hooks?.["PRE"](ctx);
+      await _JetPath_hooks["PRE"]?.(ctx);
       await r(ctx);
-      await _JetPath_hooks?.["POST"](ctx);
+      await _JetPath_hooks["POST"]?.(ctx);
       return createResponse(res, ctx);
     } catch (error) {
       if (error instanceof JetPathErrors) {
@@ -417,7 +413,7 @@ var JetPath_app = async (req, res) => {
       }
     }
   }
-  return createResponse(res, createCTX(req));
+  return createResponse(res, createCTX(req), true);
 };
 var Handlerspath = (path2) => {
   if (path2.includes("hook__")) {
@@ -612,8 +608,7 @@ ${b && (b.BODY_method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) 
         }
       }
       if (this.options.displayRoutes === "UI") {
-        _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
-          ctx.reply(`<!DOCTYPE html>
+        const UI = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1344,7 +1339,9 @@ async function testApi(
     </script>  -->
        <a style="text-align: center; margin-top: 5rem;">2024 Alrights reserved {NAME}</a>
   </body>
-</html>`.replace("'{JETPATH}'", `\`${t}\``).replaceAll("{NAME}", this.options?.documentation?.name || "JethPath API Doc").replaceAll("JETPATHCOLOR", this.options?.documentation?.color || "#007bff").replaceAll("{LOGO}", this.options?.documentation?.logo || "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp").replaceAll("{INFO}", this.options?.documentation?.info || "This is a JethPath api preview."), "text/html");
+</html>`.replace("'{JETPATH}'", `\`${t}\``).replaceAll("{NAME}", this.options?.documentation?.name || "JethPath API Doc").replaceAll("JETPATHCOLOR", this.options?.documentation?.color || "#007bff").replaceAll("{LOGO}", this.options?.documentation?.logo || "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp").replaceAll("{INFO}", this.options?.documentation?.info || "This is a JethPath api preview.");
+        _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
+          ctx.reply(UI, "text/html");
         };
         console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
       }
