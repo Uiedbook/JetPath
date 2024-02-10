@@ -369,7 +369,7 @@ span.GET {
     <h3 class="request-container">Requests</h>
       <div id="big-request-container"></div>
     <script type="module" >
-  import _, {
+  import {
   h4,
   h5,
   span,
@@ -530,8 +530,7 @@ function showApiResponse(response, id) {
   responseContainer.innerHTML = "";
   responseContainer.append(strong("API Response"), br());
   responseContainer.append(
-    _(
-      "pre",
+    div( 
       h5(response.status || 404, {
         style: { color: (response.status || 404) < 400 ? "green" : "red" },
       })
