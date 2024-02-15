@@ -142,25 +142,28 @@ export class JetPath {
         const r = _JetPath_paths[k as methods];
         if (r && Object.keys(r).length) {
           for (const p in r) {
-            const b = UTILS.validators[p];
+            const v = UTILS.validators[p] || {};
+            const b = v?.body || {};
+            const h_inial = v?.headers || {};
+            const h = [];
+            for (const name in h_inial) {
+              h.push(name + ":" + h_inial[name]);
+            }
             const j: Record<string, any> = {};
             if (b) {
               for (const ke in b) {
-                if (ke === "BODY_info" || ke == "BODY_method") continue;
-                j[ke] = (b[ke as "BODY_info"] as any)?.inputType || "text";
+                j[ke] = (b[ke as "info"] as any)?.inputType || "text";
               }
             }
+
             const api = `\n
 ${k} [--host--]${p} HTTP/1.1
+${h.length ? h.join("\n") : ""}\n
 ${
-  b && (b.BODY_method === k && k !== "GET" ? k : "")
-    ? "\n" + JSON.stringify(j)
-    : ""
+  v && (v.method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) : ""
 }\n${
-              b &&
-              (b.BODY_method === k && k !== "GET" ? k : "") &&
-              b?.["BODY_info"]
-                ? "#" + b?.["BODY_info"] + "-JETE"
+              v && (v.method === k && k !== "GET" ? k : "") && v?.["info"]
+                ? "#" + v?.["info"] + "-JETE"
                 : ""
             }
 ###`;

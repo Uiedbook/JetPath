@@ -65,6 +65,7 @@ async function getHandlers(source, print) {
             const validator = module[p];
             if (typeof validator === "object") {
               UTILS.validators[params[1]] = validator;
+              validator.validate = (data = {}) => validate(validator, data);
             }
           }
           if (typeof params !== "string" && _JetPath_paths[params[0]]) {
@@ -89,15 +90,15 @@ async function getHandlers(source, print) {
     }
   }
 }
-var validate = function(schema, data) {
+function validate(schema, data) {
   const out = {};
   let errout = "";
   if (!data)
-    this.throw("invalid ctx.body => " + data);
-  for (const [prop, value] of Object.entries(schema)) {
-    if (prop === "BODY_info" || prop == "BODY_method")
-      continue;
-    const { err, type, nullable, RegExp, validate: validate2 } = value;
+    throw new Error("invalid data => " + data);
+  if (!schema)
+    throw new Error("invalid schema => " + schema);
+  for (const [prop, value] of Object.entries(schema.BODY)) {
+    const { err, type, nullable, RegExp, validator } = value;
     if (!data[prop] && nullable) {
       continue;
     }
@@ -107,13 +108,15 @@ var validate = function(schema, data) {
       } else {
         errout = `${prop} is required`;
       }
+      continue;
     }
-    if (validate2 && !validate2(data[prop])) {
+    if (validator && !validator(data[prop])) {
       if (err) {
         errout = err;
       } else {
         errout = `${prop} must is invalid`;
       }
+      continue;
     }
     if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
       if (err) {
@@ -121,20 +124,35 @@ var validate = function(schema, data) {
       } else {
         errout = `${prop} must is invalid`;
       }
-    }
-    if (typeof type === "string" && type !== typeof data[prop]) {
-      if (err) {
-        errout = err;
-      } else {
-        errout = `${prop} type is invalid '${data[prop]}' `;
-      }
+      continue;
     }
     out[prop] = data[prop];
+    if (type) {
+      if (typeof type === "function") {
+        if (typeof type(data[prop]) !== typeof type()) {
+          if (err) {
+            errout = err;
+          } else {
+            errout = `${prop} type is invalid '${data[prop]}' `;
+          }
+          continue;
+        }
+        out[prop] = type(data[prop]);
+      }
+      if (typeof type === "string" && type !== typeof data[prop]) {
+        if (err) {
+          errout = err;
+        } else {
+          errout = `${prop} type is invalid '${data[prop]}' `;
+        }
+      }
+      continue;
+    }
   }
   if (errout)
-    this.throw({ detail: errout });
+    throw new Error(errout);
   return out;
-};
+}
 var UTILS = {
   ae(cb) {
     try {
@@ -351,9 +369,9 @@ var createCTX = (req, decorationObject = {}) => ({
       });
     });
   },
-  validate(data) {
+  validate(data = {}) {
     if (UTILS.validators[this.path]) {
-      return validate.apply(this, [UTILS.validators[this.path], data]);
+      return validate(UTILS.validators[this.path], data);
     }
     throw new Error("no validation BODY! for path " + this.path);
   },
@@ -585,18 +603,23 @@ class JetPath {
         const r = _JetPath_paths[k];
         if (r && Object.keys(r).length) {
           for (const p in r) {
-            const b = UTILS.validators[p];
+            const v = UTILS.validators[p] || {};
+            const b = v?.body || {};
+            const h_inial = v?.headers || {};
+            const h = [];
+            for (const name in h_inial) {
+              h.push(name + ":" + h_inial[name]);
+            }
             const j = {};
             if (b) {
               for (const ke in b) {
-                if (ke === "BODY_info" || ke == "BODY_method")
-                  continue;
                 j[ke] = b[ke]?.inputType || "text";
               }
             }
             const api = `\n
 ${k} [--host--]${p} HTTP/1.1
-${b && (b.BODY_method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) : ""}\n${b && (b.BODY_method === k && k !== "GET" ? k : "") && b?.["BODY_info"] ? "#" + b?.["BODY_info"] + "-JETE" : ""}
+${h.length ? h.join("\n") : ""}\n
+${v && (v.method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) : ""}\n${v && (v.method === k && k !== "GET" ? k : "") && v?.["info"] ? "#" + v?.["info"] + "-JETE" : ""}
 ###`;
             if (this.options.displayRoutes === "UI") {
               t += api;
@@ -979,7 +1002,7 @@ span.GET {
     <h3 class="request-container">Requests</h>
       <div id="big-request-container"></div>
     <script type="module" >
-  import {
+  import  {
   h4,
   h5,
   span,
@@ -991,6 +1014,8 @@ span.GET {
   $if,
   strong 
 } from "https://unpkg.com/cradova/dist/index.js";
+
+const loading_svg = svg('<svg width="200" height="200" viewBox="0 0 100 100" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><g style="transform-origin:50% 50%;transform:scale(.8)"><g style="animation:1s linear -1s infinite normal forwards running bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117;transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"><path d="M30 72.889c-8.09 0-14.648-4.099-14.648-9.156v19.611c0 5.057 6.558 9.156 14.648 9.156s14.648-4.099 14.648-9.156V63.733c0 5.057-6.558 9.156-14.648 9.156z" fill="#f8b26a" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/><ellipse cx="30" cy="63.733" rx="14.648" ry="9.156" fill="#f47e60" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/></g><g style="animation:1s linear -.945s infinite normal forwards running bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117;transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"><path d="M70 51.889c-8.09 0-14.648-4.099-14.648-9.156v40.611c0 5.057 6.558 9.156 14.648 9.156s14.648-4.099 14.648-9.156V42.733c0 5.057-6.558 9.156-14.648 9.156z" fill="#a0c8d7" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/><ellipse cx="70" cy="42.733" rx="14.648" ry="9.156" fill="#77a4bd" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/></g><g style="animation:1s linear -.89s infinite normal forwards running bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117;transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"><path d="M30 25.812c-8.09 0-14.648-4.099-14.648-9.156v38.077c0 5.057 6.558 9.156 14.648 9.156s14.648-4.099 14.648-9.156V16.656c0 5.057-6.558 9.156-14.648 9.156z" fill="rgba(255, 255, 255, 0.804)" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/><ellipse cx="30" cy="16.656" rx="14.648" ry="9.156" fill="#ccc" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/></g><g style="animation:1s linear -.835s infinite normal forwards running bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117;transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"><path d="M70 25.812c-8.09 0-14.648-4.099-14.648-9.156v17.077c0 5.057 6.558 9.156 14.648 9.156s14.648-4.099 14.648-9.156V16.656c0 5.057-6.558 9.156-14.648 9.156z" fill="rgba(255, 255, 255, 0.804)" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/><ellipse cx="70" cy="16.656" rx="14.648" ry="9.156" fill="#ccc" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/></g></g><style id="a">@keyframes bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117{0%{animation-timing-function:cubic-bezier(.1361,.2514,.2175,.8786);transform:translate(0,0) scaleY(1)}37%{animation-timing-function:cubic-bezier(.7674,.1844,.8382,.7157);transform:translate(0,-11.988px) scaleY(1)}72%{animation-timing-function:cubic-bezier(.2491,.4828,.4773,.9595);transform:translate(0,0) scaleY(1)}87%{animation-timing-function:cubic-bezier(.5084,.1576,.7399,.5564);transform:translate(0,4.257px) scaleY(.871)}to{transform:translate(0,0) scaleY(1)}}</style></svg>')
 
     function syntaxHighlight(json) {
   if (typeof json != "string") {
@@ -1251,6 +1276,8 @@ const card = (request, i) => {
             const data = parseUPAPIBody(
               requestContainer?.querySelector(".body-pack")
             );
+            document.getElementById("response-"+i).innerHTML = ""
+            document.getElementById("response-"+i).append(loading_svg);
             const response = await testApi(
               updatedRequest.method,
               updatedRequest.url,
@@ -1292,7 +1319,7 @@ async function testApi(
   contentType = "application/json"
 ) {
   headers["Content-Type"] = contentType;
-  //   console.log({ method, url, headers, body, contentType });
+    console.log({ method, url, headers, body, contentType });
   let response;
   try {
     if (contentType === "application/json") {
@@ -1304,8 +1331,7 @@ async function testApi(
     }
     if (contentType === "multipart/form-data") {
       const formData = new FormData();
-      for (const key in body) {
-        console.log(key ,  body[key])
+      for (const key in body) { 
         formData.append(key, body[key]);
       }
       response = await fetch(url, {
@@ -1329,7 +1355,7 @@ async function testApi(
       body: responseBody,
     };
   } catch (error) {
-    console.log(error);
+    console.log(error?.message||error);
     return { error: error.message };
   }
 }

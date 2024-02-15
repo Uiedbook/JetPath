@@ -3,21 +3,27 @@ import { AppCTX, Schema } from "../dist/index.js";
 //? Body validators
 
 export const BODY_pets: Schema = {
-  name: { err: "please provide dog name", type: "string" },
-  image: { type: "string", nullable: true, inputType: "file" },
-  age: { type: "number" },
-  BODY_method: "POST",
+  body: {
+    name: { err: "please provide dog name", type: "string" },
+    image: { type: "string", nullable: true, inputType: "file" },
+    age: { type: "number", inputType: "number" },
+  },
+  info: "the pet api",
+  headers: { "Content-Type": "application/json" },
+  method: "POST",
 };
 export const BODY_petBy$id: Schema = {
-  name: { err: "please provide dog name", type: "string" },
-  image: { type: "string", nullable: true, inputType: "file" },
-  age: { type: "number" },
-  BODY_info: "This api allows you to update a pet with it's ID",
-  BODY_method: "PUT",
+  body: {
+    name: { err: "please provide dog name", type: "string" },
+    image: { type: "string", nullable: true, inputType: "file" },
+    age: { type: "number" },
+  },
+  info: "This api allows you to update a pet with it's ID",
+  method: "PUT",
 };
 export const BODY_petImage$id: Schema = {
-  image: { type: "string", nullable: true, inputType: "file" },
-  BODY_method: "POST",
+  body: { image: { type: "string", nullable: true, inputType: "file" } },
+  method: "POST",
 };
 
 // ? Routes
@@ -26,8 +32,13 @@ export const BODY_petImage$id: Schema = {
 const pets: { id: string; imageUrl: string; name: string }[] = [];
 
 // ? /
-export async function GET_(ctx: AppCTX) {
-  ctx.reply("Welcome to Petshop!");
+export function GET_(ctx: AppCTX) {
+  return new Promise((r) => {
+    setTimeout(() => {
+      r("");
+      ctx.reply("Welcome to Petshop!");
+    }, 3000);
+  });
 }
 
 // List Pets: Retrieve a list of pets available in the shop
@@ -52,7 +63,7 @@ export function GET_petBy$id(ctx: AppCTX) {
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
 export async function POST_pets(ctx: AppCTX) {
-  ctx.validate(await ctx.json());
+  BODY_pets.validate?.(ctx.body);
   const newPet: { id: string; imageUrl: string; name: string } = ctx.body;
   // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
   newPet.id = String(Date.now());
@@ -60,10 +71,23 @@ export async function POST_pets(ctx: AppCTX) {
   ctx.reply({ message: "Pet added successfully", pet: newPet });
 }
 
+// ? /pets/q/?
+// Add a New Pet: Add a new pet to the inventory
+export async function GET_pets_search$$(ctx: AppCTX) {
+  BODY_pets.validate?.(ctx.body);
+  ctx.reply({
+    message: "Pets searched successfully",
+    pets: pets.filter(
+      (pet) => pet.name === ctx.search.q || pet.name.includes(ctx.search.q)
+    ),
+  });
+}
+
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
 export async function PUT_petBy$id(ctx: AppCTX) {
-  ctx.validate(await ctx.json());
+  BODY_petBy$id.validate?.(ctx.body);
+
   const petId = ctx.params.id;
   const updatedPetData = await ctx.json();
   const index = pets.findIndex((p) => p.id === petId);

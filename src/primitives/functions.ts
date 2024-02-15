@@ -350,9 +350,9 @@ const createCTX = (
       });
     });
   },
-  validate(data: any) {
+  validate(data: any = {}) {
     if (UTILS.validators[this.path]) {
-      return validate.apply(this, [UTILS.validators[this.path!], data]);
+      return validate(UTILS.validators[this.path!], data);
     }
     throw new Error("no validation BODY! for path " + this.path);
   },
@@ -485,6 +485,8 @@ export async function getHandlers(source: string, print: boolean) {
             const validator = module[p];
             if (typeof validator === "object") {
               UTILS.validators[params[1]] = validator as Schema;
+              validator.validate = (data: any = {}) =>
+                validate(validator, data);
             }
           }
           if (
@@ -519,13 +521,13 @@ export async function getHandlers(source: string, print: boolean) {
   }
 }
 
-function validate(this: AppCTX, schema: Schema, data: any) {
+export function validate(schema: Schema, data: any) {
   const out: Record<string, any> = {};
   let errout: string = "";
-  if (!data) this.throw("invalid ctx.body => " + data);
-  for (const [prop, value] of Object.entries(schema)) {
-    if (prop === "BODY_info" || prop == "BODY_method") continue;
-    const { err, type, nullable, RegExp, validate } = value;
+  if (!data) throw new Error("invalid data => " + data);
+  if (!schema) throw new Error("invalid schema => " + schema);
+  for (const [prop, value] of Object.entries(schema.BODY)) {
+    const { err, type, nullable, RegExp, validator } = value;
     if (!data[prop] && nullable) {
       continue;
     }
@@ -535,13 +537,15 @@ function validate(this: AppCTX, schema: Schema, data: any) {
       } else {
         errout = `${prop} is required`;
       }
+      continue;
     }
-    if (validate && !validate(data[prop])) {
+    if (validator && !validator(data[prop])) {
       if (err) {
         errout = err;
       } else {
         errout = `${prop} must is invalid`;
       }
+      continue;
     }
     if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
       if (err) {
@@ -549,17 +553,35 @@ function validate(this: AppCTX, schema: Schema, data: any) {
       } else {
         errout = `${prop} must is invalid`;
       }
+      continue;
     }
-    if (typeof type === "string" && type !== typeof data[prop]) {
-      if (err) {
-        errout = err;
-      } else {
-        errout = `${prop} type is invalid '${data[prop]}' `;
-      }
-    }
+
     out[prop] = data[prop];
+
+    if (type) {
+      if (typeof type === "function") {
+        if (typeof type(data[prop]) !== typeof type()) {
+          if (err) {
+            errout = err;
+          } else {
+            errout = `${prop} type is invalid '${data[prop]}' `;
+          }
+          continue;
+        }
+        out[prop] = type(data[prop]);
+      }
+      if (typeof type === "string" && type !== typeof data[prop]) {
+        if (err) {
+          errout = err;
+        } else {
+          errout = `${prop} type is invalid '${data[prop]}' `;
+        }
+      }
+      //
+      continue;
+    }
   }
-  if (errout) this.throw({ detail: errout });
+  if (errout) throw new Error(errout);
   return out;
 }
 

@@ -27,22 +27,38 @@ export type AppCTX<Type = {}> = {
   app: Record<string, any>;
   // files(): Promise<any>;
 } & Type;
-export type Schema =
-  | Record<
-      string,
-      {
-        err?: string;
-        type: "string" | "number" | "object" | "boolean";
-        inputType?: string;
-        nullable?: boolean;
-        RegExp?: RegExp;
-        validate?: (value: any) => boolean;
-      }
-    >
-  | {
-      BODY_info?: string;
-      BODY_method?: methods;
-    };
+export interface Schema {
+  body: Record<
+    string,
+    {
+      err?: string;
+      type:
+        | "string"
+        | "number"
+        | "object"
+        | "boolean"
+        | StringConstructor
+        | NumberConstructor
+        | BooleanConstructor
+        | ObjectConstructor;
+
+      inputType?: string;
+      nullable?: boolean;
+      RegExp?: RegExp;
+      validator?: (value: any) => boolean;
+    }
+  >;
+  info?: string;
+  method?: methods;
+  headers?: Record<string, string>;
+  search_params?: string[];
+  validate?: (data?: any) => Record<string, any>;
+}
+
+export type contentType =
+  | "application/x-www-form-urlencoded"
+  | "multipart/form-data"
+  | "application/json";
 
 export type methods =
   | "GET"

@@ -47,35 +47,41 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hook__ERROR = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.GET_ = exports.BODY_petImage$id = exports.BODY_petBy$id = exports.BODY_pets = void 0;
+exports.hook__ERROR = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.GET_pets_search$$ = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.GET_ = exports.BODY_petImage$id = exports.BODY_petBy$id = exports.BODY_pets = void 0;
 //? Body validators
 exports.BODY_pets = {
-    name: { err: "please provide dog name", type: "string" },
-    image: { type: "string", nullable: true, inputType: "file" },
-    age: { type: "number" },
-    BODY_method: "POST",
+    body: {
+        name: { err: "please provide dog name", type: "string" },
+        image: { type: "string", nullable: true, inputType: "file" },
+        age: { type: "number", inputType: "number" },
+    },
+    info: "the pet api",
+    headers: { "Content-Type": "application/json" },
+    method: "POST",
 };
 exports.BODY_petBy$id = {
-    name: { err: "please provide dog name", type: "string" },
-    image: { type: "string", nullable: true, inputType: "file" },
-    age: { type: "number" },
-    BODY_info: "This api allows you to update a pet with it's ID",
-    BODY_method: "PUT",
+    body: {
+        name: { err: "please provide dog name", type: "string" },
+        image: { type: "string", nullable: true, inputType: "file" },
+        age: { type: "number" },
+    },
+    info: "This api allows you to update a pet with it's ID",
+    method: "PUT",
 };
 exports.BODY_petImage$id = {
-    image: { type: "string", nullable: true, inputType: "file" },
-    BODY_method: "POST",
+    body: { image: { type: "string", nullable: true, inputType: "file" } },
+    method: "POST",
 };
 // ? Routes
 // ? PETshop temperaly Database
 var pets = [];
 // ? /
 function GET_(ctx) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
+    return new Promise(function (r) {
+        setTimeout(function () {
+            r("");
             ctx.reply("Welcome to Petshop!");
-            return [2 /*return*/];
-        });
+        }, 3000);
     });
 }
 exports.GET_ = GET_;
@@ -103,42 +109,51 @@ exports.GET_petBy$id = GET_petBy$id;
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
 function POST_pets(ctx) {
+    var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var _a, _b, newPet;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    _b = (_a = ctx).validate;
-                    return [4 /*yield*/, ctx.json()];
-                case 1:
-                    _b.apply(_a, [_c.sent()]);
-                    newPet = ctx.body;
-                    // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
-                    newPet.id = String(Date.now());
-                    pets.push(newPet);
-                    ctx.reply({ message: "Pet added successfully", pet: newPet });
-                    return [2 /*return*/];
-            }
+        var newPet;
+        return __generator(this, function (_b) {
+            (_a = exports.BODY_pets.validate) === null || _a === void 0 ? void 0 : _a.call(exports.BODY_pets, ctx.body);
+            newPet = ctx.body;
+            // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
+            newPet.id = String(Date.now());
+            pets.push(newPet);
+            ctx.reply({ message: "Pet added successfully", pet: newPet });
+            return [2 /*return*/];
         });
     });
 }
 exports.POST_pets = POST_pets;
+// ? /pets/q/?
+// Add a New Pet: Add a new pet to the inventory
+function GET_pets_search$$(ctx) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_b) {
+            (_a = exports.BODY_pets.validate) === null || _a === void 0 ? void 0 : _a.call(exports.BODY_pets, ctx.body);
+            ctx.reply({
+                message: "Pets searched successfully",
+                pets: pets.filter(function (pet) { return pet.name === ctx.search.q || pet.name.includes(ctx.search.q); }),
+            });
+            return [2 /*return*/];
+        });
+    });
+}
+exports.GET_pets_search$$ = GET_pets_search$$;
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
 function PUT_petBy$id(ctx) {
+    var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var _a, _b, petId, updatedPetData, index;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var petId, updatedPetData, index;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    _b = (_a = ctx).validate;
-                    return [4 /*yield*/, ctx.json()];
-                case 1:
-                    _b.apply(_a, [_c.sent()]);
+                    (_a = exports.BODY_petBy$id.validate) === null || _a === void 0 ? void 0 : _a.call(exports.BODY_petBy$id, ctx.body);
                     petId = ctx.params.id;
                     return [4 /*yield*/, ctx.json()];
-                case 2:
-                    updatedPetData = _c.sent();
+                case 1:
+                    updatedPetData = _b.sent();
                     index = pets.findIndex(function (p) { return p.id === petId; });
                     if (index !== -1) {
                         // Update the existing pet's data
@@ -180,7 +195,7 @@ function POST_petImage$id(ctx) {
                 case 0:
                     petId = ctx.params.id;
                     // @ts-ignore
-                    console.log(ctx.request);
+                    console.log({ r: ctx.request });
                     return [4 /*yield*/, ctx.request.formData()];
                 case 1:
                     formdata = _a.sent();

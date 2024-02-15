@@ -49,3 +49,4 @@ export declare const _JetPath_app_config: {
     set(this: any, opt: string, val: any): void;
 };
 export declare function getHandlers(source: string, print: boolean): Promise<void>;
+export declare function validate(schema: Schema, data: any): Record<string, any>;

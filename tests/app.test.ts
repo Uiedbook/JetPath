@@ -14,5 +14,6 @@ const app = new JetPath({
   source: "tests",
   displayRoutes: "UI",
   publicPath: { dir: "/src", route: "/jetpath" },
+  port: 9000,
 });
 app.listen();
