@@ -12,8 +12,8 @@ const app = new JetPath({
     logo: "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp",
   },
   source: "tests",
-  displayRoutes: "UI",
-  publicPath: { dir: "/src", route: "/jetpath" },
+  displayRoutes: "FILE",
+  // publicPath: { dir: "/src", route: "/jetpath" },
   port: 9000,
 });
 app.listen();

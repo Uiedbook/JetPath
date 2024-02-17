@@ -13,7 +13,7 @@ export declare class JetPath {
         };
         source?: string;
         credentials?: any;
-        displayRoutes?: boolean | "UI";
+        displayRoutes?: "UI" | "FILE" | "HTTP";
         port?: number;
         publicPath?: {
             route: string;

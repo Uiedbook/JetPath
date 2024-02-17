@@ -53,10 +53,14 @@ exports.BODY_pets = {
     body: {
         name: { err: "please provide dog name", type: "string" },
         image: { type: "string", nullable: true, inputType: "file" },
-        age: { type: "number", inputType: "number" },
+        age: { type: "number", inputType: "number", nullable: true },
     },
     info: "the pet api",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bear *********",
+        "X-pet-token": "token",
+    },
     method: "POST",
 };
 exports.BODY_petBy$id = {
@@ -111,15 +115,29 @@ exports.GET_petBy$id = GET_petBy$id;
 function POST_pets(ctx) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var newPet;
-        return __generator(this, function (_b) {
-            (_a = exports.BODY_pets.validate) === null || _a === void 0 ? void 0 : _a.call(exports.BODY_pets, ctx.body);
-            newPet = ctx.body;
-            // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
-            newPet.id = String(Date.now());
-            pets.push(newPet);
-            ctx.reply({ message: "Pet added successfully", pet: newPet });
-            return [2 /*return*/];
+        var _b, _c, _d, _e, newPet;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
+                case 0:
+                    if (!((_a = ctx.validate) === null || _a === void 0)) return [3 /*break*/, 1];
+                    _b = void 0;
+                    return [3 /*break*/, 3];
+                case 1:
+                    _d = (_c = _a).call;
+                    _e = [ctx];
+                    return [4 /*yield*/, ctx.json()];
+                case 2:
+                    _b = _d.apply(_c, _e.concat([_f.sent()]));
+                    _f.label = 3;
+                case 3:
+                    _b;
+                    newPet = ctx.body;
+                    // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
+                    newPet.id = String(Date.now());
+                    pets.push(newPet);
+                    ctx.reply({ message: "Pet added successfully", pet: newPet });
+                    return [2 /*return*/];
+            }
         });
     });
 }
@@ -130,7 +148,7 @@ function GET_pets_search$$(ctx) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_b) {
-            (_a = exports.BODY_pets.validate) === null || _a === void 0 ? void 0 : _a.call(exports.BODY_pets, ctx.body);
+            (_a = exports.BODY_pets.validate) === null || _a === void 0 ? void 0 : _a.call(exports.BODY_pets, ctx.search);
             ctx.reply({
                 message: "Pets searched successfully",
                 pets: pets.filter(function (pet) { return pet.name === ctx.search.q || pet.name.includes(ctx.search.q); }),

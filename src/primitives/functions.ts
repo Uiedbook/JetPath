@@ -526,7 +526,7 @@ export function validate(schema: Schema, data: any) {
   let errout: string = "";
   if (!data) throw new Error("invalid data => " + data);
   if (!schema) throw new Error("invalid schema => " + schema);
-  for (const [prop, value] of Object.entries(schema.BODY)) {
+  for (const [prop, value] of Object.entries(schema.body || {})) {
     const { err, type, nullable, RegExp, validator } = value;
     if (!data[prop] && nullable) {
       continue;
@@ -665,4 +665,19 @@ const URLPARSER = (method: methods, url: string) => {
     }
   }
   return;
+};
+
+export const compileUI = (UI: string, options: any, api: string) => {
+  return UI.replace("'{JETPATH}'", `\`${api}\``)
+    .replaceAll("{NAME}", options?.documentation?.name || "JethPath API Doc")
+    .replaceAll("JETPATHCOLOR", options?.documentation?.color || "#007bff")
+    .replaceAll(
+      "{LOGO}",
+      options?.documentation?.logo ||
+        "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
+    )
+    .replaceAll(
+      "{INFO}",
+      options?.documentation?.info || "This is a JethPath api preview."
+    );
 };

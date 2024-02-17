@@ -25,7 +25,7 @@ export type AppCTX<Type = {}> = {
     app: Record<string, any>;
 } & Type;
 export interface Schema {
-    body: Record<string, {
+    body?: Record<string, {
         err?: string;
         type: "string" | "number" | "object" | "boolean" | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor;
         inputType?: string;

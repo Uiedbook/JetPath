@@ -50,3 +50,4 @@ export declare const _JetPath_app_config: {
 };
 export declare function getHandlers(source: string, print: boolean): Promise<void>;
 export declare function validate(schema: Schema, data: any): Record<string, any>;
+export declare const compileUI: (UI: string, options: any, api: string) => string;

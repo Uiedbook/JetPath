@@ -6,10 +6,14 @@ export const BODY_pets: Schema = {
   body: {
     name: { err: "please provide dog name", type: "string" },
     image: { type: "string", nullable: true, inputType: "file" },
-    age: { type: "number", inputType: "number" },
+    age: { type: "number", inputType: "number", nullable: true },
   },
   info: "the pet api",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: "Bear *********",
+    "X-pet-token": "token",
+  },
   method: "POST",
 };
 export const BODY_petBy$id: Schema = {
@@ -63,7 +67,7 @@ export function GET_petBy$id(ctx: AppCTX) {
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
 export async function POST_pets(ctx: AppCTX) {
-  BODY_pets.validate?.(ctx.body);
+  ctx.validate?.(await ctx.json());
   const newPet: { id: string; imageUrl: string; name: string } = ctx.body;
   // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
   newPet.id = String(Date.now());
@@ -74,7 +78,7 @@ export async function POST_pets(ctx: AppCTX) {
 // ? /pets/q/?
 // Add a New Pet: Add a new pet to the inventory
 export async function GET_pets_search$$(ctx: AppCTX) {
-  BODY_pets.validate?.(ctx.body);
+  BODY_pets.validate?.(ctx.search);
   ctx.reply({
     message: "Pets searched successfully",
     pets: pets.filter(

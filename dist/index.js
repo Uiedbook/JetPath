@@ -1,5 +1,5 @@
 // src/index.ts
-import {access} from "node:fs/promises";
+import {access, writeFile} from "node:fs/promises";
 
 // src/primitives/functions.ts
 import {opendir} from "node:fs/promises";
@@ -97,7 +97,7 @@ function validate(schema, data) {
     throw new Error("invalid data => " + data);
   if (!schema)
     throw new Error("invalid schema => " + schema);
-  for (const [prop, value] of Object.entries(schema.BODY)) {
+  for (const [prop, value] of Object.entries(schema.body || {})) {
     const { err, type, nullable, RegExp, validator } = value;
     if (!data[prop] && nullable) {
       continue;
@@ -510,6 +510,9 @@ var URLPARSER = (method, url) => {
   }
   return;
 };
+var compileUI = (UI, options, api) => {
+  return UI.replace("'{JETPATH}'", `\`${api}\``).replaceAll("{NAME}", options?.documentation?.name || "JethPath API Doc").replaceAll("JETPATHCOLOR", options?.documentation?.color || "#007bff").replaceAll("{LOGO}", options?.documentation?.logo || "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp").replaceAll("{INFO}", options?.documentation?.info || "This is a JethPath api preview.");
+};
 
 // src/index.ts
 class JetPath {
@@ -538,100 +541,7 @@ class JetPath {
     UTILS.decorators = Object.assign(UTILS.decorators, decorations);
   }
   async listen() {
-    if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
-      _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (ctx) => {
-        const fileName = ctx.params?.["extraPath"];
-        if (fileName && ("/" + fileName).includes(this.options.publicPath.dir + "/")) {
-          let contentType;
-          switch (fileName.split(".")[1]) {
-            case "js":
-              contentType = "application/javascript";
-              break;
-            case "pdf":
-              contentType = "application/pdf";
-              break;
-            case "json":
-              contentType = "application/json";
-              break;
-            case "css":
-              contentType = "text/css; charset=utf-8";
-              break;
-            case "html":
-              contentType = "charset=utf-8";
-              break;
-            case "png":
-              contentType = "image/png";
-              break;
-            case "avif":
-              contentType = "image/avif";
-              break;
-            case "webp":
-              contentType = "image/webp";
-              break;
-            case "jpg":
-              contentType = "image/jpeg";
-              break;
-            case "svg":
-              contentType = "image/svg+xml";
-              break;
-            case "ico":
-              contentType = "image/vnd.microsoft.icon";
-              break;
-            default:
-              contentType = "text/plain";
-              break;
-          }
-          try {
-            await access(fileName);
-          } catch (error) {
-            return ctx.throw();
-          }
-          return ctx.pipe(fileName, contentType);
-        } else {
-          return ctx.throw();
-        }
-      };
-    }
-    if (typeof this.options !== "object" || this.options?.displayRoutes !== false) {
-      let c = 0, t = "";
-      console.log("JetPath: compiling...");
-      const startTime = performance.now();
-      await getHandlers(this.options?.source, true);
-      const endTime = performance.now();
-      console.log("JetPath: done.");
-      for (const k in _JetPath_paths) {
-        const r = _JetPath_paths[k];
-        if (r && Object.keys(r).length) {
-          for (const p in r) {
-            const v = UTILS.validators[p] || {};
-            const b = v?.body || {};
-            const h_inial = v?.headers || {};
-            const h = [];
-            for (const name in h_inial) {
-              h.push(name + ":" + h_inial[name]);
-            }
-            const j = {};
-            if (b) {
-              for (const ke in b) {
-                j[ke] = b[ke]?.inputType || "text";
-              }
-            }
-            const api = `\n
-${k} [--host--]${p} HTTP/1.1
-${h.length ? h.join("\n") : ""}\n
-${v && (v.method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) : ""}\n${v && (v.method === k && k !== "GET" ? k : "") && v?.["info"] ? "#" + v?.["info"] + "-JETE" : ""}
-###`;
-            if (this.options.displayRoutes === "UI") {
-              t += api;
-            } else {
-              console.log(api);
-            }
-            c += 1;
-          }
-        }
-      }
-      if (this.options.displayRoutes === "UI") {
-        const UI = `<!DOCTYPE html>
+    let UI = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -643,7 +553,6 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) : ""}
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"> 
     <script src="https://code.jquery.com/jquery-2.1.0.js" defer></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" defer></script>
-   <!-- <link rel="stylesheet" href="index.css"> -->
    <style>
     :root {
   ---app: JETPATHCOLOR;
@@ -1364,11 +1273,114 @@ async function testApi(
     </script>  -->
        <a style="text-align: center; margin-top: 5rem;">2024 Alrights reserved {NAME}</a>
   </body>
-</html>`.replace("'{JETPATH}'", `\`${t}\``).replaceAll("{NAME}", this.options?.documentation?.name || "JethPath API Doc").replaceAll("JETPATHCOLOR", this.options?.documentation?.color || "#007bff").replaceAll("{LOGO}", this.options?.documentation?.logo || "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp").replaceAll("{INFO}", this.options?.documentation?.info || "This is a JethPath api preview.");
+</html>`;
+    if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
+      _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (ctx) => {
+        const fileName = ctx.params?.["extraPath"];
+        if (fileName && ("/" + fileName).includes(this.options.publicPath.dir + "/")) {
+          let contentType;
+          switch (fileName.split(".")[1]) {
+            case "js":
+              contentType = "application/javascript";
+              break;
+            case "pdf":
+              contentType = "application/pdf";
+              break;
+            case "json":
+              contentType = "application/json";
+              break;
+            case "css":
+              contentType = "text/css; charset=utf-8";
+              break;
+            case "html":
+              contentType = "charset=utf-8";
+              break;
+            case "png":
+              contentType = "image/png";
+              break;
+            case "avif":
+              contentType = "image/avif";
+              break;
+            case "webp":
+              contentType = "image/webp";
+              break;
+            case "jpg":
+              contentType = "image/jpeg";
+              break;
+            case "svg":
+              contentType = "image/svg+xml";
+              break;
+            case "ico":
+              contentType = "image/vnd.microsoft.icon";
+              break;
+            default:
+              contentType = "text/plain";
+              break;
+          }
+          try {
+            await access(fileName);
+          } catch (error) {
+            return ctx.throw();
+          }
+          return ctx.pipe(fileName, contentType);
+        } else {
+          return ctx.throw();
+        }
+      };
+    }
+    if (typeof this.options !== "object" || this.options?.displayRoutes !== false) {
+      let c = 0, t = "";
+      console.log("JetPath: compiling...");
+      const startTime = performance.now();
+      await getHandlers(this.options?.source, true);
+      const endTime = performance.now();
+      console.log("JetPath: done.");
+      for (const k in _JetPath_paths) {
+        const r = _JetPath_paths[k];
+        if (r && Object.keys(r).length) {
+          for (const p in r) {
+            const v = UTILS.validators[p] || {};
+            const b = v?.body || {};
+            const h_inial = v?.headers || {};
+            const h = [];
+            for (const name in h_inial) {
+              h.push(name + ":" + h_inial[name]);
+            }
+            const j = {};
+            if (b) {
+              for (const ke in b) {
+                j[ke] = b[ke]?.inputType || "text";
+              }
+            }
+            const api = `\n
+${k} ${this.options?.displayRoutes === "UI" ? "[--host--]" : "http://localhost:" + this.port}${p} HTTP/1.1
+${h.length ? h.join("\n") : ""}\n
+${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v && (v.method === k ? k : "") && v?.["info"] ? "#" + v?.["info"] + "-JETE" : ""}
+###`;
+            if (this.options.displayRoutes) {
+              t += api;
+            } else {
+              console.log(api);
+            }
+            c += 1;
+          }
+        }
+      }
+      if (this.options?.displayRoutes === "UI") {
+        UI = compileUI(UI, this.options, t);
         _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
           ctx.reply(UI, "text/html");
         };
         console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
+      }
+      if (this.options?.displayRoutes === "FILE") {
+        UI = compileUI(UI, this.options, t);
+        await writeFile("api-doc.html", UI);
+        console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
+      }
+      if (this.options?.displayRoutes === "HTTP") {
+        await writeFile("api-doc.http", t);
+        console.log(`Check ./api-doc.http to test the routes Visual Studio rest client extension`);
       }
       console.log(`\n Parsed ${c} handlers in ${Math.round(endTime - startTime)} milliseconds`);
     } else {

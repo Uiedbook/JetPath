@@ -1,0 +1,66 @@
+
+
+GET http://localhost:8080/jetpath/* HTTP/1.1
+
+
+
+
+###
+
+GET http://localhost:8080/ HTTP/1.1
+
+
+
+
+###
+
+GET http://localhost:8080/petBy/:id HTTP/1.1
+
+
+
+
+###
+
+GET http://localhost:8080/pets HTTP/1.1
+Content-Type:application/json
+Authorization:Bear *********
+
+
+
+###
+
+GET http://localhost:8080/pets/search/? HTTP/1.1
+
+
+
+
+###
+
+POST http://localhost:8080/petImage/:id HTTP/1.1
+
+
+{"image":"file"}
+
+###
+
+POST http://localhost:8080/pets HTTP/1.1
+Content-Type:application/json
+Authorization:Bear *********
+
+{"name":"text","image":"file","age":"number"}
+#the pet api-JETE
+###
+
+PUT http://localhost:8080/petBy/:id HTTP/1.1
+
+
+{"name":"text","image":"file","age":"text"}
+#This api allows you to update a pet with it's ID-JETE
+###
+
+DELETE http://localhost:8080/petBy/:id HTTP/1.1
+
+
+
+
+###

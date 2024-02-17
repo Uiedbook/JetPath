@@ -28,7 +28,7 @@ export type AppCTX<Type = {}> = {
   // files(): Promise<any>;
 } & Type;
 export interface Schema {
-  body: Record<
+  body?: Record<
     string,
     {
       err?: string;

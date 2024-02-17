@@ -1,8 +1,9 @@
-import { access } from "node:fs/promises";
+import { access, writeFile } from "node:fs/promises";
 import {
   _JetPath_app_config,
   _JetPath_hooks,
   _JetPath_paths,
+  compileUI,
   getHandlers,
   UTILS,
 } from "./primitives/functions";
@@ -26,7 +27,7 @@ export class JetPath {
     };
     source?: string;
     credentials?: any;
-    displayRoutes?: boolean | "UI";
+    displayRoutes?: "UI" | "FILE" | "HTTP";
     port?: number;
     publicPath?: { route: string; dir: string };
     cors?:
@@ -66,6 +67,8 @@ export class JetPath {
     UTILS.decorators = Object.assign(UTILS.decorators, decorations);
   }
   async listen() {
+    // ? {view} is pre-processed at build time to html
+    let UI = `{view}`;
     if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
       _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (
         ctx
@@ -155,19 +158,20 @@ export class JetPath {
                 j[ke] = (b[ke as "info"] as any)?.inputType || "text";
               }
             }
-
             const api = `\n
-${k} [--host--]${p} HTTP/1.1
+${k} ${
+              this.options?.displayRoutes === "UI"
+                ? "[--host--]"
+                : "http://localhost:" + this.port
+            }${p} HTTP/1.1
 ${h.length ? h.join("\n") : ""}\n
-${
-  v && (v.method === k && k !== "GET" ? k : "") ? "\n" + JSON.stringify(j) : ""
-}\n${
-              v && (v.method === k && k !== "GET" ? k : "") && v?.["info"]
+${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
+              v && (v.method === k ? k : "") && v?.["info"]
                 ? "#" + v?.["info"] + "-JETE"
                 : ""
             }
 ###`;
-            if (this.options.displayRoutes === "UI") {
+            if (this.options.displayRoutes) {
               t += api;
             } else {
               console.log(api);
@@ -176,32 +180,27 @@ ${
           }
         }
       }
-      if (this.options.displayRoutes === "UI") {
-        const UI = `{view}`
-          .replace("'{JETPATH}'", `\`${t}\``)
-          .replaceAll(
-            "{NAME}",
-            this.options?.documentation?.name || "JethPath API Doc"
-          )
-          .replaceAll(
-            "JETPATHCOLOR",
-            this.options?.documentation?.color || "#007bff"
-          )
-          .replaceAll(
-            "{LOGO}",
-            this.options?.documentation?.logo ||
-              "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
-          )
-          .replaceAll(
-            "{INFO}",
-            this.options?.documentation?.info ||
-              "This is a JethPath api preview."
-          );
+
+      if (this.options?.displayRoutes === "UI") {
+        UI = compileUI(UI, this.options, t);
         _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
           ctx.reply(UI, "text/html");
         };
         console.log(
           `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
+        );
+      }
+      if (this.options?.displayRoutes === "FILE") {
+        UI = compileUI(UI, this.options, t);
+        await writeFile("api-doc.html", UI);
+        console.log(
+          `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
+        );
+      }
+      if (this.options?.displayRoutes === "HTTP") {
+        await writeFile("api-doc.http", t);
+        console.log(
+          `Check ./api-doc.http to test the routes Visual Studio rest client extension`
         );
       }
       console.log(
