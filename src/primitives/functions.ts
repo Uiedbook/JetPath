@@ -359,6 +359,7 @@ const createCTX = (
   params: {},
   search: {},
   path: "/",
+  body: {},
   //? load
   // _1: undefined,
   //? header of response

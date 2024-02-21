@@ -377,7 +377,8 @@ var createCTX = (req, decorationObject = {}) => ({
   },
   params: {},
   search: {},
-  path: "/"
+  path: "/",
+  body: {}
 });
 var createResponse = (res, ctx, four04) => {
   _JetPath_app_config.cors(ctx);

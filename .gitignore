@@ -4,3 +4,5 @@
 jetpath-**.tgz
 jetpath-**
 .history
+api-doc.http
+api-doc.html
