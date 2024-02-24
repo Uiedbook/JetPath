@@ -149,8 +149,16 @@ export async function POST_petImage$id(ctx: AppCTX) {
 }
 
 // ? error hook
-export function hook__ERROR(ctx: AppCTX, err: unknown) {
-  ctx.code = 400;
-  console.log(err);
-  ctx.reply(String(err));
+// export function hook__ERROR(ctx: AppCTX, err: unknown) {
+//   ctx.code = 400;
+//   console.log(err);
+//   ctx.reply(String(err));
+// }
+
+export function GET_error() {
+  return new Promise((r) => {
+    setTimeout(() => {
+      throw new Error("Edwinger loves jetpath");
+    }, 100);
+  });
 }

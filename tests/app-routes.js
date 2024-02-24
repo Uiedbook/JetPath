@@ -47,7 +47,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hook__ERROR = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.GET_pets_search$$ = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.GET_ = exports.BODY_petImage$id = exports.BODY_petBy$id = exports.BODY_pets = void 0;
+exports.GET_error = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.GET_pets_search$$ = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.GET_ = exports.BODY_petImage$id = exports.BODY_petBy$id = exports.BODY_pets = void 0;
 //? Body validators
 exports.BODY_pets = {
     body: {
@@ -249,9 +249,16 @@ function POST_petImage$id(ctx) {
 }
 exports.POST_petImage$id = POST_petImage$id;
 // ? error hook
-function hook__ERROR(ctx, err) {
-    ctx.code = 400;
-    console.log(err);
-    ctx.reply(String(err));
+// export function hook__ERROR(ctx: AppCTX, err: unknown) {
+//   ctx.code = 400;
+//   console.log(err);
+//   ctx.reply(String(err));
+// }
+function GET_error() {
+    return new Promise(function (r) {
+        setTimeout(function () {
+            throw new Error("Edwinger loves jetpath");
+        }, 100);
+    });
 }
-exports.hook__ERROR = hook__ERROR;
+exports.GET_error = GET_error;
