@@ -37,13 +37,12 @@ const pets: { id: string; imageUrl: string; name: string }[] = [];
 
 // ? /
 export async function GET_(ctx: AppCTX) {
-  // return new Promise((r) => {
-  setTimeout(() => {
-    console.log("lol");
-    ctx.reply("Welcome to Petshop!");
-    // r("");
-  }, 3000);
-  // });
+  new Promise(() => {
+    setTimeout(() => {
+      ctx.reply("Welcome to Petshop!");
+    }, 3000);
+  });
+  ctx.offload();
 }
 
 // List Pets: Retrieve a list of pets available in the shop
@@ -159,8 +158,8 @@ export async function POST_petImage$id(ctx: AppCTX) {
 export async function GET_error(ctx: AppCTX) {
   new Promise((r) => {
     setTimeout(() => {
-      ctx.reply("Edwinger loves jetpath");
-      // throw new Error("Edwinger loves jetpath");
+      // ctx.reply("Edwinger loves jetpath");
+      throw new Error("Edwinger loves jetpath");
     }, 1000);
   });
   ctx.offload();

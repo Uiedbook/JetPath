@@ -211,6 +211,7 @@ const createCTX = (req, decorationObject = {}) => ({
         if (!this._5)
             throw _DONE;
         this._5();
+        return undefined;
     },
     redirect(url) {
         this.code = 301;
@@ -223,6 +224,7 @@ const createCTX = (req, decorationObject = {}) => ({
         if (!this._5)
             throw _DONE;
         this._5();
+        return undefined;
     },
     throw(code = 404, message = "Not Found") {
         // ? could be a success but a wrong throw, so we check
@@ -257,6 +259,7 @@ const createCTX = (req, decorationObject = {}) => ({
         if (!this._5)
             throw _DONE;
         this._5();
+        return undefined;
     },
     get(field) {
         if (field) {
@@ -295,17 +298,14 @@ const createCTX = (req, decorationObject = {}) => ({
         if (!this._5)
             throw _DONE;
         this._5();
+        return undefined;
     },
     async json() {
-        if (this.body) {
-            return this.body;
-        }
         if (!UTILS.runtime["node"]) {
             try {
-                this.body = await this.request.json();
+                return this.request.json();
             }
             catch (error) { }
-            return this.body;
         }
         return await new Promise((r) => {
             let body = "";
@@ -314,10 +314,9 @@ const createCTX = (req, decorationObject = {}) => ({
             });
             this.request.on("end", () => {
                 try {
-                    this.body = JSON.parse(body);
+                    r(JSON.parse(body));
                 }
                 catch (error) { }
-                r(this.body);
             });
         });
     },
@@ -330,7 +329,6 @@ const createCTX = (req, decorationObject = {}) => ({
     params: {},
     search: {},
     path: "/",
-    body: {},
     //? load
     // _1: undefined,
     //? header of response

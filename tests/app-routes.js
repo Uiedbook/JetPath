@@ -83,12 +83,12 @@ var pets = [];
 function GET_(ctx) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            // return new Promise((r) => {
-            setTimeout(function () {
-                console.log("lol");
-                ctx.reply("Welcome to Petshop!");
-                // r("");
-            }, 3000);
+            new Promise(function () {
+                setTimeout(function () {
+                    ctx.reply("Welcome to Petshop!");
+                }, 3000);
+            });
+            ctx.offload();
             return [2 /*return*/];
         });
     });
@@ -264,8 +264,8 @@ function GET_error(ctx) {
         return __generator(this, function (_a) {
             new Promise(function (r) {
                 setTimeout(function () {
-                    ctx.reply("Edwinger loves jetpath");
-                    // throw new Error("Edwinger loves jetpath");
+                    // ctx.reply("Edwinger loves jetpath");
+                    throw new Error("Edwinger loves jetpath");
                 }, 1000);
             });
             ctx.offload();

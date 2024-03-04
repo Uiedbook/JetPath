@@ -67,7 +67,7 @@ export function corsHook(options: {
       //? Simple Cross-Origin Request, Actual Request, and Redirects
       ctx.set("Access-Control-Allow-Origin", options.origin!.join(","));
     }
-    if (ctx.method !== "OPTIONS") {
+    if (ctx.request.method !== "OPTIONS") {
       if (options.exposeHeaders) {
         ctx.set(
           "Access-Control-Expose-Headers",
@@ -225,7 +225,6 @@ const createCTX = (
   app: {},
   request: req,
   code: 200,
-  method: req.method!,
   reply(data: unknown, contentType: string) {
     let ctype;
     switch (typeof data) {
@@ -252,6 +251,7 @@ const createCTX = (
     this._4 = true;
     if (!this._5) throw _DONE;
     this._5();
+    return undefined as never;
   },
   redirect(url: string) {
     this.code = 301;
@@ -263,6 +263,7 @@ const createCTX = (
     this._4 = true;
     if (!this._5) throw _DONE;
     this._5();
+    return undefined as never;
   },
   throw(code: unknown = 404, message: unknown = "Not Found") {
     // ? could be a success but a wrong throw, so we check
@@ -295,6 +296,7 @@ const createCTX = (
     this._4 = true;
     if (!this._5) throw _DONE;
     this._5();
+    return undefined as never;
   },
   get(field: string) {
     if (field) {
@@ -334,16 +336,13 @@ const createCTX = (
     this._4 = true;
     if (!this._5) throw _DONE;
     this._5();
+    return undefined as never;
   },
   async json<Type = Record<string, any>>(): Promise<Type> {
-    if (this.body) {
-      return this.body as Promise<Type>;
-    }
     if (!UTILS.runtime["node"]) {
       try {
-        this.body = await (this.request as unknown as Request).json();
+        return (this.request as unknown as Request).json();
       } catch (error) {}
-      return this.body as Promise<Type>;
     }
     return await new Promise<Type>((r) => {
       let body = "";
@@ -352,9 +351,8 @@ const createCTX = (
       });
       this.request.on("end", () => {
         try {
-          this.body = JSON.parse(body);
+          r(JSON.parse(body));
         } catch (error) {}
-        r(this.body as Type);
       });
     });
   },
@@ -367,7 +365,6 @@ const createCTX = (
   params: {},
   search: {},
   path: "/",
-  body: {},
   //? load
   // _1: undefined,
   //? header of response

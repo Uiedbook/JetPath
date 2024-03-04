@@ -3,9 +3,14 @@
 import { IncomingMessage } from "http";
 import { Stream } from "node:stream";
 export type AppCTX<Type = {}> = {
+    /**
+     * Parses the request as JSON
+     */
     json(): Promise<Record<string, any>> | null;
+    /**
+     * validate the request
+     */
     validate(data: any): Record<string, any>;
-    body: Record<string, any>;
     code: number;
     search: Record<string, string>;
     params: Record<string, string>;
@@ -22,7 +27,7 @@ export type AppCTX<Type = {}> = {
     _2?: Record<string, string>;
     _3?: Stream | undefined;
     _4?: boolean | undefined;
-    _5?: ((value: unknown) => void) | undefined;
+    _5?: (() => never) | undefined;
     pipe(stream: Stream | string, ContentType: string): never;
     app: Record<string, any>;
 } & Type;

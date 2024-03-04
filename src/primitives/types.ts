@@ -2,14 +2,33 @@ import { IncomingMessage } from "http";
 import { Stream } from "node:stream";
 
 export type AppCTX<Type = {}> = {
+  /**
+   * Parses the request as JSON
+   */
   json(): Promise<Record<string, any>> | null;
+  /**
+   * validate the request
+   */
   validate(data: any): Record<string, any>;
-  body: Record<string, any>;
+  /**
+   * get and set status code
+   */
   code: number;
+  /**
+   * get search params after api/?
+   */
   search: Record<string, string>;
+  /**
+   * get route params in api/:thing
+   */
   params: Record<string, string>;
+  /**
+   * get original request
+   */
   request: IncomingMessage;
-  method: string;
+  /**
+   * get request method
+   */
   path: string;
   reply(data: unknown, ContentType?: string): never;
   offload(): never;
