@@ -56,14 +56,20 @@ export type AppCTX<Type = {}> = {
   /**
    * set request header values
    */
-  app: Record<string, any>;
   set(field: string, value: string): void;
+  /**
+   * an object you can set values to per request
+   */
+  app: Record<string, any>;
+  /**
+   * send a stream
+   */
+  pipe(stream: Stream | string, ContentType: string): never;
   _1?: string | undefined;
   _2?: Record<string, string>;
   _3?: Stream | undefined;
   _4?: boolean | undefined;
   _5?: (() => never) | undefined;
-  pipe(stream: Stream | string, ContentType: string): never;
   // files(): Promise<any>;
 } & Type;
 export interface Schema {
