@@ -435,7 +435,7 @@ const loading_svg = ()=> svg('<svg width="200" height="200" viewBox="0 0 100 100
   return json.replace(
     /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
     function(match) {
-      var cls = "number";
+      var cls = "";
       if (/^"/.test(match)) {
         if (/:$/.test(match)) {
           cls = "key";
@@ -446,6 +446,8 @@ const loading_svg = ()=> svg('<svg width="200" height="200" viewBox="0 0 100 100
         cls = "boolean";
       } else if (/null/.test(match)) {
         cls = "null";
+      } else if (/0-9/.test(match)) {
+        cls = "number";
       }
       return '<span class="' + cls + '">' + match + "</span>";
     }
@@ -773,9 +775,8 @@ async function testApi(
 </html>`;
         if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
             _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (ctx) => {
-                const fileName = ctx.params?.["extraPath"];
-                if (fileName &&
-                    ("/" + fileName).includes(this.options.publicPath.dir + "/")) {
+                const fileName = this.options.publicPath.dir + "/" + ctx.params?.["extraPath"];
+                if (fileName) {
                     const contentType = mime.getType(fileName.split(".")[1]) || "application/octet-stream";
                     try {
                         await access(fileName);

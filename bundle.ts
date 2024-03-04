@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "fs/promises";
 const build = Bun.spawn(["./pack"]);
 await build.exited;
-const html = await readFile("src/primitives/view.html", {
+const html = await readFile("src/primitives/api-doc.html", {
   encoding: "utf-8",
 });
 const code = await readFile("dist/index.js", {

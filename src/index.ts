@@ -75,11 +75,9 @@ export class JetPath {
       _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (
         ctx
       ) => {
-        const fileName = ctx.params?.["extraPath"];
-        if (
-          fileName &&
-          ("/" + fileName).includes(this.options.publicPath.dir + "/")
-        ) {
+        const fileName =
+          this.options.publicPath.dir + "/" + ctx.params?.["extraPath"];
+        if (fileName) {
           const contentType =
             mime.getType(fileName.split(".")[1]) || "application/octet-stream";
           try {
