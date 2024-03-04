@@ -85,10 +85,10 @@ function GET_(ctx) {
         return __generator(this, function (_a) {
             new Promise(function () {
                 setTimeout(function () {
-                    ctx.reply("Welcome to Petshop!");
+                    ctx.send("Welcome to Petshop!");
                 }, 3000);
             });
-            ctx.offload();
+            ctx.eject();
             return [2 /*return*/];
         });
     });
@@ -97,7 +97,7 @@ exports.GET_ = GET_;
 // List Pets: Retrieve a list of pets available in the shop
 // ? /pets
 function GET_pets(ctx) {
-    ctx.reply(pets);
+    ctx.send(pets);
 }
 exports.GET_pets = GET_pets;
 // ? /petBy/19388
@@ -107,11 +107,11 @@ function GET_petBy$id(ctx) {
     var petId = (_a = ctx.params) === null || _a === void 0 ? void 0 : _a.id;
     var pet = pets.find(function (p) { return p.id === petId; });
     if (pet) {
-        ctx.reply(pet);
+        ctx.send(pet);
     }
     else {
         ctx.code = 404;
-        ctx.reply({ message: "Pet not found" });
+        ctx.send({ message: "Pet not found" });
     }
 }
 exports.GET_petBy$id = GET_petBy$id;
@@ -120,27 +120,18 @@ exports.GET_petBy$id = GET_petBy$id;
 function POST_pets(ctx) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var _b, _c, _d, _e, newPet;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
-                case 0:
-                    if (!((_a = ctx.validate) === null || _a === void 0)) return [3 /*break*/, 1];
-                    _b = void 0;
-                    return [3 /*break*/, 3];
+        var body, newPet;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, ctx.json()];
                 case 1:
-                    _d = (_c = _a).call;
-                    _e = [ctx];
-                    return [4 /*yield*/, ctx.json()];
-                case 2:
-                    _b = _d.apply(_c, _e.concat([_f.sent()]));
-                    _f.label = 3;
-                case 3:
-                    _b;
-                    newPet = ctx.body;
+                    body = (_b.sent());
+                    (_a = ctx.validate) === null || _a === void 0 ? void 0 : _a.call(ctx, body);
+                    newPet = body;
                     // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
                     newPet.id = String(Date.now());
                     pets.push(newPet);
-                    ctx.reply({ message: "Pet added successfully", pet: newPet });
+                    ctx.send({ message: "Pet added successfully", pet: newPet });
                     return [2 /*return*/];
             }
         });
@@ -154,7 +145,7 @@ function GET_pets_search$$(ctx) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_b) {
             (_a = exports.BODY_pets.validate) === null || _a === void 0 ? void 0 : _a.call(exports.BODY_pets, ctx.search);
-            ctx.reply({
+            ctx.send({
                 message: "Pets searched successfully",
                 pets: pets.filter(function (pet) { return pet.name === ctx.search.q || pet.name.includes(ctx.search.q); }),
             });
@@ -168,24 +159,35 @@ exports.GET_pets_search$$ = GET_pets_search$$;
 function PUT_petBy$id(ctx) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var petId, updatedPetData, index;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var _b, _c, _d, _e, petId, updatedPetData, index;
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
-                    (_a = exports.BODY_petBy$id.validate) === null || _a === void 0 ? void 0 : _a.call(exports.BODY_petBy$id, ctx.body);
+                    if (!((_a = exports.BODY_petBy$id.validate) === null || _a === void 0)) return [3 /*break*/, 1];
+                    _b = void 0;
+                    return [3 /*break*/, 3];
+                case 1:
+                    _d = (_c = _a).call;
+                    _e = [exports.BODY_petBy$id];
+                    return [4 /*yield*/, ctx.json()];
+                case 2:
+                    _b = _d.apply(_c, _e.concat([_f.sent()]));
+                    _f.label = 3;
+                case 3:
+                    _b;
                     petId = ctx.params.id;
                     return [4 /*yield*/, ctx.json()];
-                case 1:
-                    updatedPetData = _b.sent();
+                case 4:
+                    updatedPetData = _f.sent();
                     index = pets.findIndex(function (p) { return p.id === petId; });
                     if (index !== -1) {
                         // Update the existing pet's data
                         pets[index] = __assign(__assign({}, pets[index]), updatedPetData);
-                        ctx.reply({ message: "Pet updated successfully", pet: pets[index] });
+                        ctx.send({ message: "Pet updated successfully", pet: pets[index] });
                     }
                     else {
                         ctx.code = 404;
-                        ctx.reply({ message: "Pet not found" });
+                        ctx.send({ message: "Pet not found" });
                     }
                     return [2 /*return*/];
             }
@@ -200,11 +202,11 @@ function DELETE_petBy$id(ctx) {
     var index = pets.findIndex(function (p) { return p.id === petId; });
     if (index !== -1) {
         var deletedPet = pets.splice(index, 1)[0];
-        ctx.reply({ message: "Pet deleted successfully", pet: deletedPet });
+        ctx.send({ message: "Pet deleted successfully", pet: deletedPet });
     }
     else {
         ctx.code = 404;
-        ctx.reply({ message: "Pet not found" });
+        ctx.send({ message: "Pet not found" });
     }
 }
 exports.DELETE_petBy$id = DELETE_petBy$id;
@@ -238,14 +240,14 @@ function POST_petImage$id(ctx) {
                     // write profilePicture to disk
                     // @ts-ignore
                     _a.sent();
-                    ctx.reply({
+                    ctx.send({
                         message: "Image uploaded successfully",
                         imageUrl: pets[index].imageUrl,
                     });
                     return [3 /*break*/, 4];
                 case 3:
                     ctx.code = 404;
-                    ctx.reply({ message: "Pet not found" });
+                    ctx.send({ message: "Pet not found" });
                     _a.label = 4;
                 case 4: return [2 /*return*/];
             }
@@ -257,18 +259,18 @@ exports.POST_petImage$id = POST_petImage$id;
 // export function hook__ERROR(ctx: AppCTX, err: unknown) {
 //   ctx.code = 400;
 //   console.log(err);
-//   ctx.reply(String(err));
+//   ctx.send(String(err));
 // }
 function GET_error(ctx) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             new Promise(function (r) {
                 setTimeout(function () {
-                    // ctx.reply("Edwinger loves jetpath");
-                    throw new Error("Edwinger loves jetpath");
+                    ctx.send("Edwinger loves jetpath");
+                    // throw new Error("Edwinger loves jetpath");
                 }, 1000);
             });
-            ctx.offload();
+            ctx.eject();
             return [2 /*return*/];
         });
     });

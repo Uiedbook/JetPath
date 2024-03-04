@@ -39,16 +39,16 @@ const pets: { id: string; imageUrl: string; name: string }[] = [];
 export async function GET_(ctx: AppCTX) {
   new Promise(() => {
     setTimeout(() => {
-      ctx.reply("Welcome to Petshop!");
+      ctx.send("Welcome to Petshop!");
     }, 3000);
   });
-  ctx.offload();
+  ctx.eject();
 }
 
 // List Pets: Retrieve a list of pets available in the shop
 // ? /pets
 export function GET_pets(ctx: AppCTX) {
-  ctx.reply(pets);
+  ctx.send(pets);
 }
 
 // ? /petBy/19388
@@ -57,29 +57,30 @@ export function GET_petBy$id(ctx: AppCTX) {
   const petId = ctx.params?.id;
   const pet = pets.find((p) => p.id === petId);
   if (pet) {
-    ctx.reply(pet);
+    ctx.send(pet);
   } else {
     ctx.code = 404;
-    ctx.reply({ message: "Pet not found" });
+    ctx.send({ message: "Pet not found" });
   }
 }
 
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
 export async function POST_pets(ctx: AppCTX) {
-  ctx.validate?.(await ctx.json());
-  const newPet: { id: string; imageUrl: string; name: string } = ctx.body;
+  const body = (await ctx.json()) as object;
+  ctx.validate?.(body);
+  const newPet = body as { id: string; imageUrl: string; name: string };
   // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
   newPet.id = String(Date.now());
   pets.push(newPet);
-  ctx.reply({ message: "Pet added successfully", pet: newPet });
+  ctx.send({ message: "Pet added successfully", pet: newPet });
 }
 
 // ? /pets/q/?
 // Add a New Pet: Add a new pet to the inventory
 export async function GET_pets_search$$(ctx: AppCTX) {
   BODY_pets.validate?.(ctx.search);
-  ctx.reply({
+  ctx.send({
     message: "Pets searched successfully",
     pets: pets.filter(
       (pet) => pet.name === ctx.search.q || pet.name.includes(ctx.search.q)
@@ -90,7 +91,7 @@ export async function GET_pets_search$$(ctx: AppCTX) {
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
 export async function PUT_petBy$id(ctx: AppCTX) {
-  BODY_petBy$id.validate?.(ctx.body);
+  BODY_petBy$id.validate?.(await ctx.json());
 
   const petId = ctx.params.id;
   const updatedPetData = await ctx.json();
@@ -98,10 +99,10 @@ export async function PUT_petBy$id(ctx: AppCTX) {
   if (index !== -1) {
     // Update the existing pet's data
     pets[index] = { ...pets[index], ...updatedPetData };
-    ctx.reply({ message: "Pet updated successfully", pet: pets[index] });
+    ctx.send({ message: "Pet updated successfully", pet: pets[index] });
   } else {
     ctx.code = 404;
-    ctx.reply({ message: "Pet not found" });
+    ctx.send({ message: "Pet not found" });
   }
 }
 
@@ -112,10 +113,10 @@ export function DELETE_petBy$id(ctx: AppCTX) {
   const index = pets.findIndex((p) => p.id === petId);
   if (index !== -1) {
     const deletedPet = pets.splice(index, 1)[0];
-    ctx.reply({ message: "Pet deleted successfully", pet: deletedPet });
+    ctx.send({ message: "Pet deleted successfully", pet: deletedPet });
   } else {
     ctx.code = 404;
-    ctx.reply({ message: "Pet not found" });
+    ctx.send({ message: "Pet not found" });
   }
 }
 
@@ -138,13 +139,13 @@ export async function POST_petImage$id(ctx: AppCTX) {
     // write profilePicture to disk
     // @ts-ignore
     await Bun.write(pets[index].imageUrl, profilePicture);
-    ctx.reply({
+    ctx.send({
       message: "Image uploaded successfully",
       imageUrl: pets[index].imageUrl,
     });
   } else {
     ctx.code = 404;
-    ctx.reply({ message: "Pet not found" });
+    ctx.send({ message: "Pet not found" });
   }
 }
 
@@ -152,15 +153,15 @@ export async function POST_petImage$id(ctx: AppCTX) {
 // export function hook__ERROR(ctx: AppCTX, err: unknown) {
 //   ctx.code = 400;
 //   console.log(err);
-//   ctx.reply(String(err));
+//   ctx.send(String(err));
 // }
 
 export async function GET_error(ctx: AppCTX) {
   new Promise((r) => {
     setTimeout(() => {
-      // ctx.reply("Edwinger loves jetpath");
-      throw new Error("Edwinger loves jetpath");
+      ctx.send("Edwinger loves jetpath");
+      // throw new Error("Edwinger loves jetpath");
     }, 1000);
   });
-  ctx.offload();
+  ctx.eject();
 }

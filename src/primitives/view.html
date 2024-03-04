@@ -537,7 +537,7 @@ function showApiResponse(response, id) {
       })
     )
   );
-  if (response?.body.includes("{")||response?.body.includes("[")) {
+  if (response?.body?.includes("{")||response?.body?.includes("[")) {
     const cid = "x"+Date.now();
         responseContainer.append(
       div({className:"code-container"}, 
