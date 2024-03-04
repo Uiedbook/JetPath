@@ -18,7 +18,7 @@ import { createReadStream } from "node:fs";
 /**
  * an inbuilt CORS post hook
  *
- * @param {Object} [_options]
+ * @param {Object} [options]
  *  - {String|Function(ctx)} origin `Access-Control-Allow-Origin`, default is request Origin header
  *  - {String|Array} allowMethods `Access-Control-Allow-Methods`, default is 'GET,HEAD,PUT,POST,DELETE,PATCH'
  *  - {String|Array} exposeHeaders `Access-Control-Expose-Headers`
@@ -89,16 +89,16 @@ export function corsHook(options: {
         ctx.set("Access-Control-Max-Age", options.maxAge);
       }
 
-      // if (
-      //   options.privateNetworkAccess &&
-      //   ctx.get("Access-Control-Request-Private-Network")
-      // ) {
-      //   ctx.set("Access-Control-Allow-Private-Network", "true");
-      // }
-
-      if (options.allowMethods) {
-        ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
+      if (
+        options.privateNetworkAccess &&
+        ctx.get("Access-Control-Request-Private-Network")
+      ) {
+        ctx.set("Access-Control-Allow-Private-Network", "true");
       }
+
+      // if (options.allowMethods) {
+      //   ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
+      // }
 
       // if (options.secureContext) {
       //   ctx.set("Cross-Origin-Opener-Policy", "same-origin");
@@ -153,7 +153,7 @@ export const UTILS = {
           Bun.serve({
             port,
             fetch: JetPath_app,
-            websocket: _JetPath_paths?.POST?.["/websocket"]?.(undefined as any),
+            websocket: _JetPath_paths?.POST?.["/ws"]?.(undefined as any),
           });
         },
       };

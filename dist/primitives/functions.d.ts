@@ -2,7 +2,7 @@ import { type AppCTX, type Schema, type allowedMethods, type methods } from "./t
 /**
  * an inbuilt CORS post hook
  *
- * @param {Object} [_options]
+ * @param {Object} [options]
  *  - {String|Function(ctx)} origin `Access-Control-Allow-Origin`, default is request Origin header
  *  - {String|Array} allowMethods `Access-Control-Allow-Methods`, default is 'GET,HEAD,PUT,POST,DELETE,PATCH'
  *  - {String|Array} exposeHeaders `Access-Control-Expose-Headers`

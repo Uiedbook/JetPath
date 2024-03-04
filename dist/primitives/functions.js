@@ -12,7 +12,7 @@ import { createReadStream } from "node:fs";
 /**
  * an inbuilt CORS post hook
  *
- * @param {Object} [_options]
+ * @param {Object} [options]
  *  - {String|Function(ctx)} origin `Access-Control-Allow-Origin`, default is request Origin header
  *  - {String|Array} allowMethods `Access-Control-Allow-Methods`, default is 'GET,HEAD,PUT,POST,DELETE,PATCH'
  *  - {String|Array} exposeHeaders `Access-Control-Expose-Headers`
@@ -51,10 +51,10 @@ export function corsHook(options) {
             if (options.exposeHeaders) {
                 ctx.set("Access-Control-Expose-Headers", options.exposeHeaders.join(","));
             }
-            if (options.secureContext) {
-                ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
-                ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
-            }
+            // if (options.secureContext) {
+            //   ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
+            //   ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
+            // }
             if (options.allowHeaders) {
                 ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
             }
@@ -64,19 +64,17 @@ export function corsHook(options) {
             if (options.maxAge) {
                 ctx.set("Access-Control-Max-Age", options.maxAge);
             }
-            // if (
-            //   options.privateNetworkAccess &&
-            //   ctx.get("Access-Control-Request-Private-Network")
-            // ) {
-            //   ctx.set("Access-Control-Allow-Private-Network", "true");
-            // }
+            if (options.privateNetworkAccess &&
+                ctx.get("Access-Control-Request-Private-Network")) {
+                ctx.set("Access-Control-Allow-Private-Network", "true");
+            }
             if (options.allowMethods) {
                 ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
             }
-            // if (options.secureContext) {
-            //   ctx.set("Cross-Origin-Opener-Policy", "same-origin");
-            //   ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
-            // }
+            if (options.secureContext) {
+                ctx.set("Cross-Origin-Opener-Policy", "same-origin");
+                ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
+            }
             if (options.allowHeaders) {
                 ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
             }
