@@ -33,7 +33,7 @@ import { createReadStream } from "node:fs";
  * @return {Function} cors post hook
  * @public
  */
-// TODO: fixe expose headers on error not working
+
 export function corsHook(options: {
   exposeHeaders?: string[];
   allowMethods?: allowedMethods;
@@ -68,17 +68,17 @@ export function corsHook(options: {
       ctx.set("Access-Control-Allow-Origin", options.origin!.join(","));
     }
     if (ctx.request.method !== "OPTIONS") {
-      if (options.exposeHeaders) {
-        ctx.set(
-          "Access-Control-Expose-Headers",
-          options.exposeHeaders.join(",")
-        );
-      }
+      // if (options.exposeHeaders) {
+      //   ctx.set(
+      //     "Access-Control-Expose-Headers",
+      //     options.exposeHeaders.join(",")
+      //   );
+      // }
 
-      if (options.secureContext) {
-        ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
-        ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
-      }
+      // if (options.secureContext) {
+      //   ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
+      //   ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
+      // }
       if (options.allowHeaders) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
       }
@@ -96,14 +96,14 @@ export function corsHook(options: {
         ctx.set("Access-Control-Allow-Private-Network", "true");
       }
 
-      // if (options.allowMethods) {
-      //   ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
-      // }
+      if (options.allowMethods) {
+        ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
+      }
 
-      // if (options.secureContext) {
-      //   ctx.set("Cross-Origin-Opener-Policy", "same-origin");
-      //   ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
-      // }
+      if (options.secureContext) {
+        ctx.set("Cross-Origin-Opener-Policy", "same-origin");
+        ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
+      }
 
       if (options.allowHeaders) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));

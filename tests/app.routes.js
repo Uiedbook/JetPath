@@ -53,7 +53,7 @@ exports.BODY_pets = {
     body: {
         name: { err: "please provide dog name", type: "string" },
         image: { type: "string", nullable: true, inputType: "file" },
-        age: { type: "number", nullable: true },
+        age: { type: "number", nullable: true, inputType: "number" },
     },
     info: "the pet api",
     headers: {

@@ -107,7 +107,7 @@ body {
 }
 
 .code {
-  white-space: pre;
+  /* white-space: pre; */
   font-family: Consolas, monospace;
   background-color: #ffffff;
   padding:12px;

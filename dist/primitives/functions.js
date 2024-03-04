@@ -27,7 +27,6 @@ import { createReadStream } from "node:fs";
  * @return {Function} cors post hook
  * @public
  */
-// TODO: fixe expose headers on error not working
 export function corsHook(options) {
     if (Array.isArray(options.allowMethods)) {
         options.allowMethods = options.allowMethods.join(",");
@@ -48,9 +47,12 @@ export function corsHook(options) {
             ctx.set("Access-Control-Allow-Origin", options.origin.join(","));
         }
         if (ctx.request.method !== "OPTIONS") {
-            if (options.exposeHeaders) {
-                ctx.set("Access-Control-Expose-Headers", options.exposeHeaders.join(","));
-            }
+            // if (options.exposeHeaders) {
+            //   ctx.set(
+            //     "Access-Control-Expose-Headers",
+            //     options.exposeHeaders.join(",")
+            //   );
+            // }
             // if (options.secureContext) {
             //   ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
             //   ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
@@ -123,7 +125,7 @@ export const UTILS = {
                     Bun.serve({
                         port,
                         fetch: JetPath_app,
-                        websocket: _JetPath_paths?.POST?.["/websocket"]?.(undefined),
+                        websocket: _JetPath_paths?.POST?.["/ws"]?.(undefined),
                     });
                 },
             };
