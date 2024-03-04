@@ -1,548 +1,37 @@
-// src/index.ts
-import {access, writeFile} from "node:fs/promises";
-
-// src/primitives/functions.ts
-import {opendir} from "node:fs/promises";
-import {URLSearchParams} from "node:url";
-import path from "node:path";
-import {cwd} from "node:process";
-import {createServer} from "node:http";
-import {createReadStream} from "node:fs";
-function corsHook(options) {
-  if (Array.isArray(options.allowMethods)) {
-    options.allowMethods = options.allowMethods.join(",");
-  }
-  if (options.maxAge) {
-    options.maxAge = String(options.maxAge);
-  }
-  options.keepHeadersOnError = options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
-  return function cors(ctx) {
-    ctx.set("Vary", "Origin");
-    if (options.credentials === true) {
-      ctx.set("Access-Control-Allow-Credentials", "true");
-    } else {
-      ctx.set("Access-Control-Allow-Origin", options.origin.join(","));
-    }
-    if (ctx.method !== "OPTIONS") {
-      if (options.exposeHeaders) {
-        ctx.set("Access-Control-Expose-Headers", options.exposeHeaders.join(","));
-      }
-      if (options.secureContext) {
-        ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
-        ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
-      }
-      if (options.allowHeaders) {
-        ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
-      }
-    } else {
-      if (options.maxAge) {
-        ctx.set("Access-Control-Max-Age", options.maxAge);
-      }
-      if (options.allowMethods) {
-        ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
-      }
-      if (options.allowHeaders) {
-        ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
-      }
-      ctx.code = 204;
-    }
-  };
-}
-async function getHandlers(source, print) {
-  source = source || cwd();
-  source = path.resolve(cwd(), source);
-  if (print) {
-    console.log("JetPath: " + source);
-  }
-  const dir = await opendir(source);
-  for await (const dirent of dir) {
-    if (dirent.isFile() && dirent.name.endsWith(".js")) {
-      const module = await import(path.resolve(source + "/" + dirent.name));
-      for (const p in module) {
-        const params = Handlerspath(p);
-        if (params) {
-          if (params[0] === "BODY") {
-            const validator = module[p];
-            if (typeof validator === "object") {
-              UTILS.validators[params[1]] = validator;
-              validator.validate = (data = {}) => validate(validator, data);
-            }
-          }
-          if (typeof params !== "string" && _JetPath_paths[params[0]]) {
-            _JetPath_paths[params[0]][params[1]] = module[p];
-          } else {
-            if ("POST-PRE-ERROR".includes(params)) {
-              _JetPath_hooks[params] = module[p];
-            } else {
-              if (params === "DECORATOR") {
-                const decorator = module[p]();
-                if (typeof decorator === "object") {
-                  UTILS.decorators = Object.assign(UTILS.decorators, decorator);
-                }
-              }
-            }
-          }
+import { access, writeFile } from "node:fs/promises";
+import { _JetPath_app_config, _JetPath_hooks, _JetPath_paths, compileUI, getHandlers, UTILS, } from "./primitives/functions";
+import {} from "./primitives/types.js";
+export class JetPath {
+    server;
+    listening = false;
+    options;
+    port;
+    constructor(options) {
+        this.port = this.options?.port || 8080;
+        this.options = options || { displayRoutes: true };
+        // ? setting http routes automatically
+        // ? seeting up app configs
+        for (const [k, v] of Object.entries(this.options)) {
+            _JetPath_app_config.set(k, v);
         }
-      }
-    }
-    if (dirent.isDirectory() && dirent.name !== "node_modules" && dirent.name !== ".git") {
-      await getHandlers(source + "/" + dirent.name, print);
-    }
-  }
-}
-function validate(schema, data) {
-  const out = {};
-  let errout = "";
-  if (!data)
-    throw new Error("invalid data => " + data);
-  if (!schema)
-    throw new Error("invalid schema => " + schema);
-  for (const [prop, value] of Object.entries(schema.body || {})) {
-    const { err, type, nullable, RegExp, validator } = value;
-    if (!data[prop] && nullable) {
-      continue;
-    }
-    if (!data[prop] && !nullable) {
-      if (err) {
-        errout = err;
-      } else {
-        errout = `${prop} is required`;
-      }
-      continue;
-    }
-    if (validator && !validator(data[prop])) {
-      if (err) {
-        errout = err;
-      } else {
-        errout = `${prop} must is invalid`;
-      }
-      continue;
-    }
-    if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
-      if (err) {
-        errout = err;
-      } else {
-        errout = `${prop} must is invalid`;
-      }
-      continue;
-    }
-    out[prop] = data[prop];
-    if (type) {
-      if (typeof type === "function") {
-        if (typeof type(data[prop]) !== typeof type()) {
-          if (err) {
-            errout = err;
-          } else {
-            errout = `${prop} type is invalid '${data[prop]}' `;
-          }
-          continue;
+        if (!options?.cors) {
+            _JetPath_app_config.set("cors", true);
         }
-        out[prop] = type(data[prop]);
-      }
-      if (typeof type === "string" && type !== typeof data[prop]) {
-        if (err) {
-          errout = err;
-        } else {
-          errout = `${prop} type is invalid '${data[prop]}' `;
+        this.server = UTILS.server();
+    }
+    decorate(decorations) {
+        if (this.listening) {
+            throw new Error("Your app is listening new decorations can't be added.");
         }
-      }
-      continue;
-    }
-  }
-  if (errout)
-    throw new Error(errout);
-  return out;
-}
-var UTILS = {
-  ae(cb) {
-    try {
-      cb();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  },
-  set() {
-    const bun = UTILS.ae(() => Bun);
-    const deno = UTILS.ae(() => Deno);
-    this.runtime = { bun, deno, node: !bun && !deno };
-  },
-  runtime: null,
-  decorators: {},
-  validators: {},
-  server() {
-    if (UTILS.runtime["node"]) {
-      return createServer((x, y) => {
-        JetPath_app(x, y);
-      });
-    }
-    if (UTILS.runtime["deno"]) {
-      return {
-        listen(port) {
-          Deno.serve({ port }, JetPath_app);
+        if (typeof decorations !== "object") {
+            // console.log({ decorations });
+            throw new Error("could not add decoration to ctx");
         }
-      };
+        UTILS.decorators = Object.assign(UTILS.decorators, decorations);
     }
-    if (UTILS.runtime["bun"]) {
-      return {
-        listen(port) {
-          Bun.serve({
-            port,
-            fetch: JetPath_app,
-            websocket: _JetPath_paths?.POST?.["/websocket"]?.(undefined)
-          });
-        }
-      };
-    }
-  }
-};
-UTILS.set();
-var _JetPath_paths = {
-  GET: {},
-  POST: {},
-  HEAD: {},
-  PUT: {},
-  PATCH: {},
-  DELETE: {},
-  OPTIONS: {}
-};
-var _JetPath_hooks = {};
-
-class JetPathErrors extends Error {
-  constructor(message = "done") {
-    super(message);
-  }
-}
-var errDone = new JetPathErrors;
-var _JetPath_app_config = {
-  cors: false,
-  set(opt, val) {
-    if (opt === "cors" && val !== false) {
-      this.cors = corsHook({
-        exposeHeaders: [],
-        allowMethods: [],
-        allowHeaders: ["*"],
-        maxAge: "",
-        keepHeadersOnError: true,
-        secureContext: false,
-        privateNetworkAccess: false,
-        origin: ["*"],
-        credentials: undefined,
-        ...typeof val === "object" ? val : {}
-      });
-      if (Array.isArray(val["allowMethods"])) {
-        _JetPath_paths = {};
-        for (const med of val["allowMethods"]) {
-          _JetPath_paths[med.toUpperCase()] = {};
-        }
-      }
-      return;
-    }
-    this[opt] = val;
-  }
-};
-var createCTX = (req, decorationObject = {}) => ({
-  ...decorationObject,
-  app: {},
-  request: req,
-  code: 200,
-  method: req.method,
-  reply(data, contentType) {
-    let ctype;
-    switch (typeof data) {
-      case "string":
-        ctype = "text/plain";
-        this._1 = data;
-        break;
-      case "object":
-        ctype = "application/json";
-        this._1 = JSON.stringify(data);
-        break;
-      default:
-        ctype = "text/plain";
-        this._1 = String(data);
-        break;
-    }
-    if (contentType) {
-      ctype = contentType;
-    }
-    if (!this._2) {
-      this._2 = {};
-    }
-    this._2["Content-Type"] = ctype;
-    this._4 = true;
-    throw errDone;
-  },
-  redirect(url) {
-    this.code = 301;
-    if (!this._2) {
-      this._2 = {};
-    }
-    this._2["Location"] = url;
-    this._1 = undefined;
-    this._4 = true;
-    throw errDone;
-  },
-  throw(code = 404, message = "Not Found") {
-    if (!this._2) {
-      this._2 = {};
-    }
-    if (!this._4) {
-      this.code = 400;
-      switch (typeof code) {
-        case "number":
-          this.code = code;
-          if (typeof message === "object") {
-            this._2["Content-Type"] = "application/json";
-            this._1 = JSON.stringify(message);
-          } else if (typeof message === "string") {
-            this._2["Content-Type"] = "text/plain";
-            this._1 = message;
-          }
-          break;
-        case "string":
-          this._2["Content-Type"] = "text/plain";
-          this._1 = code;
-          break;
-        case "object":
-          this._2["Content-Type"] = "application/json";
-          this._1 = JSON.stringify(code);
-          break;
-      }
-    }
-    this._4 = true;
-    throw errDone;
-  },
-  get(field) {
-    if (field) {
-      return this.request.headers[field];
-    }
-    return;
-  },
-  set(field, value) {
-    if (!this._2) {
-      this._2 = {};
-    }
-    if (field && value) {
-      this._2[field] = value;
-    }
-  },
-  pipe(stream, ContentType, name) {
-    if (!this._2) {
-      this._2 = {};
-    }
-    this._2["Content-Disposition"] = `inline;filename="${name || "unnamed.bin"}"`;
-    this._2["Content-Type"] = ContentType;
-    if (typeof stream === "string") {
-      if (UTILS.runtime["bun"]) {
-        stream = Bun.file(stream);
-      } else {
-        stream = createReadStream(stream);
-      }
-    }
-    this._3 = stream;
-    this._4 = true;
-    throw errDone;
-  },
-  async json() {
-    if (this.body) {
-      return this.body;
-    }
-    if (!UTILS.runtime["node"]) {
-      try {
-        this.body = await this.request.json();
-      } catch (error) {
-      }
-      return this.body;
-    }
-    return await new Promise((r) => {
-      let body = "";
-      this.request.on("data", (data) => {
-        body += data.toString();
-      });
-      this.request.on("end", () => {
-        try {
-          this.body = JSON.parse(body);
-        } catch (error) {
-        }
-        r(this.body);
-      });
-    });
-  },
-  validate(data = {}) {
-    if (UTILS.validators[this.path]) {
-      return validate(UTILS.validators[this.path], data);
-    }
-    throw new Error("no validation BODY! for path " + this.path);
-  },
-  params: {},
-  search: {},
-  path: "/",
-  body: {}
-});
-var createResponse = (res, ctx, four04) => {
-  _JetPath_app_config.cors(ctx);
-  if (!UTILS.runtime["node"]) {
-    if (ctx?.code === 301 && ctx._2?.["Location"]) {
-      return Response.redirect(ctx._2?.["Location"]);
-    }
-    if (ctx?._3) {
-      return new Response(ctx?._3, {
-        status: 200,
-        headers: ctx?._2
-      });
-    }
-    return new Response(ctx?._1 || (four04 ? "Not found" : undefined), {
-      status: ctx?.code || 404,
-      headers: ctx?._2
-    });
-  }
-  if (ctx?._3) {
-    res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
-    return ctx._3.pipe(res);
-  }
-  res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
-  res.end(ctx?._1 || (four04 ? "Not found" : undefined));
-};
-var JetPath_app = async (req, res) => {
-  const paseredR = URLPARSER(req.method, req.url);
-  if (paseredR) {
-    const ctx = createCTX(req, UTILS.decorators);
-    const r = paseredR[0];
-    ctx.params = paseredR[1];
-    ctx.search = paseredR[2];
-    ctx.path = paseredR[3];
-    try {
-      await _JetPath_hooks["PRE"]?.(ctx);
-      await r(ctx);
-      await _JetPath_hooks["POST"]?.(ctx);
-      return createResponse(res, ctx);
-    } catch (error) {
-      if (error instanceof JetPathErrors) {
-        return createResponse(res, ctx);
-      } else {
-        try {
-          await _JetPath_hooks["ERROR"]?.(ctx, error);
-          //! if expose headers on error is
-          //! false remove this line so the last return will take effect;
-          return createResponse(res, ctx);
-        } catch (error2) {
-          return createResponse(res, ctx);
-        }
-      }
-    }
-  }
-  return createResponse(res, createCTX(req), true);
-};
-var Handlerspath = (path2) => {
-  if (path2.includes("hook__")) {
-    return path2.split("hook__")[1];
-  }
-  path2 = path2.split("_");
-  const method = path2.shift();
-  path2 = "/" + path2.join("/");
-  path2 = path2.split("$$");
-  path2 = path2.join("/?");
-  path2 = path2.split("$0");
-  path2 = path2.join("/*");
-  path2 = path2.split("$");
-  path2 = path2.join("/:");
-  if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS|BODY)/.test(method)) {
-    return [method, path2];
-  }
-  return;
-};
-var URLPARSER = (method, url) => {
-  const routes = _JetPath_paths[method];
-  if (!UTILS.runtime["node"]) {
-    url = url.slice(url.indexOf("/", 7));
-  }
-  if (routes[url]) {
-    return [routes[url], {}, {}, url];
-  }
-  if (url.includes("/?")) {
-    const sraw = [...new URLSearchParams(url).entries()];
-    const search = {};
-    for (const idx in sraw) {
-      search[sraw[idx][0].includes("?") ? sraw[idx][0].split("?")[1] : sraw[idx][0]] = sraw[idx][1];
-    }
-    const path2 = url.split("/?")[0] + "/?";
-    if (routes[path2]) {
-      return [routes[path2], {}, search, path2];
-    }
-    return;
-  }
-  for (const path2 in routes) {
-    if (path2.includes(":")) {
-      const urlFixtures = url.split("/");
-      const pathFixtures = path2.split("/");
-      if (url.endsWith("/")) {
-        urlFixtures.pop();
-      }
-      let fixturesX = 0;
-      let fixturesY = 0;
-      if (pathFixtures.length === urlFixtures.length) {
-        for (let i = 0;i < pathFixtures.length; i++) {
-          if (pathFixtures[i].includes(":")) {
-            fixturesY++;
-            continue;
-          }
-          if (urlFixtures[i] === pathFixtures[i]) {
-            fixturesX++;
-          }
-        }
-        if (fixturesX + fixturesY === pathFixtures.length) {
-          const routesParams = {};
-          for (let i = 0;i < pathFixtures.length; i++) {
-            if (pathFixtures[i].includes(":")) {
-              routesParams[pathFixtures[i].split(":")[1]] = urlFixtures[i];
-            }
-          }
-          return [routes[path2], routesParams, {}, path2];
-        }
-      }
-    }
-    if (path2.includes("*")) {
-      const p = path2.slice(0, -1);
-      if (url.startsWith(p)) {
-        return [routes[path2], { extraPath: url.slice(p.length) }, {}, path2];
-      }
-    }
-  }
-  return;
-};
-var compileUI = (UI, options, api) => {
-  return UI.replace("'{JETPATH}'", `\`${api}\``).replaceAll("{NAME}", options?.documentation?.name || "JethPath API Doc").replaceAll("JETPATHCOLOR", options?.documentation?.color || "#007bff").replaceAll("{LOGO}", options?.documentation?.logo || "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp").replaceAll("{INFO}", options?.documentation?.info || "This is a JethPath api preview.");
-};
-
-// src/index.ts
-class JetPath {
-  server;
-  listening = false;
-  options;
-  port;
-  constructor(options) {
-    this.port = this.options?.port || 8080;
-    this.options = options || { displayRoutes: true };
-    for (const [k, v] of Object.entries(this.options)) {
-      _JetPath_app_config.set(k, v);
-    }
-    if (!options?.cors) {
-      _JetPath_app_config.set("cors", true);
-    }
-    this.server = UTILS.server();
-  }
-  decorate(decorations) {
-    if (this.listening) {
-      throw new Error("Your app is listening new decorations can't be added.");
-    }
-    if (typeof decorations !== "object") {
-      throw new Error("could not add decoration to ctx");
-    }
-    UTILS.decorators = Object.assign(UTILS.decorators, decorations);
-  }
-  async listen() {
-    let UI = `<!DOCTYPE html>
+    async listen() {
+        // ? {-view-} here is replaced at build time to html
+        let UI = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -1275,123 +764,130 @@ async function testApi(
        <a style="text-align: center; margin-top: 5rem;">2024 Alrights reserved {NAME}</a>
   </body>
 </html>`;
-    if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
-      _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (ctx) => {
-        const fileName = ctx.params?.["extraPath"];
-        if (fileName && ("/" + fileName).includes(this.options.publicPath.dir + "/")) {
-          let contentType;
-          switch (fileName.split(".")[1]) {
-            case "js":
-              contentType = "application/javascript";
-              break;
-            case "pdf":
-              contentType = "application/pdf";
-              break;
-            case "json":
-              contentType = "application/json";
-              break;
-            case "css":
-              contentType = "text/css; charset=utf-8";
-              break;
-            case "html":
-              contentType = "charset=utf-8";
-              break;
-            case "png":
-              contentType = "image/png";
-              break;
-            case "avif":
-              contentType = "image/avif";
-              break;
-            case "webp":
-              contentType = "image/webp";
-              break;
-            case "jpg":
-              contentType = "image/jpeg";
-              break;
-            case "svg":
-              contentType = "image/svg+xml";
-              break;
-            case "ico":
-              contentType = "image/vnd.microsoft.icon";
-              break;
-            default:
-              contentType = "text/plain";
-              break;
-          }
-          try {
-            await access(fileName);
-          } catch (error) {
-            return ctx.throw();
-          }
-          return ctx.pipe(fileName, contentType);
-        } else {
-          return ctx.throw();
+        if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
+            _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (ctx) => {
+                const fileName = ctx.params?.["extraPath"];
+                if (fileName &&
+                    ("/" + fileName).includes(this.options.publicPath.dir + "/")) {
+                    let contentType;
+                    switch (fileName.split(".")[1]) {
+                        case "js":
+                            contentType = "application/javascript";
+                            break;
+                        case "pdf":
+                            contentType = "application/pdf";
+                            break;
+                        case "json":
+                            contentType = "application/json";
+                            break;
+                        case "css":
+                            contentType = "text/css; charset=utf-8";
+                            break;
+                        case "html":
+                            contentType = "charset=utf-8";
+                            break;
+                        case "png":
+                            contentType = "image/png";
+                            break;
+                        case "avif":
+                            contentType = "image/avif";
+                            break;
+                        case "webp":
+                            contentType = "image/webp";
+                            break;
+                        case "jpg":
+                            contentType = "image/jpeg";
+                            break;
+                        case "svg":
+                            contentType = "image/svg+xml";
+                            break;
+                        case "ico":
+                            contentType = "image/vnd.microsoft.icon";
+                            break;
+                        default:
+                            contentType = "text/plain";
+                            break;
+                    }
+                    try {
+                        await access(fileName);
+                    }
+                    catch (error) {
+                        return ctx.throw();
+                    }
+                    return ctx.pipe(fileName, contentType);
+                }
+                else {
+                    return ctx.throw();
+                }
+            };
         }
-      };
-    }
-    if (typeof this.options !== "object" || this.options?.displayRoutes !== false) {
-      let c = 0, t = "";
-      console.log("JetPath: compiling...");
-      const startTime = performance.now();
-      await getHandlers(this.options?.source, true);
-      const endTime = performance.now();
-      console.log("JetPath: done.");
-      for (const k in _JetPath_paths) {
-        const r = _JetPath_paths[k];
-        if (r && Object.keys(r).length) {
-          for (const p in r) {
-            const v = UTILS.validators[p] || {};
-            const b = v?.body || {};
-            const h_inial = v?.headers || {};
-            const h = [];
-            for (const name in h_inial) {
-              h.push(name + ":" + h_inial[name]);
-            }
-            const j = {};
-            if (b) {
-              for (const ke in b) {
-                j[ke] = b[ke]?.inputType || "text";
-              }
-            }
-            const api = `\n
-${k} ${this.options?.displayRoutes === "UI" ? "[--host--]" : "http://localhost:" + this.port}${p} HTTP/1.1
+        if (typeof this.options !== "object" ||
+            this.options?.displayRoutes !== false) {
+            let c = 0, t = "";
+            console.log("JetPath: compiling...");
+            const startTime = performance.now();
+            await getHandlers(this.options?.source, true);
+            const endTime = performance.now();
+            console.log("JetPath: done.");
+            for (const k in _JetPath_paths) {
+                const r = _JetPath_paths[k];
+                if (r && Object.keys(r).length) {
+                    for (const p in r) {
+                        const v = UTILS.validators[p] || {};
+                        const b = v?.body || {};
+                        const h_inial = v?.headers || {};
+                        const h = [];
+                        for (const name in h_inial) {
+                            h.push(name + ":" + h_inial[name]);
+                        }
+                        const j = {};
+                        if (b) {
+                            for (const ke in b) {
+                                j[ke] = b[ke]?.inputType || "text";
+                            }
+                        }
+                        const api = `\n
+${k} ${this.options?.displayRoutes === "UI"
+                            ? "[--host--]"
+                            : "http://localhost:" + this.port}${p} HTTP/1.1
 ${h.length ? h.join("\n") : ""}\n
-${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v && (v.method === k ? k : "") && v?.["info"] ? "#" + v?.["info"] + "-JETE" : ""}
+${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v && (v.method === k ? k : "") && v?.["info"]
+                            ? "#" + v?.["info"] + "-JETE"
+                            : ""}
 ###`;
-            if (this.options.displayRoutes) {
-              t += api;
-            } else {
-              console.log(api);
+                        if (this.options.displayRoutes) {
+                            t += api;
+                        }
+                        else {
+                            console.log(api);
+                        }
+                        c += 1;
+                    }
+                }
             }
-            c += 1;
-          }
+            if (this.options?.displayRoutes === "UI") {
+                UI = compileUI(UI, this.options, t);
+                _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
+                    ctx.reply(UI, "text/html");
+                };
+                console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
+            }
+            if (this.options?.displayRoutes === "FILE") {
+                UI = compileUI(UI, this.options, t);
+                await writeFile("api-doc.html", UI);
+                console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
+            }
+            if (this.options?.displayRoutes === "HTTP") {
+                await writeFile("api-doc.http", t);
+                console.log(`Check ./api-doc.http to test the routes Visual Studio rest client extension`);
+            }
+            console.log(`\n Parsed ${c} handlers in ${Math.round(endTime - startTime)} milliseconds`);
         }
-      }
-      if (this.options?.displayRoutes === "UI") {
-        UI = compileUI(UI, this.options, t);
-        _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
-          ctx.reply(UI, "text/html");
-        };
-        console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
-      }
-      if (this.options?.displayRoutes === "FILE") {
-        UI = compileUI(UI, this.options, t);
-        await writeFile("api-doc.html", UI);
-        console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
-      }
-      if (this.options?.displayRoutes === "HTTP") {
-        await writeFile("api-doc.http", t);
-        console.log(`Check ./api-doc.http to test the routes Visual Studio rest client extension`);
-      }
-      console.log(`\n Parsed ${c} handlers in ${Math.round(endTime - startTime)} milliseconds`);
-    } else {
-      await getHandlers(this.options?.source, false);
+        else {
+            await getHandlers(this.options?.source, false);
+        }
+        this.listening = true;
+        console.log(`\nListening on http://localhost:${this.port}/`);
+        this.server.listen(this.port);
     }
-    this.listening = true;
-    console.log(`\nListening on http://localhost:${this.port}/`);
-    this.server.listen(this.port);
-  }
 }
-export {
-  JetPath
-};

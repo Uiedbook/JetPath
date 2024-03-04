@@ -81,11 +81,16 @@ exports.BODY_petImage$id = {
 var pets = [];
 // ? /
 function GET_(ctx) {
-    return new Promise(function (r) {
-        setTimeout(function () {
-            r("");
-            ctx.reply("Welcome to Petshop!");
-        }, 3000);
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            // return new Promise((r) => {
+            setTimeout(function () {
+                console.log("lol");
+                ctx.reply("Welcome to Petshop!");
+                // r("");
+            }, 3000);
+            return [2 /*return*/];
+        });
     });
 }
 exports.GET_ = GET_;

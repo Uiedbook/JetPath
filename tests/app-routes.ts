@@ -36,13 +36,14 @@ export const BODY_petImage$id: Schema = {
 const pets: { id: string; imageUrl: string; name: string }[] = [];
 
 // ? /
-export function GET_(ctx: AppCTX) {
-  return new Promise((r) => {
-    setTimeout(() => {
-      r("");
-      ctx.reply("Welcome to Petshop!");
-    }, 3000);
-  });
+export async function GET_(ctx: AppCTX) {
+  // return new Promise((r) => {
+  setTimeout(() => {
+    console.log("lol");
+    ctx.reply("Welcome to Petshop!");
+    // r("");
+  }, 3000);
+  // });
 }
 
 // List Pets: Retrieve a list of pets available in the shop
