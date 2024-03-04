@@ -433,8 +433,12 @@ const loading_svg = ()=> svg('<svg width="200" height="200" viewBox="0 0 100 100
     .replace(/>/g, "&gt;");
   
   return json.replace(
-    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+/"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g
+
+,
+    // /("(\\u[a-zA-Z0-9]{4}|[0-9]|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
     function(match) {
+      console.log({match});
       var cls = "";
       if (/^"/.test(match)) {
         if (/:$/.test(match)) {
@@ -446,7 +450,7 @@ const loading_svg = ()=> svg('<svg width="200" height="200" viewBox="0 0 100 100
         cls = "boolean";
       } else if (/null/.test(match)) {
         cls = "null";
-      } else if (/0-9/.test(match)) {
+      } else if (/[0-9]/.test(match)) {
         cls = "number";
       }
       return '<span class="' + cls + '">' + match + "</span>";
