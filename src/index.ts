@@ -8,7 +8,7 @@ import {
   compileUI,
   getHandlers,
   UTILS,
-} from "./primitives/functions";
+} from "./primitives/functions.js";
 import {
   type allowedMethods,
   type AppCTX,
@@ -182,4 +182,4 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
 }
 
 //? exports
-export type { AppCTX, Schema } from "./primitives/types";
+export type { AppCTX, Schema } from "./primitives/types.js";

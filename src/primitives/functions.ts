@@ -11,7 +11,7 @@ import {
   type Schema,
   type allowedMethods,
   type methods,
-} from "./types";
+} from "./types.js";
 import { Stream } from "node:stream";
 import { createReadStream } from "node:fs";
 
@@ -488,18 +488,24 @@ const Handlerspath = (path: any) => {
   }
   return;
 };
-
+const getModule = async (src: string, name: string) => {
+  try {
+    return await import(path.resolve(src + "/" + name));
+  } catch (error) {
+    return {};
+  }
+};
 export async function getHandlers(source: string, print: boolean) {
   source = source || cwd();
   source = path.resolve(cwd(), source);
-  if (print) {
-    console.log("JetPath: " + source);
-  }
   const dir = await opendir(source);
   for await (const dirent of dir) {
-    if (dirent.isFile() && dirent.name.endsWith(".js")) {
+    if (dirent.isFile() && dirent.name.endsWith(".routes.js")) {
+      if (print) {
+        console.log("JetPath: loading routes at " + source + "/" + dirent.name);
+      }
       try {
-        const module = await import(path.resolve(source + "/" + dirent.name));
+        const module = await getModule(source, dirent.name);
         for (const p in module) {
           const params = Handlerspath(p);
           if (params) {

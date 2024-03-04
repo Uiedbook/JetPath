@@ -1,4 +1,4 @@
-import { type AppCTX, type Schema, type allowedMethods, type methods } from "./types";
+import { type AppCTX, type Schema, type allowedMethods, type methods } from "./types.js";
 /**
  * an inbuilt CORS post hook
  *

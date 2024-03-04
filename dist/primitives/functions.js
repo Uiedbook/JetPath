@@ -6,7 +6,7 @@ import { cwd } from "node:process";
 import { createServer } from "node:http";
 // type imports
 import { IncomingMessage, ServerResponse } from "node:http";
-import {} from "./types";
+import {} from "./types.js";
 import { Stream } from "node:stream";
 import { createReadStream } from "node:fs";
 /**
@@ -442,17 +442,25 @@ const Handlerspath = (path) => {
     }
     return;
 };
+const getModule = async (src, name) => {
+    try {
+        return await import(path.resolve(src + "/" + name));
+    }
+    catch (error) {
+        return {};
+    }
+};
 export async function getHandlers(source, print) {
     source = source || cwd();
     source = path.resolve(cwd(), source);
-    if (print) {
-        console.log("JetPath: " + source);
-    }
     const dir = await opendir(source);
     for await (const dirent of dir) {
-        if (dirent.isFile() && dirent.name.endsWith(".js")) {
+        if (dirent.isFile() && dirent.name.endsWith(".routes.js")) {
+            if (print) {
+                console.log("JetPath: loading routes at " + source + "/" + dirent.name);
+            }
             try {
-                const module = await import(path.resolve(source + "/" + dirent.name));
+                const module = await getModule(source, dirent.name);
                 for (const p in module) {
                     const params = Handlerspath(p);
                     if (params) {

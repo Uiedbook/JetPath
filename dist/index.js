@@ -1,6 +1,6 @@
 import mime from "mime/lite";
 import { access, writeFile } from "node:fs/promises";
-import { _JetPath_app_config, _JetPath_hooks, _JetPath_paths, compileUI, getHandlers, UTILS, } from "./primitives/functions";
+import { _JetPath_app_config, _JetPath_hooks, _JetPath_paths, compileUI, getHandlers, UTILS, } from "./primitives/functions.js";
 import {} from "./primitives/types.js";
 export class JetPath {
     server;
