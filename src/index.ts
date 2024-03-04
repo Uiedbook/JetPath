@@ -27,7 +27,7 @@ export class JetPath {
     };
     source?: string;
     credentials?: any;
-    displayRoutes?: "UI" | "FILE" | "HTTP";
+    displayRoutes?: "UI" | "HTTP";
     port?: number;
     publicPath?: { route: string; dir: string };
     cors?:
@@ -140,7 +140,6 @@ export class JetPath {
       await getHandlers(this.options?.source!, true);
       const endTime = performance.now();
       console.log("JetPath: done.");
-
       for (const k in _JetPath_paths) {
         const r = _JetPath_paths[k as methods];
         if (r && Object.keys(r).length) {
@@ -190,13 +189,13 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
           `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
         );
       }
-      if (this.options?.displayRoutes === "FILE") {
-        UI = compileUI(UI, this.options, t);
-        await writeFile("api-doc.html", UI);
-        console.log(
-          `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
-        );
-      }
+      // if (this.options?.displayRoutes === "FILE") {
+      //   UI = compileUI(UI, this.options, t);
+      //   await writeFile("api-doc.html", UI);
+      //   console.log(
+      //     `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
+      //   );
+      // }
       if (this.options?.displayRoutes === "HTTP") {
         await writeFile("api-doc.http", t);
         console.log(

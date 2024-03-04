@@ -872,11 +872,13 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v &
                 };
                 console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
             }
-            if (this.options?.displayRoutes === "FILE") {
-                UI = compileUI(UI, this.options, t);
-                await writeFile("api-doc.html", UI);
-                console.log(`visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`);
-            }
+            // if (this.options?.displayRoutes === "FILE") {
+            //   UI = compileUI(UI, this.options, t);
+            //   await writeFile("api-doc.html", UI);
+            //   console.log(
+            //     `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
+            //   );
+            // }
             if (this.options?.displayRoutes === "HTTP") {
                 await writeFile("api-doc.http", t);
                 console.log(`Check ./api-doc.http to test the routes Visual Studio rest client extension`);

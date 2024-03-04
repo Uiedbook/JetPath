@@ -157,11 +157,5 @@ export async function POST_petImage$id(ctx: AppCTX) {
 // }
 
 export async function GET_error(ctx: AppCTX) {
-  new Promise((r) => {
-    setTimeout(() => {
-      ctx.send("Edwinger loves jetpath");
-      // throw new Error("Edwinger loves jetpath");
-    }, 1000);
-  });
-  ctx.eject();
+  ctx.throw("Edwinger loves jetpath");
 }
