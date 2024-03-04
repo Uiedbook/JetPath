@@ -225,7 +225,7 @@ const createCTX = (
   app: {},
   request: req,
   code: 200,
-  reply(data: unknown, contentType: string) {
+  send(data: unknown, contentType: string) {
     let ctype;
     switch (typeof data) {
       case "string":
@@ -313,7 +313,7 @@ const createCTX = (
       this._2[field] = value;
     }
   },
-  offload() {
+  eject() {
     throw _OFF;
   },
   pipe(stream: Stream | string, ContentType: string, name?: string) {

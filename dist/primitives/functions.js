@@ -47,7 +47,7 @@ export function corsHook(options) {
             //? Simple Cross-Origin Request, Actual Request, and Redirects
             ctx.set("Access-Control-Allow-Origin", options.origin.join(","));
         }
-        if (ctx.method !== "OPTIONS") {
+        if (ctx.request.method !== "OPTIONS") {
             if (options.exposeHeaders) {
                 ctx.set("Access-Control-Expose-Headers", options.exposeHeaders.join(","));
             }
@@ -183,8 +183,7 @@ const createCTX = (req, decorationObject = {}) => ({
     app: {},
     request: req,
     code: 200,
-    method: req.method,
-    reply(data, contentType) {
+    send(data, contentType) {
         let ctype;
         switch (typeof data) {
             case "string":
@@ -275,7 +274,7 @@ const createCTX = (req, decorationObject = {}) => ({
             this._2[field] = value;
         }
     },
-    offload() {
+    eject() {
         throw _OFF;
     },
     pipe(stream, ContentType, name) {

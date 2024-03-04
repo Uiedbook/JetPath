@@ -5,7 +5,7 @@ export type AppCTX<Type = {}> = {
   /**
    * Parses the request as JSON
    */
-  json(): Promise<Record<string, any>> | null;
+  json(): Promise<Record<string, any> | undefined>;
   /**
    * validate the request
    */
@@ -27,17 +27,36 @@ export type AppCTX<Type = {}> = {
    */
   request: IncomingMessage;
   /**
-   * get request method
+   * get handler defined path
    */
   path: string;
-  reply(data: unknown, ContentType?: string): never;
-  offload(): never;
+  /**
+   * reply the request
+   */
+  send(data: unknown, ContentType?: string): never;
+  /**
+   * remove request from the jetpath secure control
+   */
+  eject(): never;
+  /**
+   * end the request with an error
+   */
   throw(
     code?: number | string | Record<string, any> | unknown,
     message?: string | Record<string, any>
   ): never;
+  /**
+   * redirect the request
+   */
   redirect(url: string): never;
+  /**
+   * get request header values
+   */
   get(field: string): string | undefined;
+  /**
+   * set request header values
+   */
+  app: Record<string, any>;
   set(field: string, value: string): void;
   _1?: string | undefined;
   _2?: Record<string, string>;
@@ -45,7 +64,6 @@ export type AppCTX<Type = {}> = {
   _4?: boolean | undefined;
   _5?: (() => never) | undefined;
   pipe(stream: Stream | string, ContentType: string): never;
-  app: Record<string, any>;
   // files(): Promise<any>;
 } & Type;
 export interface Schema {
