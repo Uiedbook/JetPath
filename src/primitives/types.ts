@@ -24,6 +24,7 @@ export type AppCTX<Type = {}> = {
   _2?: Record<string, string>;
   _3?: Stream | undefined;
   _4?: boolean | undefined;
+  _5?: (() => never) | undefined;
   pipe(stream: Stream | string, ContentType: string): never;
   app: Record<string, any>;
   // files(): Promise<any>;

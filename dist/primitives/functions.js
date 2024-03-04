@@ -208,7 +208,9 @@ const createCTX = (req, decorationObject = {}) => ({
         }
         this._2["Content-Type"] = ctype;
         this._4 = true;
-        throw _DONE;
+        if (!this._5)
+            throw _DONE;
+        this._5();
     },
     redirect(url) {
         this.code = 301;
@@ -218,7 +220,9 @@ const createCTX = (req, decorationObject = {}) => ({
         this._2["Location"] = url;
         this._1 = undefined;
         this._4 = true;
-        throw _DONE;
+        if (!this._5)
+            throw _DONE;
+        this._5();
     },
     throw(code = 404, message = "Not Found") {
         // ? could be a success but a wrong throw, so we check
@@ -250,7 +254,9 @@ const createCTX = (req, decorationObject = {}) => ({
             }
         }
         this._4 = true;
-        throw _DONE;
+        if (!this._5)
+            throw _DONE;
+        this._5();
     },
     get(field) {
         if (field) {
@@ -286,7 +292,9 @@ const createCTX = (req, decorationObject = {}) => ({
         }
         this._3 = stream;
         this._4 = true;
-        throw _DONE;
+        if (!this._5)
+            throw _DONE;
+        this._5();
     },
     async json() {
         if (this.body) {
@@ -331,6 +339,8 @@ const createCTX = (req, decorationObject = {}) => ({
     // _3: undefined,
     //? used to know if the request has ended
     // _4: false,
+    //? used to know if the request has been offloaded
+    // _5: false
 });
 const createResponse = (res, ctx, four04) => {
     //? add cors headers
@@ -359,8 +369,10 @@ const createResponse = (res, ctx, four04) => {
 };
 const JetPath_app = async (req, res) => {
     const paseredR = URLPARSER(req.method, req.url);
+    let off = false;
+    let ctx;
     if (paseredR) {
-        const ctx = createCTX(req, UTILS.decorators);
+        ctx = createCTX(req, UTILS.decorators);
         const r = paseredR[0];
         ctx.params = paseredR[1];
         ctx.search = paseredR[2];
@@ -379,6 +391,9 @@ const JetPath_app = async (req, res) => {
                 if (error.message !== "off") {
                     return createResponse(res, ctx);
                 }
+                else {
+                    off = true;
+                }
             }
             else {
                 //? report error to error hook
@@ -395,8 +410,16 @@ const JetPath_app = async (req, res) => {
             }
         }
     }
-    console.log("boohoo");
-    return createResponse(res, createCTX(req), true);
+    if (!off) {
+        return createResponse(res, createCTX(req), true);
+    }
+    else {
+        return new Promise((r) => {
+            ctx._5 = () => {
+                r(createResponse(res, ctx, true));
+            };
+        });
+    }
 };
 const Handlerspath = (path) => {
     if (path.includes("hook__")) {

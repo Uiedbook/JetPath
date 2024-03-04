@@ -250,7 +250,8 @@ const createCTX = (
     }
     this._2["Content-Type"] = ctype;
     this._4 = true;
-    throw _DONE;
+    if (!this._5) throw _DONE;
+    this._5();
   },
   redirect(url: string) {
     this.code = 301;
@@ -260,7 +261,8 @@ const createCTX = (
     this._2["Location"] = url;
     this._1 = undefined;
     this._4 = true;
-    throw _DONE;
+    if (!this._5) throw _DONE;
+    this._5();
   },
   throw(code: unknown = 404, message: unknown = "Not Found") {
     // ? could be a success but a wrong throw, so we check
@@ -291,7 +293,8 @@ const createCTX = (
       }
     }
     this._4 = true;
-    throw _DONE;
+    if (!this._5) throw _DONE;
+    this._5();
   },
   get(field: string) {
     if (field) {
@@ -329,7 +332,8 @@ const createCTX = (
     }
     this._3 = stream as Stream;
     this._4 = true;
-    throw _DONE;
+    if (!this._5) throw _DONE;
+    this._5();
   },
   async json<Type = Record<string, any>>(): Promise<Type> {
     if (this.body) {
@@ -372,6 +376,8 @@ const createCTX = (
   // _3: undefined,
   //? used to know if the request has ended
   // _4: false,
+  //? used to know if the request has been offloaded
+  // _5: false
 });
 
 const createResponse = (
@@ -414,8 +420,9 @@ const JetPath_app = async (
 ) => {
   const paseredR = URLPARSER(req.method as methods, req.url!);
   let off = false;
+  let ctx;
   if (paseredR) {
-    const ctx = createCTX(req, UTILS.decorators);
+    ctx = createCTX(req, UTILS.decorators);
     const r = paseredR[0];
     ctx.params = paseredR[1] as any;
     ctx.search = paseredR[2] as any;
@@ -451,6 +458,12 @@ const JetPath_app = async (
   }
   if (!off) {
     return createResponse(res, createCTX(req), true);
+  } else {
+    return new Promise((r) => {
+      ctx!._5 = () => {
+        r(createResponse(res, ctx!, true));
+      };
+    });
   }
 };
 
