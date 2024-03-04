@@ -6,7 +6,7 @@ export const BODY_pets: Schema = {
   body: {
     name: { err: "please provide dog name", type: "string" },
     image: { type: "string", nullable: true, inputType: "file" },
-    age: { type: "number", inputType: "number", nullable: true },
+    age: { type: "number", nullable: true, inputType: "number" },
   },
   info: "the pet api",
   headers: {
@@ -83,7 +83,8 @@ export async function GET_pets_search$$(ctx: AppCTX) {
   ctx.send({
     message: "Pets searched successfully",
     pets: pets.filter(
-      (pet) => pet.name === ctx.search.q || pet.name.includes(ctx.search.q)
+      (pet) =>
+        pet.name === ctx.search.name || pet.name.includes(ctx.search.name)
     ),
   });
 }
@@ -150,11 +151,11 @@ export async function POST_petImage$id(ctx: AppCTX) {
 }
 
 // ? error hook
-// export function hook__ERROR(ctx: AppCTX, err: unknown) {
-//   ctx.code = 400;
-//   console.log(err);
-//   ctx.send(String(err));
-// }
+export function hook__ERROR(ctx: AppCTX, err: unknown) {
+  ctx.code = 400;
+  // console.log(err);
+  ctx.send(String(err));
+}
 
 export async function GET_error(ctx: AppCTX) {
   ctx.throw("Edwinger loves jetpath");

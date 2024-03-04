@@ -303,6 +303,8 @@ h4 {
   display: none;
   /* margin: 20px; */
   padding: 10px;
+  align-items: center;
+  justify-content: center;
 }
 .url-input {
   width: fit-content;
@@ -679,8 +681,9 @@ const card = (request, i) => {
             const data = parseUPAPIBody(
               requestContainer?.querySelector(".body-pack")
             );
+            document.getElementById("response-"+i).style.display = "flex"
             document.getElementById("response-"+i).innerHTML = ""
-            document.getElementById("response-"+i).append(loading_svg());
+            document.getElementById("response-"+i).appendChild(loading_svg());
             const response = await testApi(
               updatedRequest.method,
               updatedRequest.url,

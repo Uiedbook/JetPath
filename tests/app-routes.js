@@ -47,13 +47,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GET_error = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.GET_pets_search$$ = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.GET_ = exports.BODY_petImage$id = exports.BODY_petBy$id = exports.BODY_pets = void 0;
+exports.GET_error = exports.hook__ERROR = exports.POST_petImage$id = exports.DELETE_petBy$id = exports.PUT_petBy$id = exports.GET_pets_search$$ = exports.POST_pets = exports.GET_petBy$id = exports.GET_pets = exports.GET_ = exports.BODY_petImage$id = exports.BODY_petBy$id = exports.BODY_pets = void 0;
 //? Body validators
 exports.BODY_pets = {
     body: {
         name: { err: "please provide dog name", type: "string" },
         image: { type: "string", nullable: true, inputType: "file" },
-        age: { type: "number", inputType: "number", nullable: true },
+        age: { type: "number", nullable: true },
     },
     info: "the pet api",
     headers: {
@@ -147,7 +147,9 @@ function GET_pets_search$$(ctx) {
             (_a = exports.BODY_pets.validate) === null || _a === void 0 ? void 0 : _a.call(exports.BODY_pets, ctx.search);
             ctx.send({
                 message: "Pets searched successfully",
-                pets: pets.filter(function (pet) { return pet.name === ctx.search.q || pet.name.includes(ctx.search.q); }),
+                pets: pets.filter(function (pet) {
+                    return pet.name === ctx.search.name || pet.name.includes(ctx.search.name);
+                }),
             });
             return [2 /*return*/];
         });
@@ -219,12 +221,9 @@ function POST_petImage$id(ctx) {
             switch (_a.label) {
                 case 0:
                     petId = ctx.params.id;
-                    // @ts-ignore
-                    console.log({ r: ctx.request });
                     return [4 /*yield*/, ctx.request.formData()];
                 case 1:
                     formdata = _a.sent();
-                    console.log(formdata);
                     profilePicture = formdata.get("image");
                     if (!profilePicture)
                         throw new Error("Must upload a profile picture.");
@@ -256,11 +255,12 @@ function POST_petImage$id(ctx) {
 }
 exports.POST_petImage$id = POST_petImage$id;
 // ? error hook
-// export function hook__ERROR(ctx: AppCTX, err: unknown) {
-//   ctx.code = 400;
-//   console.log(err);
-//   ctx.send(String(err));
-// }
+function hook__ERROR(ctx, err) {
+    ctx.code = 400;
+    // console.log(err);
+    ctx.send(String(err));
+}
+exports.hook__ERROR = hook__ERROR;
 function GET_error(ctx) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
