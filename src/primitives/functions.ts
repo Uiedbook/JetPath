@@ -498,40 +498,45 @@ export async function getHandlers(source: string, print: boolean) {
   const dir = await opendir(source);
   for await (const dirent of dir) {
     if (dirent.isFile() && dirent.name.endsWith(".js")) {
-      const module = await import(path.resolve(source + "/" + dirent.name));
-      for (const p in module) {
-        const params = Handlerspath(p);
-        if (params) {
-          if ((params[0] as any) === "BODY") {
-            // ! BODY parser
-            const validator = module[p];
-            if (typeof validator === "object") {
-              UTILS.validators[params[1]] = validator as Schema;
-              validator.validate = (data: any = {}) =>
-                validate(validator, data);
+      try {
+        const module = await import(path.resolve(source + "/" + dirent.name));
+        for (const p in module) {
+          const params = Handlerspath(p);
+          if (params) {
+            if ((params[0] as any) === "BODY") {
+              // ! BODY parser
+              const validator = module[p];
+              if (typeof validator === "object") {
+                UTILS.validators[params[1]] = validator as Schema;
+                validator.validate = (data: any = {}) =>
+                  validate(validator, data);
+              }
             }
-          }
-          if (
-            typeof params !== "string" &&
-            _JetPath_paths[params[0] as methods]
-          ) {
-            // ! HTTP handler
-            _JetPath_paths[params[0] as methods][params[1]] = module[p];
-          } else {
-            if ("POST-PRE-ERROR".includes(params as string)) {
-              _JetPath_hooks[params as string] = module[p];
+            if (
+              typeof params !== "string" &&
+              _JetPath_paths[params[0] as methods]
+            ) {
+              // ! HTTP handler
+              _JetPath_paths[params[0] as methods][params[1]] = module[p];
             } else {
-              if (params === "DECORATOR") {
-                // ! DECORATOR point
-                const decorator = module[p]();
-                if (typeof decorator === "object") {
-                  UTILS.decorators = Object.assign(UTILS.decorators, decorator);
+              if ("POST-PRE-ERROR".includes(params as string)) {
+                _JetPath_hooks[params as string] = module[p];
+              } else {
+                if (params === "DECORATOR") {
+                  // ! DECORATOR point
+                  const decorator = module[p]();
+                  if (typeof decorator === "object") {
+                    UTILS.decorators = Object.assign(
+                      UTILS.decorators,
+                      decorator
+                    );
+                  }
                 }
               }
             }
           }
         }
-      }
+      } catch (error) {}
     }
     if (
       dirent.isDirectory() &&

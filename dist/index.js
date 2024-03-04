@@ -480,7 +480,9 @@ function parseUPAPIBody(packer) {
   if (!isSet) return; 
   return result;
 }
-function parseINAPIBody(api) {
+function parseINAPIBody(api = {
+    Authorization: "Bearer ****",
+  }) {
   const packer = div({ className: "body-pack" });
   const packs = (k) =>
     div(
@@ -493,9 +495,7 @@ function parseINAPIBody(api) {
 }
 
 document.getElementById("keys")?.appendChild(
-  parseINAPIBody({
-    Authorization: "Bearer ****",
-  })
+  parseINAPIBody(/*TODO: put the general api info here*/)
 );
 
 function parseApiDocumentation(apiDocumentation) {

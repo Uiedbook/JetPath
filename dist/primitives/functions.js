@@ -451,39 +451,42 @@ export async function getHandlers(source, print) {
     const dir = await opendir(source);
     for await (const dirent of dir) {
         if (dirent.isFile() && dirent.name.endsWith(".js")) {
-            const module = await import(path.resolve(source + "/" + dirent.name));
-            for (const p in module) {
-                const params = Handlerspath(p);
-                if (params) {
-                    if (params[0] === "BODY") {
-                        // ! BODY parser
-                        const validator = module[p];
-                        if (typeof validator === "object") {
-                            UTILS.validators[params[1]] = validator;
-                            validator.validate = (data = {}) => validate(validator, data);
+            try {
+                const module = await import(path.resolve(source + "/" + dirent.name));
+                for (const p in module) {
+                    const params = Handlerspath(p);
+                    if (params) {
+                        if (params[0] === "BODY") {
+                            // ! BODY parser
+                            const validator = module[p];
+                            if (typeof validator === "object") {
+                                UTILS.validators[params[1]] = validator;
+                                validator.validate = (data = {}) => validate(validator, data);
+                            }
                         }
-                    }
-                    if (typeof params !== "string" &&
-                        _JetPath_paths[params[0]]) {
-                        // ! HTTP handler
-                        _JetPath_paths[params[0]][params[1]] = module[p];
-                    }
-                    else {
-                        if ("POST-PRE-ERROR".includes(params)) {
-                            _JetPath_hooks[params] = module[p];
+                        if (typeof params !== "string" &&
+                            _JetPath_paths[params[0]]) {
+                            // ! HTTP handler
+                            _JetPath_paths[params[0]][params[1]] = module[p];
                         }
                         else {
-                            if (params === "DECORATOR") {
-                                // ! DECORATOR point
-                                const decorator = module[p]();
-                                if (typeof decorator === "object") {
-                                    UTILS.decorators = Object.assign(UTILS.decorators, decorator);
+                            if ("POST-PRE-ERROR".includes(params)) {
+                                _JetPath_hooks[params] = module[p];
+                            }
+                            else {
+                                if (params === "DECORATOR") {
+                                    // ! DECORATOR point
+                                    const decorator = module[p]();
+                                    if (typeof decorator === "object") {
+                                        UTILS.decorators = Object.assign(UTILS.decorators, decorator);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+            catch (error) { }
         }
         if (dirent.isDirectory() &&
             dirent.name !== "node_modules" &&
