@@ -413,6 +413,7 @@ const JetPath_app = async (
   }
 ) => {
   const paseredR = URLPARSER(req.method as methods, req.url!);
+  let off = false;
   if (paseredR) {
     const ctx = createCTX(req, UTILS.decorators);
     const r = paseredR[0];
@@ -429,8 +430,11 @@ const JetPath_app = async (
       return createResponse(res, ctx);
     } catch (error) {
       if (error instanceof JetPathErrors) {
-        console.log(error);
-        return createResponse(res, ctx);
+        if (error.message !== "off") {
+          return createResponse(res, ctx);
+        } else {
+          off = true;
+        }
       } else {
         //? report error to error hook
         try {
@@ -445,7 +449,9 @@ const JetPath_app = async (
       }
     }
   }
-  return createResponse(res, createCTX(req), true);
+  if (!off) {
+    return createResponse(res, createCTX(req), true);
+  }
 };
 
 const Handlerspath = (path: any) => {

@@ -259,11 +259,18 @@ exports.POST_petImage$id = POST_petImage$id;
 //   console.log(err);
 //   ctx.reply(String(err));
 // }
-function GET_error() {
-    return new Promise(function (r) {
-        setTimeout(function () {
-            throw new Error("Edwinger loves jetpath");
-        }, 100);
+function GET_error(ctx) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            new Promise(function (r) {
+                setTimeout(function () {
+                    ctx.reply("Edwinger loves jetpath");
+                    // throw new Error("Edwinger loves jetpath");
+                }, 1000);
+            });
+            ctx.offload();
+            return [2 /*return*/];
+        });
     });
 }
 exports.GET_error = GET_error;

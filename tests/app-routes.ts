@@ -156,10 +156,12 @@ export async function POST_petImage$id(ctx: AppCTX) {
 //   ctx.reply(String(err));
 // }
 
-export function GET_error() {
-  return new Promise((r) => {
+export async function GET_error(ctx: AppCTX) {
+  new Promise((r) => {
     setTimeout(() => {
-      throw new Error("Edwinger loves jetpath");
-    }, 100);
+      ctx.reply("Edwinger loves jetpath");
+      // throw new Error("Edwinger loves jetpath");
+    }, 1000);
   });
+  ctx.offload();
 }

@@ -376,8 +376,9 @@ const JetPath_app = async (req, res) => {
         }
         catch (error) {
             if (error instanceof JetPathErrors) {
-                console.log(error);
-                return createResponse(res, ctx);
+                if (error.message !== "off") {
+                    return createResponse(res, ctx);
+                }
             }
             else {
                 //? report error to error hook
@@ -394,6 +395,7 @@ const JetPath_app = async (req, res) => {
             }
         }
     }
+    console.log("boohoo");
     return createResponse(res, createCTX(req), true);
 };
 const Handlerspath = (path) => {
