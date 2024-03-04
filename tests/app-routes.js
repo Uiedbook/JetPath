@@ -205,7 +205,7 @@ function DELETE_petBy$id(ctx) {
         ctx.send({ message: "Pet deleted successfully", pet: deletedPet });
     }
     else {
-        ctx.code = 404;
+        ctx.code = 400;
         ctx.send({ message: "Pet not found" });
     }
 }
@@ -264,13 +264,7 @@ exports.POST_petImage$id = POST_petImage$id;
 function GET_error(ctx) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            new Promise(function (r) {
-                setTimeout(function () {
-                    ctx.send("Edwinger loves jetpath");
-                    // throw new Error("Edwinger loves jetpath");
-                }, 1000);
-            });
-            ctx.eject();
+            ctx.throw("Edwinger loves jetpath");
             return [2 /*return*/];
         });
     });

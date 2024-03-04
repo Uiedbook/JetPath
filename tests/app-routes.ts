@@ -115,7 +115,7 @@ export function DELETE_petBy$id(ctx: AppCTX) {
     const deletedPet = pets.splice(index, 1)[0];
     ctx.send({ message: "Pet deleted successfully", pet: deletedPet });
   } else {
-    ctx.code = 404;
+    ctx.code = 400;
     ctx.send({ message: "Pet not found" });
   }
 }
@@ -125,9 +125,9 @@ export function DELETE_petBy$id(ctx: AppCTX) {
 export async function POST_petImage$id(ctx: AppCTX) {
   const petId = ctx.params.id;
   // @ts-ignore
-  console.log({ r: ctx.request });
+  // console.log({ r: ctx.request });
   const formdata = await ctx.request.formData();
-  console.log(formdata);
+  // console.log(formdata);
   const profilePicture = formdata.get("image");
   if (!profilePicture) throw new Error("Must upload a profile picture.");
   console.log({ formdata, profilePicture });
