@@ -45,7 +45,7 @@ export async function POST_user_login(
     const data = { ...(person as any)._doc, token };
     delete (data as any).otp;
     delete (data as any).password;
-    ctx.reply({
+    ctx.send({
       data,
       message: "ok",
     });

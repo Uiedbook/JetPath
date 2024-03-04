@@ -48,7 +48,7 @@ export async function hook__ERROR(ctx: AppCTX, err: any) {
     });
   }
   console.log(errMessage);
-  ctx.reply({ message: errMessage });
+  ctx.send({ message: errMessage });
 }
 
 // hook to decorate the CTX

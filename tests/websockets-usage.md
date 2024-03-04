@@ -57,6 +57,6 @@ POST_socket(ctx) {
       socket.send(m.data);
     };
     socket.onclose = () => console.log("Client has disconnected");
-    ctx.reply("done!")
+    ctx.send("done!")
 }
 ```

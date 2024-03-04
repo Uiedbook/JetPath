@@ -47,7 +47,7 @@ export async function POST_user_register(
     const data = { ...(user as any)._doc, token };
     delete (data as any).otp;
     delete (data as any).password;
-    ctx.reply({
+    ctx.send({
       data,
       message: "Welcome Onboard!",
     });
@@ -68,7 +68,7 @@ export async function POST_user_otp(ctx: AppCTX) {
     delete data.temporaryPassword;
     delete data.password;
     delete data.role;
-    ctx.reply({
+    ctx.send({
       data,
       message: "Account Verified!",
     });
@@ -122,7 +122,7 @@ async function createUser(userObject: {
 
 export async function GET_user(ctx: AppCTX<{ user: IUserDoc }>) {
   const data = ctx.user;
-  ctx.reply({
+  ctx.send({
     data,
     message: "success",
   });

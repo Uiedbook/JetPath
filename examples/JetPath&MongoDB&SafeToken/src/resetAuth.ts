@@ -66,7 +66,7 @@ export async function POST_user_reset_password(ctx: AppCTX) {
   delete data.temporaryPassword;
   delete data.password;
   delete data.role;
-  ctx.reply({
+  ctx.send({
     data,
     status: 200,
     message: "ok",

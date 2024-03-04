@@ -19,7 +19,7 @@ const saveTo = path.join(os.tmpdir(), `busboy-upload-${random()}`);
 file.pipe(fs.createWriteStream(saveTo));
 });
 bb.on("close", () => {
-ctx.reply("done!")
+ctx.send("done!")
 });
 req.pipe(bb);
 return;
@@ -39,7 +39,7 @@ POST_upload_files(ctx) {
     if (!profilePicture) throw new Error('Must upload a profile picture.');
     // write profilePicture to disk
     await Bun.write('profilePicture.png', profilePicture);
-    ctx.reply("done!")
+    ctx.send("done!")
 }
 ```
 
@@ -58,6 +58,6 @@ const reader = ctx.request?.body?.getReader();
   });
   await Deno.copy(readerFromStreamReader(reader), f);
   await f.close();
-ctx.reply("done!")
+ctx.send("done!")
 },
 ```

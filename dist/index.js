@@ -1,3 +1,4 @@
+import mime from "mime/lite";
 import { access, writeFile } from "node:fs/promises";
 import { _JetPath_app_config, _JetPath_hooks, _JetPath_paths, compileUI, getHandlers, UTILS, } from "./primitives/functions";
 import {} from "./primitives/types.js";
@@ -769,45 +770,7 @@ async function testApi(
                 const fileName = ctx.params?.["extraPath"];
                 if (fileName &&
                     ("/" + fileName).includes(this.options.publicPath.dir + "/")) {
-                    let contentType;
-                    switch (fileName.split(".")[1]) {
-                        case "js":
-                            contentType = "application/javascript";
-                            break;
-                        case "pdf":
-                            contentType = "application/pdf";
-                            break;
-                        case "json":
-                            contentType = "application/json";
-                            break;
-                        case "css":
-                            contentType = "text/css; charset=utf-8";
-                            break;
-                        case "html":
-                            contentType = "charset=utf-8";
-                            break;
-                        case "png":
-                            contentType = "image/png";
-                            break;
-                        case "avif":
-                            contentType = "image/avif";
-                            break;
-                        case "webp":
-                            contentType = "image/webp";
-                            break;
-                        case "jpg":
-                            contentType = "image/jpeg";
-                            break;
-                        case "svg":
-                            contentType = "image/svg+xml";
-                            break;
-                        case "ico":
-                            contentType = "image/vnd.microsoft.icon";
-                            break;
-                        default:
-                            contentType = "text/plain";
-                            break;
-                    }
+                    const contentType = mime.getType(fileName.split(".")[1]) || "application/octet-stream";
                     try {
                         await access(fileName);
                     }

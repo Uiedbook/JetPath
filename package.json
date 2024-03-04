@@ -47,5 +47,8 @@
   "op": 909,
   "devDependencies": {
     "@types/node": "^20.11.16"
+  },
+  "dependencies": {
+    "mime": "^4.0.1"
   }
 }

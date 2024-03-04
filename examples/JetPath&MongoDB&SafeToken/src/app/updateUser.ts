@@ -57,7 +57,7 @@ export async function POST_user_update(ctx: AppCTX<{ user: IUserDoc }>) {
   }
   await updateUser(ctx.body);
   if (user) {
-    ctx.reply({ data: user, status: 200, message: "ok" });
+    ctx.send({ data: user, status: 200, message: "ok" });
   } else {
     ctx.throw(400, { message: "wrong details, please login for verification" });
   }

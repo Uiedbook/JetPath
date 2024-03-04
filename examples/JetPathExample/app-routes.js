@@ -3,13 +3,13 @@
  * @param {{ set: (arg0: string, arg1: string) => void; reply: (arg0: any) => void; }} ctx
  */
 export function GET_dogs(ctx) {
-  ctx.reply(ctx); // ! error in nodejs
+  ctx.send(ctx); // ! error in nodejs
 }
 /**
  * @param {{ text: () => any; reply: (data: string) => void; }} ctx
  */
 export async function POST_dogs(ctx) {
-  ctx.reply("enter skelter");
+  ctx.send("enter skelter");
 }
 
 /**
@@ -18,7 +18,7 @@ export async function POST_dogs(ctx) {
 export async function GET_dogs$name$age$sex(ctx) {
   // console.log(ctx.request.url, ctx.params);
   const { name, age, sex } = ctx.params;
-  ctx.reply(
+  ctx.send(
     "hello " + name + " you are " + age + " years old and you are " + sex
   );
 }
@@ -28,7 +28,7 @@ export async function GET_dogs$name$age$sex(ctx) {
  */
 export async function GET_dogs$$(ctx) {
   const { name, age, sex } = ctx.search;
-  ctx.reply(
+  ctx.send(
     "hello " + name + " you are " + age + " years old and you are " + sex
   );
 }
@@ -80,7 +80,7 @@ export async function GET_default(ctx) {
  */
 export function GET_user$id(ctx) {
   const id = ctx.id();
-  ctx.reply("you are " + id);
+  ctx.send("you are " + id);
 }
 
 /**
