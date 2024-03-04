@@ -145,11 +145,12 @@ export let _JetPath_paths = {
 };
 export const _JetPath_hooks = {};
 class JetPathErrors extends Error {
-    constructor(message = "done") {
+    constructor(message) {
         super(message);
     }
 }
-const errDone = new JetPathErrors();
+const _DONE = new JetPathErrors("done");
+const _OFF = new JetPathErrors("off");
 export const _JetPath_app_config = {
     cors: false,
     set(opt, val) {
@@ -207,7 +208,7 @@ const createCTX = (req, decorationObject = {}) => ({
         }
         this._2["Content-Type"] = ctype;
         this._4 = true;
-        throw errDone;
+        throw _DONE;
     },
     redirect(url) {
         this.code = 301;
@@ -217,7 +218,7 @@ const createCTX = (req, decorationObject = {}) => ({
         this._2["Location"] = url;
         this._1 = undefined;
         this._4 = true;
-        throw errDone;
+        throw _DONE;
     },
     throw(code = 404, message = "Not Found") {
         // ? could be a success but a wrong throw, so we check
@@ -249,7 +250,7 @@ const createCTX = (req, decorationObject = {}) => ({
             }
         }
         this._4 = true;
-        throw errDone;
+        throw _DONE;
     },
     get(field) {
         if (field) {
@@ -264,6 +265,9 @@ const createCTX = (req, decorationObject = {}) => ({
         if (field && value) {
             this._2[field] = value;
         }
+    },
+    offload() {
+        throw _OFF;
     },
     pipe(stream, ContentType, name) {
         if (!this._2) {
@@ -282,7 +286,7 @@ const createCTX = (req, decorationObject = {}) => ({
         }
         this._3 = stream;
         this._4 = true;
-        throw errDone;
+        throw _DONE;
     },
     async json() {
         if (this.body) {
@@ -372,6 +376,7 @@ const JetPath_app = async (req, res) => {
         }
         catch (error) {
             if (error instanceof JetPathErrors) {
+                console.log(error);
                 return createResponse(res, ctx);
             }
             else {

@@ -12,16 +12,17 @@ export type AppCTX<Type = {}> = {
     request: IncomingMessage;
     method: string;
     path: string;
-    reply(data: unknown, ContentType?: string): void;
-    throw(code?: number | string | Record<string, any> | unknown, message?: string | Record<string, any>): void;
-    redirect(url: string): void;
+    reply(data: unknown, ContentType?: string): never;
+    offload(): never;
+    throw(code?: number | string | Record<string, any> | unknown, message?: string | Record<string, any>): never;
+    redirect(url: string): never;
     get(field: string): string | undefined;
     set(field: string, value: string): void;
     _1?: string | undefined;
     _2?: Record<string, string>;
     _3?: Stream | undefined;
     _4?: boolean | undefined;
-    pipe(stream: Stream | string, ContentType: string): void;
+    pipe(stream: Stream | string, ContentType: string): never;
     app: Record<string, any>;
 } & Type;
 export interface Schema {

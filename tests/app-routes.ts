@@ -12,7 +12,7 @@ export const BODY_pets: Schema = {
   headers: {
     "Content-Type": "application/json",
     Authorization: "Bear *********",
-    "X-pet-token": "token",
+    "X-Pet-Token": "token",
   },
   method: "POST",
 };

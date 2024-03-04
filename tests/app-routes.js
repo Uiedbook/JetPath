@@ -59,7 +59,7 @@ exports.BODY_pets = {
     headers: {
         "Content-Type": "application/json",
         Authorization: "Bear *********",
-        "X-pet-token": "token",
+        "X-Pet-Token": "token",
     },
     method: "POST",
 };
