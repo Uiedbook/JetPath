@@ -781,8 +781,14 @@ async function testApi(
             _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (ctx) => {
                 const fileName = this.options.publicPath.dir + "/" + ctx.params?.["extraPath"];
                 if (fileName) {
-                    const contentType = mime.getType(fileName.split(".")[1]) || "application/octet-stream";
+                    const contentType = mime.getType(fileName.split(".").at(-1)) ||
+                        "application/octet-stream";
                     try {
+                        console.log({
+                            fileName,
+                            contentType,
+                            ext: fileName.split(".").at(-1),
+                        });
                         await access(fileName);
                     }
                     catch (error) {

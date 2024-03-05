@@ -316,15 +316,16 @@ const createCTX = (
   eject() {
     throw _OFF;
   },
-  pipe(stream: Stream | string, ContentType: string, name?: string) {
+  pipe(stream: Stream | string, ContentType: string) {
     if (!this._2) {
       this._2 = {};
     }
-    this._2["Content-Disposition"] = `inline;filename="${
-      name || "unnamed.bin"
-    }"`;
+    this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
     this._2["Content-Type"] = ContentType;
     if (typeof stream === "string") {
+      this._2["Content-Disposition"] = `inline;filename="${
+        stream || "unnamed.bin"
+      }"`;
       if (UTILS.runtime["bun"]) {
         // @ts-ignore
         stream = Bun.file(stream);

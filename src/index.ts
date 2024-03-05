@@ -79,7 +79,8 @@ export class JetPath {
           this.options.publicPath.dir + "/" + ctx.params?.["extraPath"];
         if (fileName) {
           const contentType =
-            mime.getType(fileName.split(".")[1]) || "application/octet-stream";
+            mime.getType(fileName.split(".").at(-1)) ||
+            "application/octet-stream";
           try {
             await access(fileName);
           } catch (error) {
