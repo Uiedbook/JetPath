@@ -76,9 +76,12 @@ export class JetPath {
         ctx
       ) => {
         const fileName =
-          this.options.publicPath.dir + "/" + ctx.params?.["extraPath"];
+          this.options.publicPath.dir +
+          "/" +
+          decodeURI(ctx.params?.["extraPath"]);
         if (fileName) {
           const contentType =
+            // @ts-ignore
             mime.getType(fileName.split(".").at(-1)) ||
             "application/octet-stream";
           try {

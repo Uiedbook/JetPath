@@ -284,7 +284,7 @@ const createCTX = (req, decorationObject = {}) => ({
         this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
         this._2["Content-Type"] = ContentType;
         if (typeof stream === "string") {
-            this._2["Content-Disposition"] = `inline;filename="${stream || "unnamed.bin"}"`;
+            this._2["Content-Disposition"] = `inline;filename="${stream.split("/").at(-1) || "unnamed.bin"}"`;
             if (UTILS.runtime["bun"]) {
                 // @ts-ignore
                 stream = Bun.file(stream);
