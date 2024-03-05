@@ -422,21 +422,53 @@ span.GET {
 
 const loading_svg = ()=> svg('<svg width="200" height="200" viewBox="0 0 100 100" xml:space="preserve" xmlns="http://www.w3.org/2000/svg"><g style="transform-origin:50% 50%;transform:scale(.8)"><g style="animation:1s linear -1s infinite normal forwards running bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117;transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"><path d="M30 72.889c-8.09 0-14.648-4.099-14.648-9.156v19.611c0 5.057 6.558 9.156 14.648 9.156s14.648-4.099 14.648-9.156V63.733c0 5.057-6.558 9.156-14.648 9.156z" fill="#f8b26a" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/><ellipse cx="30" cy="63.733" rx="14.648" ry="9.156" fill="#f47e60" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/></g><g style="animation:1s linear -.945s infinite normal forwards running bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117;transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"><path d="M70 51.889c-8.09 0-14.648-4.099-14.648-9.156v40.611c0 5.057 6.558 9.156 14.648 9.156s14.648-4.099 14.648-9.156V42.733c0 5.057-6.558 9.156-14.648 9.156z" fill="#a0c8d7" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/><ellipse cx="70" cy="42.733" rx="14.648" ry="9.156" fill="#77a4bd" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/></g><g style="animation:1s linear -.89s infinite normal forwards running bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117;transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"><path d="M30 25.812c-8.09 0-14.648-4.099-14.648-9.156v38.077c0 5.057 6.558 9.156 14.648 9.156s14.648-4.099 14.648-9.156V16.656c0 5.057-6.558 9.156-14.648 9.156z" fill="rgba(255, 255, 255, 0.804)" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/><ellipse cx="30" cy="16.656" rx="14.648" ry="9.156" fill="#ccc" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/></g><g style="animation:1s linear -.835s infinite normal forwards running bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117;transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"><path d="M70 25.812c-8.09 0-14.648-4.099-14.648-9.156v17.077c0 5.057 6.558 9.156 14.648 9.156s14.648-4.099 14.648-9.156V16.656c0 5.057-6.558 9.156-14.648 9.156z" fill="rgba(255, 255, 255, 0.804)" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/><ellipse cx="70" cy="16.656" rx="14.648" ry="9.156" fill="#ccc" style="transform-origin:50px 50px;transform:matrix(1,0,0,1,0,0)"/></g></g><style id="a">@keyframes bounce-4a226a58-420c-4a1d-a9fe-6078f1e12117{0%{animation-timing-function:cubic-bezier(.1361,.2514,.2175,.8786);transform:translate(0,0) scaleY(1)}37%{animation-timing-function:cubic-bezier(.7674,.1844,.8382,.7157);transform:translate(0,-11.988px) scaleY(1)}72%{animation-timing-function:cubic-bezier(.2491,.4828,.4773,.9595);transform:translate(0,0) scaleY(1)}87%{animation-timing-function:cubic-bezier(.5084,.1576,.7399,.5564);transform:translate(0,4.257px) scaleY(.871)}to{transform:translate(0,0) scaleY(1)}}</style></svg>')
 
-    function syntaxHighlight(json) {
+//     function syntaxHighlight(json) {
+//   if (typeof json != "string") {
+//     json = JSON.stringify(json, null, "\t");
+//   }
+  
+//   json = json
+//     .replace(/&/g, "&amp;")
+//     .replace(/</g, "&lt;")
+//     .replace(/>/g, "&gt;");
+  
+//   return json.replace(
+// /"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g
+
+// ,
+//     // /("(\\u[a-zA-Z0-9]{4}|[0-9]|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+//     function(match) {
+//       console.log({match});
+//       var cls = "";
+//       if (/^"/.test(match)) {
+//         if (/:$/.test(match)) {
+//           cls = "key";
+//         } else {
+//           cls = "string";
+//         }
+//       } else if (/true|false/.test(match)) {
+//         cls = "boolean";
+//       } else if (/null/.test(match)) {
+//         cls = "null";
+//       } else if (/[0-9]/.test(match)) {
+//         cls = "number";
+//       }
+//       return '<span class="' + cls + '">' + match + "</span>";
+//     }
+//   );
+// }
+function syntaxHighlight(json) {
   if (typeof json != "string") {
     json = JSON.stringify(json, null, "\t");
   }
-  
+
   json = json
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
-  
-  return json.replace(
-/"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g
 
-,
-    // /("(\\u[a-zA-Z0-9]{4}|[0-9]|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+  return json.replace(
+    /("[^"\\]*(?:\\.[^"\\]*)*"|\b(?:true|false|null)\b|-?\b\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?\b)/g,
     function(match) {
       console.log({match});
       var cls = "";
@@ -450,13 +482,16 @@ const loading_svg = ()=> svg('<svg width="200" height="200" viewBox="0 0 100 100
         cls = "boolean";
       } else if (/null/.test(match)) {
         cls = "null";
-      } else if (/[0-9]/.test(match)) {
+      } else if (/^-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?$/.test(match)) {
         cls = "number";
       }
+
       return '<span class="' + cls + '">' + match + "</span>";
     }
   );
 }
+
+
 
 const body = document.getElementById("big-request-container");
 function parseUPAPIBody(packer) {
