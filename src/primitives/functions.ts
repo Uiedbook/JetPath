@@ -324,7 +324,7 @@ const createCTX = (
     this._2["Content-Type"] = ContentType;
     if (typeof stream === "string") {
       this._2["Content-Disposition"] = `inline;filename="${
-        stream || "unnamed.bin"
+        stream.split("/").at(-1) || "unnamed.bin"
       }"`;
       if (UTILS.runtime["bun"]) {
         // @ts-ignore
