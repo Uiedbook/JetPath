@@ -435,8 +435,7 @@ const loading_svg = ()=> svg('<svg width="200" height="200" viewBox="0 0 100 100
   return json.replace( 
      /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)|[0-9]?/g,
     function(match) {
-      if (!match) return ""
-      console.log({match});
+      if (!match) return "" 
       var cls = "";
       if (/^"/.test(match)) {
         if (/:$/.test(match)) {
