@@ -3,7 +3,6 @@ export declare class JetPath {
     server: any;
     private listening;
     private options;
-    port: number;
     constructor(options?: {
         documentation?: {
             name?: string;

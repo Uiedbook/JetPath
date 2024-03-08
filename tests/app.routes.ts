@@ -160,3 +160,7 @@ export function hook__ERROR(ctx: AppCTX, err: unknown) {
 export async function GET_error(ctx: AppCTX) {
   ctx.throw("Edwinger loves jetpath");
 }
+export async function POST_error(ctx: AppCTX) {
+  const a = await ctx.json();
+  console.log({ a });
+}

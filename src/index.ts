@@ -19,7 +19,6 @@ export class JetPath {
   public server: any;
   private listening: boolean = false;
   private options: any;
-  port: number;
   constructor(options?: {
     documentation?: {
       name?: string;
@@ -46,10 +45,9 @@ export class JetPath {
         }
       | boolean;
   }) {
-    this.port = this.options?.port || 8080;
     this.options = options || { displayRoutes: true };
     // ? setting http routes automatically
-    // ? seeting up app configs
+    // ? setting up app configs
     for (const [k, v] of Object.entries(this.options)) {
       _JetPath_app_config.set(k, v);
     }
@@ -128,7 +126,7 @@ export class JetPath {
 ${k} ${
               this.options?.displayRoutes === "UI"
                 ? "[--host--]"
-                : "http://localhost:" + this.port
+                : "http://localhost:" + (this.options?.port || 8080)
             }${p} HTTP/1.1
 ${h.length ? h.join("\n") : ""}\n
 ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
@@ -153,14 +151,16 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
           ctx.send(UI, "text/html");
         };
         console.log(
-          `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
+          `visit http://localhost:${
+            this.options?.port || 8080
+          }/api-doc to see the displayed routes in UI`
         );
       }
       // if (this.options?.displayRoutes === "FILE") {
       //   UI = compileUI(UI, this.options, t);
       //   await writeFile("api-doc.html", UI);
       //   console.log(
-      //     `visit http://localhost:${this.port}/api-doc to see the displayed routes in UI`
+      //     `visit http://localhost:${(this.options?.port || 8080)}/api-doc to see the displayed routes in UI`
       //   );
       // }
       if (this.options?.displayRoutes === "HTTP") {
@@ -178,8 +178,10 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
       await getHandlers(this.options?.source!, false);
     }
     this.listening = true;
-    console.log(`\nListening on http://localhost:${this.port}/`);
-    this.server.listen(this.port);
+    console.log(
+      `\nListening on http://localhost:${this.options?.port || 8080}/`
+    );
+    this.server.listen(this.options?.port || 8080);
   }
 }
 

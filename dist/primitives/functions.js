@@ -300,7 +300,7 @@ const createCTX = (req, decorationObject = {}) => ({
         this._5();
         return undefined;
     },
-    async json() {
+    json() {
         if (!UTILS.runtime["node"]) {
             try {
                 return this.request.json();
@@ -309,7 +309,7 @@ const createCTX = (req, decorationObject = {}) => ({
                 return {};
             }
         }
-        return await new Promise((r) => {
+        return new Promise((r) => {
             let body = "";
             this.request.on("data", (data) => {
                 body += data.toString();
