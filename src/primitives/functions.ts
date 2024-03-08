@@ -339,7 +339,8 @@ const createCTX = (
     this._5();
     return undefined as never;
   },
-   json<Type = Record<string, any>>(): Promise<Type> {
+  json<Type = Record<string, any>>(): Promise<Type> {
+    // FIXME:  calling this function twice cause an request hang in nodejs
     if (!UTILS.runtime["node"]) {
       try {
         return (this.request as unknown as Request).json();
@@ -347,7 +348,7 @@ const createCTX = (
         return {} as Promise<Type>;
       }
     }
-    return  new Promise<Type>((r) => {
+    return new Promise<Type>((r) => {
       let body = "";
       this.request.on("data", (data: { toString: () => string }) => {
         body += data.toString();
