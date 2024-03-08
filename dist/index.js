@@ -867,7 +867,6 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v &
         }
         this.listening = true;
         console.log(`\nListening on http://localhost:${this.options?.port || 8080}/`);
-        console.log(this.options?.port);
         this.server.listen(this.options?.port || 8080);
     }
 }

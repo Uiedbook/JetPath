@@ -6,7 +6,7 @@ export type AppCTX<Type = {}> = {
     /**
      * Parses the request as JSON
      */
-    json(): Promise<Record<string, any> | undefined>;
+    json(): Promise<Record<string, any>>;
     /**
      * validate the request
      */
