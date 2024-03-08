@@ -305,7 +305,9 @@ const createCTX = (req, decorationObject = {}) => ({
             try {
                 return this.request.json();
             }
-            catch (error) { }
+            catch (error) {
+                return {};
+            }
         }
         return await new Promise((r) => {
             let body = "";
@@ -316,7 +318,9 @@ const createCTX = (req, decorationObject = {}) => ({
                 try {
                     r(JSON.parse(body));
                 }
-                catch (error) { }
+                catch (error) {
+                    r({});
+                }
             });
         });
     },

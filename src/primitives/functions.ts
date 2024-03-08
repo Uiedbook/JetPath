@@ -343,7 +343,9 @@ const createCTX = (
     if (!UTILS.runtime["node"]) {
       try {
         return (this.request as unknown as Request).json();
-      } catch (error) {}
+      } catch (error) {
+        return {} as Promise<Type>;
+      }
     }
     return await new Promise<Type>((r) => {
       let body = "";
@@ -353,7 +355,9 @@ const createCTX = (
       this.request.on("end", () => {
         try {
           r(JSON.parse(body));
-        } catch (error) {}
+        } catch (error) {
+          r({} as Promise<Type>);
+        }
       });
     });
   },
