@@ -1,4 +1,5 @@
 import { readFile, writeFile } from "fs/promises";
+console.log("JetPath is compiled!");
 const build = Bun.spawn(["./pack"]);
 await build.exited;
 const html = await readFile("src/primitives/api-doc.html", {
