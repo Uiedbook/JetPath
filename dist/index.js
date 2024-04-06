@@ -820,7 +820,10 @@ async function testApi(
                         const j = {};
                         if (b) {
                             for (const ke in b) {
-                                j[ke] = b[ke]?.inputType || "text";
+                                j[ke] =
+                                    b[ke]?.defaultValue ||
+                                        b[ke]?.inputType ||
+                                        "text";
                             }
                         }
                         const api = `\n

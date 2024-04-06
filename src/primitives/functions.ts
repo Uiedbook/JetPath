@@ -187,6 +187,7 @@ class JetPathErrors extends Error {
 
 const _DONE = new JetPathErrors("done");
 const _OFF = new JetPathErrors("off");
+const _RES = new JetPathErrors("respond");
 
 export const _JetPath_app_config = {
   cors: false as unknown as (ctx: AppCTX) => void,
@@ -344,6 +345,12 @@ const createCTX = (
     this._5();
     return undefined as never;
   },
+  sendReponse(response: Response) {
+    this._4 = true;
+    if (!this._5) throw _RES;
+    this._5();
+    return undefined as never;
+  },
 
   json<Type = Record<string, any>>(): Promise<Type> {
     // FIXME:  calling this function twice cause an request hang in nodejs
@@ -388,6 +395,8 @@ const createCTX = (
   // _4: false,
   //? used to know if the request has been offloaded
   // _5: false
+  //? response
+  // _6: false
 });
 
 const createResponse = (
@@ -488,13 +497,13 @@ const Handlerspath = (path: any) => {
   path = "/" + path.join("/");
   //? adding ?(s) in place
   path = path.split("$$");
-  path = path.join("/?");
+  path = path.join("?");
   //? adding * in place
   path = path.split("$0");
-  path = path.join("/*");
+  path = path.join("*");
   //? adding :(s) in place
   path = path.split("$");
-  path = path.join("/:");
+  path = path.join(":");
   if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS|BODY)/.test(method)) {
     //? adding methods in place
     return [method, path] as [methods, string];

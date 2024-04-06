@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "fs/promises";
-console.log("JetPath is compiled!");
+console.log("JetPath: compiling...");
 const build = Bun.spawn(["./pack"]);
 await build.exited;
 const html = await readFile("src/primitives/api-doc.html", {
@@ -9,4 +9,4 @@ const code = await readFile("dist/index.js", {
   encoding: "utf-8",
 });
 await writeFile("dist/index.js", code.replace("{{view}}", html));
-console.log("JetPath is compiled!");
+console.log("JetPath: compiled!");

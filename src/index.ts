@@ -119,7 +119,10 @@ export class JetPath {
             const j: Record<string, any> = {};
             if (b) {
               for (const ke in b) {
-                j[ke] = (b[ke as "info"] as any)?.inputType || "text";
+                j[ke] =
+                  (b[ke as "info"] as any)?.defaultValue ||
+                  (b[ke as "info"] as any)?.inputType ||
+                  "text";
               }
             }
             const api = `\n
@@ -186,4 +189,4 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
 }
 
 //? exports
-export type { AppCTX, Schema } from "./primitives/types.js";
+export type { AppCTX, JetSchema } from "./primitives/types.js";

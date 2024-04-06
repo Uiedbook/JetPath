@@ -69,13 +69,16 @@ export type AppCTX<Type = {}> = {
     _4?: boolean | undefined;
     _5?: (() => never) | undefined;
 } & Type;
-export interface Schema {
+export interface JetSchema {
     body?: Record<string, {
         err?: string;
         type: "string" | "number" | "object" | "boolean" | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor;
-        inputType?: string;
-        nullable?: boolean;
         RegExp?: RegExp;
+        inputType?: string;
+        defaultValue?: string;
+        nullable?: boolean;
+        ranges?: Record<number, string>;
+        model?: Record<string, Record<string, any>>;
         validator?: (value: any) => boolean;
     }>;
     info?: string;

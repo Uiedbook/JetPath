@@ -72,7 +72,7 @@ export type AppCTX<Type = {}> = {
   _5?: (() => never) | undefined;
   // files(): Promise<any>;
 } & Type;
-export interface Schema {
+export interface JetSchema {
   body?: Record<
     string,
     {
@@ -86,10 +86,12 @@ export interface Schema {
         | NumberConstructor
         | BooleanConstructor
         | ObjectConstructor;
-
-      inputType?: string;
-      nullable?: boolean;
       RegExp?: RegExp;
+      inputType?: string;
+      defaultValue?: string;
+      nullable?: boolean;
+      ranges?: Record<number, string>;
+      model?: Record<string, Record<string, any>>;
       validator?: (value: any) => boolean;
     }
   >;
