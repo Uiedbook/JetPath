@@ -465,6 +465,9 @@ const getModule = async (src, name) => {
         return await import(path.resolve(src + "/" + name));
     }
     catch (error) {
+        if (name.includes(".routes.")) {
+            console.error("JetPath: an error occured in the file" + src + "/" + name, { error });
+        }
         return {};
     }
 };
