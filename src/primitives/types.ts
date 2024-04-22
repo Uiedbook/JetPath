@@ -35,6 +35,10 @@ export type AppCTX<Type = {}> = {
    */
   send(data: unknown, ContentType?: string): never;
   /**
+   * reply the request
+   */
+  sendReponse(response: Response): never;
+  /**
    * remove request from the jetpath secure control
    */
   eject(): never;

@@ -1,4 +1,7 @@
 // compartible node imports
+// TODO: default context should be created on init then
+// TODO: use object.create for creating new contexts as prototypes
+
 import { opendir } from "node:fs/promises";
 import path from "node:path";
 import { cwd } from "node:process";
@@ -7,7 +10,7 @@ import { createServer } from "node:http";
 import { IncomingMessage, ServerResponse } from "node:http";
 import {
   type AppCTX,
-  type Schema,
+  type JetSchema,
   type allowedMethods,
   type methods,
 } from "./types.js";
@@ -130,7 +133,7 @@ export const UTILS = {
   },
   runtime: null as unknown as Record<string, boolean>,
   decorators: {},
-  validators: {} as Record<string, Schema>,
+  validators: {} as Record<string, JetSchema>,
   server(): { listen: any } | void {
     if (UTILS.runtime["node"]) {
       return createServer((x: any, y: any) => {
@@ -345,7 +348,9 @@ const createCTX = (
     this._5();
     return undefined as never;
   },
+  // TODO: make this working
   sendReponse(response: Response) {
+    // this._1 = response
     this._4 = true;
     if (!this._5) throw _RES;
     this._5();
@@ -541,7 +546,7 @@ export async function getHandlers(source: string, print: boolean) {
               // ! BODY parser
               const validator = module[p];
               if (typeof validator === "object") {
-                UTILS.validators[params[1]] = validator as Schema;
+                UTILS.validators[params[1]] = validator as JetSchema;
                 validator.validate = (data: any = {}) =>
                   validate(validator, data);
               }
@@ -582,7 +587,7 @@ export async function getHandlers(source: string, print: boolean) {
   }
 }
 
-export function validate(schema: Schema, data: any) {
+export function validate(schema: JetSchema, data: any) {
   const out: Record<string, any> = {};
   let errout: string = "";
   if (!data) throw new Error("invalid data => " + data);
