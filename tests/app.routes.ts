@@ -37,6 +37,11 @@ const pets: { id: string; imageUrl: string; name: string }[] = [];
 
 // ? /
 export async function GET_(ctx: AppCTX) {
+  console.log({ ctx });
+  for (const key in ctx) {
+    console.log({ [key]: ctx[key] });
+  }
+
   new Promise(() => {
     setTimeout(() => {
       ctx.send("Welcome to Petshop!");

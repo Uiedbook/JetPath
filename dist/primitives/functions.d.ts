@@ -1,4 +1,5 @@
-import { type AppCTX, type Schema, type allowedMethods, type methods } from "./types.js";
+import { type AppCTX, type JetSchema, type allowedMethods, type methods } from "./types.js";
+import { Stream } from "node:stream";
 /**
  * an inbuilt CORS post hook
  *
@@ -29,6 +30,30 @@ export declare function corsHook(options: {
     origin: string[];
 }): Function;
 export declare const UTILS: {
+    ctx: {
+        app: {};
+        request: any;
+        code: number;
+        send(data: unknown, contentType: string): never;
+        redirect(url: string): never;
+        throw(code?: unknown, message?: unknown): never;
+        get(field: string): string | undefined;
+        set(field: string, value: string): void;
+        eject(): never;
+        pipe(stream: Stream | string, ContentType: string): never;
+        sendReponse(response: Response): never;
+        json<Type = Record<string, any>>(): Promise<Type>;
+        validate(data?: any): Record<string, any>;
+        params: {};
+        search: {};
+        path: string;
+        _1: any;
+        _2: any;
+        _3: any;
+        _4: boolean;
+        _5: any;
+        _6: boolean;
+    };
     ae(cb: {
         (): any;
         (): any;
@@ -36,8 +61,7 @@ export declare const UTILS: {
     }): boolean;
     set(): void;
     runtime: Record<string, boolean>;
-    decorators: {};
-    validators: Record<string, Schema>;
+    validators: Record<string, JetSchema>;
     server(): {
         listen: any;
     } | void;
@@ -49,5 +73,5 @@ export declare const _JetPath_app_config: {
     set(this: any, opt: string, val: any): void;
 };
 export declare function getHandlers(source: string, print: boolean): Promise<void>;
-export declare function validate(schema: Schema, data: any): Record<string, any>;
+export declare function validate(schema: JetSchema, data: any): Record<string, any>;
 export declare const compileUI: (UI: string, options: any, api: string) => string;

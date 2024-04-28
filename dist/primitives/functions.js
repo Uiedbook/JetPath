@@ -1,4 +1,6 @@
 // compartible node imports
+// TODO: default context should be created on init then
+// TODO: use object.create for creating new contexts as prototypes
 import { opendir } from "node:fs/promises";
 import path from "node:path";
 import { cwd } from "node:process";
@@ -84,6 +86,186 @@ export function corsHook(options) {
     };
 }
 export const UTILS = {
+    ctx: {
+        app: {},
+        request: null,
+        code: 200,
+        send(data, contentType) {
+            let ctype;
+            switch (typeof data) {
+                case "string":
+                    ctype = "text/plain";
+                    this._1 = data;
+                    break;
+                case "object":
+                    ctype = "application/json";
+                    this._1 = JSON.stringify(data);
+                    break;
+                default:
+                    ctype = "text/plain";
+                    this._1 = String(data);
+                    break;
+            }
+            if (contentType) {
+                ctype = contentType;
+            }
+            if (!this._2) {
+                this._2 = {};
+            }
+            this._2["Content-Type"] = ctype;
+            this._4 = true;
+            if (!this._5)
+                throw _DONE;
+            this._5();
+            return undefined;
+        },
+        redirect(url) {
+            this.code = 301;
+            if (!this._2) {
+                this._2 = {};
+            }
+            this._2["Location"] = url;
+            this._1 = undefined;
+            this._4 = true;
+            if (!this._5)
+                throw _DONE;
+            this._5();
+            return undefined;
+        },
+        throw(code = 404, message = "Not Found") {
+            // ? could be a success but a wrong throw, so we check
+            if (!this._2) {
+                this._2 = {};
+            }
+            if (!this._4) {
+                this.code = 400;
+                switch (typeof code) {
+                    case "number":
+                        this.code = code;
+                        if (typeof message === "object") {
+                            this._2["Content-Type"] = "application/json";
+                            this._1 = JSON.stringify(message);
+                        }
+                        else if (typeof message === "string") {
+                            this._2["Content-Type"] = "text/plain";
+                            this._1 = message;
+                        }
+                        break;
+                    case "string":
+                        this._2["Content-Type"] = "text/plain";
+                        this._1 = code;
+                        break;
+                    case "object":
+                        this._2["Content-Type"] = "application/json";
+                        this._1 = JSON.stringify(code);
+                        break;
+                }
+            }
+            this._4 = true;
+            if (!this._5)
+                throw _DONE;
+            this._5();
+            return undefined;
+        },
+        get(field) {
+            if (field) {
+                if (UTILS.runtime["node"]) {
+                    return this.request.headers[field];
+                }
+                return this.request.headers.get(field);
+            }
+            return undefined;
+        },
+        set(field, value) {
+            if (!this._2) {
+                this._2 = {};
+            }
+            if (field && value) {
+                this._2[field] = value;
+            }
+        },
+        eject() {
+            throw _OFF;
+        },
+        pipe(stream, ContentType) {
+            if (!this._2) {
+                this._2 = {};
+            }
+            this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
+            this._2["Content-Type"] = ContentType;
+            if (typeof stream === "string") {
+                this._2["Content-Disposition"] = `inline;filename="${stream.split("/").at(-1) || "unnamed.bin"}"`;
+                if (UTILS.runtime["bun"]) {
+                    // @ts-ignore
+                    stream = Bun.file(stream);
+                }
+                else {
+                    stream = createReadStream(stream);
+                }
+            }
+            this._3 = stream;
+            this._4 = true;
+            if (!this._5)
+                throw _DONE;
+            this._5();
+            return undefined;
+        },
+        // TODO: make this working
+        sendReponse(response) {
+            // this._1 = response
+            this._4 = true;
+            if (!this._5)
+                throw _RES;
+            this._5();
+            return undefined;
+        },
+        json() {
+            // FIXME:  calling this function twice cause an request hang in nodejs
+            if (!UTILS.runtime["node"]) {
+                try {
+                    return this.request.json();
+                }
+                catch (error) {
+                    return {};
+                }
+            }
+            return new Promise((r) => {
+                let body = "";
+                this.request.on("data", (data) => {
+                    body += data.toString();
+                });
+                this.request.on("end", () => {
+                    try {
+                        r(JSON.parse(body));
+                    }
+                    catch (error) {
+                        r({});
+                    }
+                });
+            });
+        },
+        validate(data = {}) {
+            if (UTILS.validators[this.path]) {
+                return validate(UTILS.validators[this.path], data);
+            }
+            throw new Error("no validation BODY! for path " + this.path);
+        },
+        params: {},
+        search: {},
+        path: "/",
+        //? load
+        _1: undefined,
+        // ? header of response
+        _2: {},
+        // //? stream
+        _3: undefined,
+        //? used to know if the request has ended
+        _4: false,
+        //? used to know if the request has been offloaded
+        _5: false,
+        //? response
+        _6: false,
+    },
     ae(cb) {
         try {
             cb();
@@ -101,7 +283,6 @@ export const UTILS = {
         this.runtime = { bun, deno, node: !bun && !deno };
     },
     runtime: null,
-    decorators: {},
     validators: {},
     server() {
         if (UTILS.runtime["node"]) {
@@ -178,185 +359,11 @@ export const _JetPath_app_config = {
         this[opt] = val;
     },
 };
-const createCTX = (req, decorationObject = {}) => ({
-    ...decorationObject,
-    app: {},
-    request: req,
-    code: 200,
-    send(data, contentType) {
-        let ctype;
-        switch (typeof data) {
-            case "string":
-                ctype = "text/plain";
-                this._1 = data;
-                break;
-            case "object":
-                ctype = "application/json";
-                this._1 = JSON.stringify(data);
-                break;
-            default:
-                ctype = "text/plain";
-                this._1 = String(data);
-                break;
-        }
-        if (contentType) {
-            ctype = contentType;
-        }
-        if (!this._2) {
-            this._2 = {};
-        }
-        this._2["Content-Type"] = ctype;
-        this._4 = true;
-        if (!this._5)
-            throw _DONE;
-        this._5();
-        return undefined;
-    },
-    redirect(url) {
-        this.code = 301;
-        if (!this._2) {
-            this._2 = {};
-        }
-        this._2["Location"] = url;
-        this._1 = undefined;
-        this._4 = true;
-        if (!this._5)
-            throw _DONE;
-        this._5();
-        return undefined;
-    },
-    throw(code = 404, message = "Not Found") {
-        // ? could be a success but a wrong throw, so we check
-        if (!this._2) {
-            this._2 = {};
-        }
-        if (!this._4) {
-            this.code = 400;
-            switch (typeof code) {
-                case "number":
-                    this.code = code;
-                    if (typeof message === "object") {
-                        this._2["Content-Type"] = "application/json";
-                        this._1 = JSON.stringify(message);
-                    }
-                    else if (typeof message === "string") {
-                        this._2["Content-Type"] = "text/plain";
-                        this._1 = message;
-                    }
-                    break;
-                case "string":
-                    this._2["Content-Type"] = "text/plain";
-                    this._1 = code;
-                    break;
-                case "object":
-                    this._2["Content-Type"] = "application/json";
-                    this._1 = JSON.stringify(code);
-                    break;
-            }
-        }
-        this._4 = true;
-        if (!this._5)
-            throw _DONE;
-        this._5();
-        return undefined;
-    },
-    get(field) {
-        if (field) {
-            if (UTILS.runtime["node"]) {
-                return this.request.headers[field];
-            }
-            return this.request.headers.get(field);
-        }
-        return undefined;
-    },
-    set(field, value) {
-        if (!this._2) {
-            this._2 = {};
-        }
-        if (field && value) {
-            this._2[field] = value;
-        }
-    },
-    eject() {
-        throw _OFF;
-    },
-    pipe(stream, ContentType) {
-        if (!this._2) {
-            this._2 = {};
-        }
-        this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
-        this._2["Content-Type"] = ContentType;
-        if (typeof stream === "string") {
-            this._2["Content-Disposition"] = `inline;filename="${stream.split("/").at(-1) || "unnamed.bin"}"`;
-            if (UTILS.runtime["bun"]) {
-                // @ts-ignore
-                stream = Bun.file(stream);
-            }
-            else {
-                stream = createReadStream(stream);
-            }
-        }
-        this._3 = stream;
-        this._4 = true;
-        if (!this._5)
-            throw _DONE;
-        this._5();
-        return undefined;
-    },
-    sendReponse(response) {
-        this._4 = true;
-        if (!this._5)
-            throw _RES;
-        this._5();
-        return undefined;
-    },
-    json() {
-        // FIXME:  calling this function twice cause an request hang in nodejs
-        if (!UTILS.runtime["node"]) {
-            try {
-                return this.request.json();
-            }
-            catch (error) {
-                return {};
-            }
-        }
-        return new Promise((r) => {
-            let body = "";
-            this.request.on("data", (data) => {
-                body += data.toString();
-            });
-            this.request.on("end", () => {
-                try {
-                    r(JSON.parse(body));
-                }
-                catch (error) {
-                    r({});
-                }
-            });
-        });
-    },
-    validate(data = {}) {
-        if (UTILS.validators[this.path]) {
-            return validate(UTILS.validators[this.path], data);
-        }
-        throw new Error("no validation BODY! for path " + this.path);
-    },
-    params: {},
-    search: {},
-    path: "/",
-    //? load
-    // _1: undefined,
-    //? header of response
-    // _2: {},
-    // //? stream
-    // _3: undefined,
-    //? used to know if the request has ended
-    // _4: false,
-    //? used to know if the request has been offloaded
-    // _5: false
-    //? response
-    // _6: false
-});
+const createCTX = (req) => {
+    const ctx = Object.create(UTILS.ctx);
+    ctx.request = req;
+    return ctx;
+};
 const createResponse = (res, ctx, four04) => {
     //? add cors headers
     _JetPath_app_config.cors(ctx);
@@ -387,7 +394,7 @@ const JetPath_app = async (req, res) => {
     let off = false;
     let ctx;
     if (paseredR) {
-        ctx = createCTX(req, UTILS.decorators);
+        ctx = createCTX(req);
         const r = paseredR[0];
         ctx.params = paseredR[1];
         ctx.search = paseredR[2];
@@ -430,6 +437,7 @@ const JetPath_app = async (req, res) => {
     }
     else {
         return new Promise((r) => {
+            // @ts-ignore
             ctx._5 = () => {
                 r(createResponse(res, ctx, true));
             };
@@ -507,7 +515,12 @@ export async function getHandlers(source, print) {
                                     // ! DECORATOR point
                                     const decorator = module[p]();
                                     if (typeof decorator === "object") {
-                                        UTILS.decorators = Object.assign(UTILS.decorators, decorator);
+                                        for (const key in decorator) {
+                                            if (!UTILS.ctx[key]) {
+                                                // @ts-ignore
+                                                UTILS.ctx[key] = decorator[key];
+                                            }
+                                        }
                                     }
                                 }
                             }

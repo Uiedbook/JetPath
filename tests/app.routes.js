@@ -31,6 +31,10 @@ export const BODY_petImage$id = {
 const pets = [];
 // ? /
 export async function GET_(ctx) {
+  console.log({ ctx });
+  for (const key in ctx) {
+    console.log({ [key]: ctx[key] });
+  }
   new Promise(() => {
     setTimeout(() => {
       ctx.send("Welcome to Petshop!");
