@@ -160,23 +160,19 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
 
       if (this.options?.displayRoutes === "UI") {
         UI = compileUI(UI, this.options, t);
-        _JetPath_paths["GET"][this.options.path] = (ctx) => {
+        _JetPath_paths["GET"][this.options?.documentation?.path] = (ctx) => {
           ctx.send(UI, "text/html");
         };
         console.log(
-          `visit http://localhost:${
-            this.options?.port || 8080
-          }/api-doc to see the displayed routes in UI`
+          `visit http://localhost:${this.options?.port || 8080}${
+            this.options.documentation.path
+          } see the displayed routes in UI`
         );
       }
       if (this.options?.displayRoutes === "FILE") {
         UI = compileUI(UI, this.options, t);
         await writeFile("api-doc.html", UI);
-        console.log(
-          `visit http://localhost:${this.options?.port || 8080}${
-            this.options.path
-          } see the displayed routes in UI`
-        );
+        console.log(`Open api-doc.html to view the rendered routes in UI`);
       }
       if (this.options?.displayRoutes === "HTTP") {
         await writeFile("api-doc.http", t);
