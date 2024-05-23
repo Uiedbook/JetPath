@@ -88,8 +88,7 @@ export function GET_user$id(ctx) {
  */
 export function hook__DECORATOR() {
   return {
-    id() {
-      // @ts-ignore
+    id() { 
       const id = this.params.id;
       return id;
     },

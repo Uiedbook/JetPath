@@ -25,6 +25,7 @@ export class JetPath {
       info?: string;
       color?: string;
       logo?: string;
+      path?: string;
     };
     source?: string;
     credentials?: any;
@@ -45,7 +46,7 @@ export class JetPath {
         }
       | boolean;
   }) {
-    this.options = options || { displayRoutes: true };
+    this.options = options || { displayRoutes: true, path: "/api-doc" };
     // ? setting http routes automatically
     // ? setting up app configs
     for (const [k, v] of Object.entries(this.options)) {
@@ -64,7 +65,14 @@ export class JetPath {
       // console.log({ decorations });
       throw new Error("could not add decoration to ctx");
     }
-    UTILS.decorators = Object.assign(UTILS.decorators, decorations);
+    if (typeof decorations === "object") {
+      for (const key in decorations) {
+        if (!UTILS.ctx[key as keyof AppCTX]) {
+          (UTILS.ctx as unknown as Record<string, (ctx: AppCTX) => void>)[key] =
+            decorations[key];
+        }
+      }
+    }
   }
   async listen() {
     // ? {-view-} here is replaced at build time to html
@@ -78,16 +86,15 @@ export class JetPath {
           "/" +
           decodeURI(ctx.params?.["extraPath"]);
         if (fileName) {
-          const contentType =
-            // @ts-ignore
-            mime.getType(fileName.split(".").at(-1)) ||
-            "application/octet-stream";
+          const contentType = mime.getType(
+            fileName.split(".").at(-1) || "application/octet-stream"
+          );
           try {
             await access(fileName);
           } catch (error) {
             return ctx.throw();
           }
-          return ctx.pipe(fileName, contentType);
+          return ctx.pipe(fileName, contentType!);
         } else {
           return ctx.throw();
         }
@@ -150,7 +157,7 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
 
       if (this.options?.displayRoutes === "UI") {
         UI = compileUI(UI, this.options, t);
-        _JetPath_paths["GET"]["/api-doc"] = (ctx) => {
+        _JetPath_paths["GET"][this.options.path] = (ctx) => {
           ctx.send(UI, "text/html");
         };
         console.log(
@@ -159,13 +166,15 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
           }/api-doc to see the displayed routes in UI`
         );
       }
-      // if (this.options?.displayRoutes === "FILE") {
-      //   UI = compileUI(UI, this.options, t);
-      //   await writeFile("api-doc.html", UI);
-      //   console.log(
-      //     `visit http://localhost:${(this.options?.port || 8080)}/api-doc to see the displayed routes in UI`
-      //   );
-      // }
+      if (this.options?.displayRoutes === "FILE") {
+        UI = compileUI(UI, this.options, t);
+        await writeFile("api-doc.html", UI);
+        console.log(
+          `visit http://localhost:${this.options?.port || 8080}${
+            this.options.path
+          } see the displayed routes in UI`
+        );
+      }
       if (this.options?.displayRoutes === "HTTP") {
         await writeFile("api-doc.http", t);
         console.log(

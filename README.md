@@ -208,8 +208,7 @@ export function DELETE_petBy$id(ctx: AppCTX) {
 // ? /petImage/76554
 // Upload a Pet's Image: Add an image to a pet's profile
 export async function POST_petImage$id(ctx: AppCTX) {
-  const petId = ctx.params.id;
-  // @ts-ignore
+  const petId = ctx.params.id; 
   console.log(ctx.request);
   const formdata = await ctx.request.formData();
   console.log(formdata);
@@ -221,8 +220,7 @@ export async function POST_petImage$id(ctx: AppCTX) {
   if (index !== -1) {
     // Attach the image URL to the pet's profile (in a real scenario, consider storing images externally)
     pets[index].imageUrl = `/images/${petId}.png`;
-    // write profilePicture to disk
-    // @ts-ignore
+    // write profilePicture to disk 
     await Bun.write(pets[index].imageUrl, profilePicture);
     ctx.send({
       message: "Image uploaded successfully",

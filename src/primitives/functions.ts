@@ -570,8 +570,12 @@ export async function getHandlers(source: string, print: boolean) {
                   if (typeof decorator === "object") {
                     for (const key in decorator) {
                       if (!UTILS.ctx[key as keyof AppCTX]) {
-                        // @ts-ignore
-                        UTILS.ctx[key] = decorator[key as keyof AppCTX];
+                        (
+                          UTILS.ctx as unknown as Record<
+                            string,
+                            (field: string) => string | undefined
+                          >
+                        )[key] = decorator[key as "get"];
                       }
                     }
                   }
