@@ -244,7 +244,7 @@ export const UTILS = {
     },
     // TODO: make this working
     sendReponse(response: Response) {
-      // this._1 = response
+      this._1 = response;
       this._4 = true;
       if (!this._5) throw _RES;
       this._5();
