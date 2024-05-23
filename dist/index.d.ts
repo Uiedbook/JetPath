@@ -9,6 +9,7 @@ export declare class JetPath {
             info?: string;
             color?: string;
             logo?: string;
+            path?: string;
         };
         source?: string;
         credentials?: any;

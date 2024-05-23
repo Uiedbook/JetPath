@@ -517,7 +517,6 @@ export async function getHandlers(source, print) {
                                     if (typeof decorator === "object") {
                                         for (const key in decorator) {
                                             if (!UTILS.ctx[key]) {
-                                                // @ts-ignore
                                                 UTILS.ctx[key] = decorator[key];
                                             }
                                         }

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { type AppCTX, type JetSchema, type allowedMethods, type methods } from "./types.js";
 import { Stream } from "node:stream";
 /**
