@@ -741,8 +741,10 @@ async function testApi(
   body,
   contentType = "application/json"
 ) {
-  headers["Content-Type"] = contentType;
-    console.log({ method, url, headers, body, contentType });
+  if (contentType !== "multipart/form-data") {
+    headers["Content-Type"] = contentType;
+  }
+    // console.log({ method, url, headers, body, contentType });
   let response;
   try {
     if (contentType === "application/json") {

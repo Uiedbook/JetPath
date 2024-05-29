@@ -11,20 +11,41 @@ https://github.com/mscdex/busboy
 
 // usage
 
-POST_upload_files(ctx) {
-if (req.method === "POST") {
-const bb = busboy({ headers: req.headers });
-bb.on("file", (name, file, info) => {
-const saveTo = path.join(os.tmpdir(), `busboy-upload-${random()}`);
-file.pipe(fs.createWriteStream(saveTo));
-});
-bb.on("close", () => {
-ctx.send("done!")
-});
-req.pipe(bb);
-return;
+import busboy from "busboy";
+import { WriteStream, createWriteStream } from "fs";
+export async function POST_(ctx: AppCTX) {
+  const bb = busboy({ headers: ctx.request.headers });
+  bb.on(
+    "file",
+    (
+      name: any,
+      file: { pipe: (arg0: WriteStream) => void },
+      info: { filename: string }
+    ) => {
+      console.log({
+        name,
+        info,
+      });
+      const saveTo = path.join(info.filename);
+      file.pipe(createWriteStream(saveTo));
+    }
+  );
+  bb.on("field", (name, val, info) => {
+    console.log(`Field [${name}]: value: %j`, val);
+  });
+  bb.on("close", () => {
+    ctx.send("done!");
+  });
+  ctx.request.pipe(bb);
+  ctx.eject();
 }
-}
+export const BODY_: JetSchema = {
+  body: {
+    filefield: { type: "file", inputType: "file" },
+    textfield: { type: "string" },
+  },
+  method: "POST",
+};
 ```
 
 ## Bun

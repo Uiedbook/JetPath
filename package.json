@@ -34,8 +34,8 @@
   "scripts": {
     "compile": "bun bundle.ts",
     "node": "node tests/app.js",
-    "deno": "deno run --allow-all tests/app.ts",
-    "bun": "bun -b tests/app.ts",
+    "deno": "deno run --allow-all tests/app.test.js",
+    "bun": "bun -b tests/app.test.ts",
     "dev": "nodemon tests/app.test.js",
     "watch": "tsc tests/* --target esnext --watch",
     "build": "bun bundle.ts"
@@ -46,7 +46,8 @@
   },
   "private": false,
   "devDependencies": {
-    "@types/node": "^20.11.16"
+    "@types/node": "^20.11.16",
+    "busboy": "^1.6.0"
   },
   "dependencies": {
     "mime": "^4.0.1"

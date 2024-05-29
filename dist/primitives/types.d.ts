@@ -1,6 +1,6 @@
 /// <reference types="node" />
 /// <reference types="node" />
-import { IncomingMessage } from "http";
+import { IncomingMessage } from "node:http";
 import { Stream } from "node:stream";
 export type AppCTX<Type = {}> = {
     /**
@@ -92,9 +92,9 @@ export type AppCTX<Type = {}> = {
 export interface JetSchema {
     body?: Record<string, {
         err?: string;
-        type: "string" | "number" | "file" | "object" | "boolean" | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor;
+        type?: "string" | "number" | "file" | "object" | "boolean" | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor;
         RegExp?: RegExp;
-        inputType?: string;
+        inputType?: "color" | "date" | "email" | "file" | "text" | "image" | "password" | "number" | "time" | "tel" | "datetime" | "url";
         defaultValue?: string;
         nullable?: boolean;
         ranges?: Record<number, string>;

@@ -1,3 +1,4 @@
+import path from "path";
 //? Body validators
 export const BODY_pets = {
     body: {
@@ -149,7 +150,32 @@ export function hook__ERROR(ctx, err) {
 export async function GET_error(ctx) {
     ctx.throw("Edwinger loves jetpath");
 }
-export async function POST_error(ctx) {
-    const a = await ctx.json();
-    console.log({ a });
+import busboy from "busboy";
+import { createWriteStream } from "node:fs";
+export async function POST_(ctx) {
+    console.log(ctx);
+    const bb = busboy({ headers: ctx.request.headers });
+    bb.on("file", (name, file, info) => {
+        console.log({
+            name,
+            info,
+        });
+        const saveTo = path.join(info.filename);
+        file.pipe(createWriteStream(saveTo));
+    });
+    bb.on("field", (name, val, info) => {
+        console.log(`Field [${name}]: value: %j`, val);
+    });
+    bb.on("close", () => {
+        ctx.send("done!");
+    });
+    ctx.request.pipe(bb);
+    ctx.eject();
 }
+export const BODY_ = {
+    body: {
+        filefield: { type: "file", inputType: "file" },
+        textfield: { type: "string", nullable: false },
+    },
+    method: "POST",
+};

@@ -1,4 +1,4 @@
-import { IncomingMessage } from "http";
+import { IncomingMessage } from "node:http";
 import { Stream } from "node:stream";
 
 export type AppCTX<Type = {}> = {
@@ -97,7 +97,7 @@ export interface JetSchema {
     string,
     {
       err?: string;
-      type:
+      type?:
         | "string"
         | "number"
         | "file"
@@ -108,7 +108,31 @@ export interface JetSchema {
         | BooleanConstructor
         | ObjectConstructor;
       RegExp?: RegExp;
-      inputType?: string;
+      inputType?:
+        | "color"
+        | "date"
+        | "email"
+        | "file"
+        | "text"
+        | "image"
+        | "password"
+        | "number"
+        | "time"
+        | "tel"
+        | "datetime"
+        | "url";
+      // |"button"
+      // |"checkbox"
+      // |"hidden"
+      // |"month"
+      // |"radio"
+      // |"range"
+      // |"reset"
+      // |"search"
+      // |"submit"
+      // |"Play"
+      // "week";
+
       defaultValue?: string;
       nullable?: boolean;
       ranges?: Record<number, string>;
