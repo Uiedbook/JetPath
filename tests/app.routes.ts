@@ -1,8 +1,8 @@
-import { AppCTX, Schema } from "../dist/index.js";
+import { AppCTX, JetSchema } from "../dist/index.js";
 
 //? Body validators
 
-export const BODY_pets: Schema = {
+export const BODY_pets: JetSchema = {
   body: {
     name: { err: "please provide dog name", type: "string" },
     image: { type: "string", nullable: true, inputType: "file" },
@@ -16,16 +16,16 @@ export const BODY_pets: Schema = {
   },
   method: "POST",
 };
-export const BODY_petBy$id: Schema = {
+export const BODY_petBy$id: JetSchema = {
   body: {
     name: { err: "please provide dog name", type: "string" },
-    image: { type: "string", nullable: true, inputType: "file" },
-    age: { type: "number" },
+    image: { type: "file", nullable: true, inputType: "file" },
+    age: { type: "number", inputType: "number" },
   },
   info: "This api allows you to update a pet with it's ID",
   method: "PUT",
 };
-export const BODY_petImage$id: Schema = {
+export const BODY_petImage$id: JetSchema = {
   body: { image: { type: "string", nullable: true, inputType: "file" } },
   method: "POST",
 };
@@ -97,10 +97,9 @@ export async function GET_pets_search$$(ctx: AppCTX) {
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
 export async function PUT_petBy$id(ctx: AppCTX) {
-  BODY_petBy$id.validate?.(await ctx.json());
-
+  const updatedPetData = BODY_petBy$id.validate?.(await ctx.json());
   const petId = ctx.params.id;
-  const updatedPetData = await ctx.json();
+  console.log({ updatedPetData, petId });
   const index = pets.findIndex((p) => p.id === petId);
   if (index !== -1) {
     // Update the existing pet's data

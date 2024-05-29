@@ -36,7 +36,8 @@
     "node": "node tests/app.js",
     "deno": "deno run --allow-all tests/app.ts",
     "bun": "bun -b tests/app.ts",
-    "tests": "node --test tests/app.test.js",
+    "dev": "nodemon tests/app.test.js",
+    "watch": "tsc tests/* --target esnext --watch",
     "build": "bun bundle.ts"
   },
   "engines": {

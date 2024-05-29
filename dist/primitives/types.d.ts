@@ -92,7 +92,7 @@ export type AppCTX<Type = {}> = {
 export interface JetSchema {
     body?: Record<string, {
         err?: string;
-        type: "string" | "number" | "object" | "boolean" | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor;
+        type: "string" | "number" | "file" | "object" | "boolean" | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor;
         RegExp?: RegExp;
         inputType?: string;
         defaultValue?: string;

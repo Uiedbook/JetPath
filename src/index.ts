@@ -48,7 +48,6 @@ export class JetPath {
   }) {
     this.options = options || {
       displayRoutes: true,
-      documentation: { path: "/api-doc" },
     };
     // ? setting http routes automatically
     // ? setting up app configs

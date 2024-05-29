@@ -100,6 +100,7 @@ export interface JetSchema {
       type:
         | "string"
         | "number"
+        | "file"
         | "object"
         | "boolean"
         | StringConstructor

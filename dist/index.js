@@ -9,7 +9,6 @@ export class JetPath {
     constructor(options) {
         this.options = options || {
             displayRoutes: true,
-            documentation: { path: "/api-doc" },
         };
         // ? setting http routes automatically
         // ? setting up app configs
@@ -244,6 +243,10 @@ header {
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  padding: 2rem;
+}
+h1 {
+  font-size: 4rem;
 }
 
 .header {
@@ -854,10 +857,11 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v &
             }
             if (this.options?.displayRoutes === "UI") {
                 UI = compileUI(UI, this.options, t);
-                _JetPath_paths["GET"][this.options?.documentation?.path] = (ctx) => {
-                    ctx.send(UI, "text/html");
-                };
-                console.log(`visit http://localhost:${this.options?.port || 8080}${this.options.documentation.path} see the displayed routes in UI`);
+                _JetPath_paths["GET"][this.options?.documentation?.path || "/api-doc"] =
+                    (ctx) => {
+                        ctx.send(UI, "text/html");
+                    };
+                console.log(`visit http://localhost:${this.options?.port || 8080}${this.options.documentation.path || "/api-doc"} to see the displayed routes in UI`);
             }
             if (this.options?.displayRoutes === "FILE") {
                 UI = compileUI(UI, this.options, t);

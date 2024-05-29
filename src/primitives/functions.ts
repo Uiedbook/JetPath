@@ -1,7 +1,4 @@
 // compartible node imports
-// TODO: default context should be created on init then
-// TODO: use object.create for creating new contexts as prototypes
-
 import { opendir } from "node:fs/promises";
 import path from "node:path";
 import { cwd } from "node:process";
@@ -505,13 +502,13 @@ const Handlerspath = (path: any) => {
   path = "/" + path.join("/");
   //? adding ?(s) in place
   path = path.split("$$");
-  path = path.join("?");
+  path = path.join("/?");
   //? adding * in place
   path = path.split("$0");
-  path = path.join("*");
+  path = path.join("/*");
   //? adding :(s) in place
   path = path.split("$");
-  path = path.join(":");
+  path = path.join("/:");
   if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS|BODY)/.test(method)) {
     //? adding methods in place
     return [method, path] as [methods, string];
@@ -649,7 +646,9 @@ export function validate(schema: JetSchema, data: any) {
         if (err) {
           errout = err;
         } else {
-          errout = `${prop} type is invalid '${data[prop]}' `;
+          if (type !== "file") {
+            errout = `${prop} type is invalid '${data[prop]}' `;
+          }
         }
       }
       //
