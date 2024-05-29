@@ -8,12 +8,11 @@ uploading files with JetPath
 // npm i ws
 
 // usage
-import { WebSocketServer } from 'ws';
-import http from 'node:http';
+import { WebSocketServer } from "ws";
+import http from "node:http";
 import { JetPath } from "jetpath";
 const app = new JetPath({ source: "tests" });
 
-POST_socket(ctx) {
 // Spinning the HTTP server and the WebSocket server.
 const server = app.server;
 const wsServer = new WebSocketServer({ server });
@@ -21,16 +20,17 @@ const port = 8000;
 server.listen(port, () => {
   console.log(`WebSocket server is running on port ${port}`);
 });
-}
+
+//? listen for server upgrade via ctx.request
 ```
 
 ## Bun
 
 ```js
 // usage
-POST_websocket(ctx) {
+export const POST_websocket = (ctx) => {
   // upgrade the request to a WebSocket
-  if (server.upgrade(req)) {
+  if (app.server.upgrade(req)) {
     return; // do not return a Response
   }
   return    {
