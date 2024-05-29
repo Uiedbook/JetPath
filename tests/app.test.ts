@@ -6,7 +6,6 @@ const app = new JetPath({
     name: "PetShop API Doc",
     info: `
     PetShop API Documentation
-
     This doc provides you with a simple read and write Api to The PetShop API
     `,
     logo: "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp",

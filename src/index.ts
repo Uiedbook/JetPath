@@ -160,13 +160,14 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
 
       if (this.options?.displayRoutes === "UI") {
         UI = compileUI(UI, this.options, t);
-        _JetPath_paths["GET"][this.options?.documentation?.path] = (ctx) => {
-          ctx.send(UI, "text/html");
-        };
+        _JetPath_paths["GET"][this.options?.documentation?.path || "/api-doc"] =
+          (ctx) => {
+            ctx.send(UI, "text/html");
+          };
         console.log(
           `visit http://localhost:${this.options?.port || 8080}${
-            this.options.documentation.path
-          } see the displayed routes in UI`
+            this.options.documentation.path || "/api-doc"
+          } to see the displayed routes in UI`
         );
       }
       if (this.options?.displayRoutes === "FILE") {
