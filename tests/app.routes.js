@@ -153,8 +153,9 @@ export async function GET_error(ctx) {
 import busboy from "busboy";
 import { createWriteStream } from "node:fs";
 export async function POST_(ctx) {
-    console.log(ctx);
-    const bb = busboy({ headers: ctx.request.headers });
+    const contentType = ctx.request.headers["content-type"] ||
+        ctx.request.headers.get("content-type");
+    const bb = busboy({ headers: { "content-type": contentType } });
     bb.on("file", (name, file, info) => {
         console.log({
             name,
@@ -169,6 +170,14 @@ export async function POST_(ctx) {
     bb.on("close", () => {
         ctx.send("done!");
     });
+    console.log(ctx.request);
+    // const stream = new ReadableStream({
+    //   start(controller) {
+    //     controller.enqueue((ctx.request as unknown as Request).arrayBuffer);
+    //     controller.close();
+    //   },
+    // });
+    // stream.pipeThrough(bb);
     ctx.request.pipe(bb);
     ctx.eject();
 }

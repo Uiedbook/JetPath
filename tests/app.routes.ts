@@ -170,8 +170,10 @@ import busboy from "busboy";
 import { WriteStream, createWriteStream } from "node:fs";
 
 export async function POST_(ctx: AppCTX) {
-  console.log(ctx);
-  const bb = busboy({ headers: ctx.request.headers });
+  const contentType =
+    ctx.request.headers["content-type"] ||
+    (ctx.request.headers as unknown as Headers).get("content-type");
+  const bb = busboy({ headers: { "content-type": contentType } });
   bb.on(
     "file",
     (
@@ -193,6 +195,15 @@ export async function POST_(ctx: AppCTX) {
   bb.on("close", () => {
     ctx.send("done!");
   });
+  console.log(ctx.request);
+
+  // const stream = new ReadableStream({
+  //   start(controller) {
+  //     controller.enqueue((ctx.request as unknown as Request).arrayBuffer);
+  //     controller.close();
+  //   },
+  // });
+  // stream.pipeThrough(bb);
   ctx.request.pipe(bb);
   ctx.eject();
 }
@@ -203,3 +214,5 @@ export const BODY_: JetSchema = {
   },
   method: "POST",
 };
+
+

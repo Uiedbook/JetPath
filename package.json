@@ -47,7 +47,8 @@
   "private": false,
   "devDependencies": {
     "@types/node": "^20.11.16",
-    "busboy": "^1.6.0"
+    "busboy": "^1.6.0",
+    "ws": "^8.17.0"
   },
   "dependencies": {
     "mime": "^4.0.1"
