@@ -101,6 +101,7 @@ export async function PUT_petBy$id(ctx: AppCTX) {
   const updatedPetData = BODY_petBy$id.validate?.(await ctx.json());
   const petId = ctx.params.id;
   console.log({ updatedPetData, petId });
+
   const index = pets.findIndex((p) => p.id === petId);
   if (index !== -1) {
     // Update the existing pet's data
@@ -214,5 +215,3 @@ export const BODY_: JetSchema = {
   },
   method: "POST",
 };
-
-
