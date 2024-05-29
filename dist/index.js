@@ -2,15 +2,17 @@ import mime from "mime/lite";
 import { access, writeFile } from "node:fs/promises";
 import { _JetPath_app_config, _JetPath_hooks, _JetPath_paths, compileUI, getHandlers, UTILS, } from "./primitives/functions.js";
 import {} from "./primitives/types.js";
+export { JetPlugin } from "./primitives/plugin.js";
+import { JetPlugin } from "./primitives/plugin.js";
 export class JetPath {
     server;
     listening = false;
     options;
+    plugs = [];
     constructor(options) {
         this.options = options || {
-            displayRoutes: true,
+            APIdisplay: "UI",
         };
-        // ? setting http routes automatically
         // ? setting up app configs
         for (const [k, v] of Object.entries(this.options)) {
             _JetPath_app_config.set(k, v);
@@ -18,26 +20,39 @@ export class JetPath {
         if (!options?.cors) {
             _JetPath_app_config.set("cors", true);
         }
-        this.server = UTILS.server();
     }
-    decorate(decorations) {
+    use(plugin) {
         if (this.listening) {
-            throw new Error("Your app is listening new decorations can't be added.");
+            throw new Error("Your app is listening new plugins can't be added.");
         }
-        if (typeof decorations !== "object") {
-            // console.log({ decorations });
-            throw new Error("could not add decoration to ctx");
+        if (plugin instanceof JetPlugin) {
+            this.plugs.push(plugin);
         }
-        if (typeof decorations === "object") {
-            for (const key in decorations) {
-                if (!UTILS.ctx[key]) {
-                    UTILS.ctx[key] =
-                        decorations[key];
-                }
-            }
+        else {
+            console.log(plugin);
+            throw Error("invalid Jetpath plugin");
         }
     }
+    // decorate(decorations: Record<string, (ctx: AppCTX) => void>) {
+    //   if (this.listening) {
+    //     throw new Error("Your app is listening new decorations can't be added.");
+    //   }
+    //   if (typeof decorations !== "object") {
+    //     // console.log({ decorations });
+    //     throw new Error("could not add decoration to ctx");
+    //   }
+    //   if (typeof decorations === "object") {
+    //     for (const key in decorations) {
+    //       if (!UTILS.ctx[key as keyof AppCTX]) {
+    //         (UTILS.ctx as unknown as Record<string, (ctx: AppCTX) => void>)[key] =
+    //           decorations[key];
+    //       }
+    //     }
+    //   }
+    // }
     async listen() {
+        // ? kickoff server
+        this.server = UTILS.server(this.plugs);
         // ? {-view-} here is replaced at build time to html
         let UI = `<!DOCTYPE html>
 <html lang="en">
@@ -790,9 +805,10 @@ async function testApi(
        <a style="text-align: center; margin-top: 5rem;">2024 Alrights reserved {NAME}</a>
   </body>
 </html>`;
-        if (this.options?.publicPath?.route && this.options?.publicPath?.dir) {
-            _JetPath_paths["GET"][this.options.publicPath.route + "/*"] = async (ctx) => {
-                const fileName = this.options.publicPath.dir +
+        // ? setting up static server
+        if (this.options?.static?.route && this.options?.static?.dir) {
+            _JetPath_paths["GET"][this.options.static.route + "/*"] = async (ctx) => {
+                const fileName = this.options?.static?.dir +
                     "/" +
                     decodeURI(ctx.params?.["extraPath"]);
                 if (fileName) {
@@ -803,15 +819,16 @@ async function testApi(
                     catch (error) {
                         return ctx.throw();
                     }
-                    return ctx.pipe(fileName, contentType);
+                    return ctx.sendStream(fileName, contentType);
                 }
                 else {
                     return ctx.throw();
                 }
             };
         }
+        //? settingup api viewer
         if (typeof this.options !== "object" ||
-            this.options?.displayRoutes !== false) {
+            this.options?.APIdisplay !== false) {
             let c = 0, t = "";
             console.log("JetPath: compiling...");
             const startTime = performance.now();
@@ -839,7 +856,7 @@ async function testApi(
                             }
                         }
                         const api = `\n
-${k} ${this.options?.displayRoutes === "UI"
+${k} ${this.options?.APIdisplay === "UI"
                             ? "[--host--]"
                             : "http://localhost:" + (this.options?.port || 8080)}${p} HTTP/1.1
 ${h.length ? h.join("\n") : ""}\n
@@ -847,7 +864,7 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v &
                             ? "#" + v?.["info"] + "-JETE"
                             : ""}
 ###`;
-                        if (this.options.displayRoutes) {
+                        if (this.options.APIdisplay) {
                             t += api;
                         }
                         else {
@@ -857,20 +874,19 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v &
                     }
                 }
             }
-            if (this.options?.displayRoutes === "UI") {
+            if (this.options?.APIdisplay === "UI") {
                 UI = compileUI(UI, this.options, t);
-                _JetPath_paths["GET"][this.options?.documentation?.path || "/api-doc"] =
-                    (ctx) => {
-                        ctx.send(UI, "text/html");
-                    };
-                console.log(`visit http://localhost:${this.options?.port || 8080}${this.options.documentation.path || "/api-doc"} to see the displayed routes in UI`);
+                _JetPath_paths["GET"][this.options?.apiDoc?.path || "/api-doc"] = (ctx) => {
+                    ctx.send(UI, "text/html");
+                };
+                console.log(`visit http://localhost:${this.options?.port || 8080}${this.options?.apiDoc?.path || "/api-doc"} to see the displayed routes in UI`);
             }
-            if (this.options?.displayRoutes === "FILE") {
-                UI = compileUI(UI, this.options, t);
-                await writeFile("api-doc.html", UI);
-                console.log(`Open api-doc.html to view the rendered routes in UI`);
-            }
-            if (this.options?.displayRoutes === "HTTP") {
+            // if (this.options?.APIdisplay === "FILE") {
+            //   UI = compileUI(UI, this.options, t);
+            //   await writeFile("api-doc.html", UI);
+            //   console.log(`Open api-doc.html to view the rendered routes in UI`);
+            // }
+            if (this.options?.APIdisplay === "HTTP") {
                 await writeFile("api-doc.http", t);
                 console.log(`Check ./api-doc.http to test the routes Visual Studio rest client extension`);
             }
@@ -879,6 +895,7 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v &
         else {
             await getHandlers(this.options?.source, false);
         }
+        // ? listening
         this.listening = true;
         console.log(`\nListening on http://localhost:${this.options?.port || 8080}/`);
         this.server.listen(this.options?.port || 8080);

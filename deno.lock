@@ -4,7 +4,8 @@
     "specifiers": {
       "npm:@types/node@^20.11.16": "npm:@types/node@20.11.16",
       "npm:busboy@^1.6.0": "npm:busboy@1.6.0",
-      "npm:mime@^4.0.1": "npm:mime@4.0.1"
+      "npm:mime@^4.0.1": "npm:mime@4.0.1",
+      "npm:ws@^8.17.0": "npm:ws@8.17.0"
     },
     "npm": {
       "@types/node@20.11.16": {
@@ -30,6 +31,10 @@
       "undici-types@5.26.5": {
         "integrity": "sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==",
         "dependencies": {}
+      },
+      "ws@8.17.0": {
+        "integrity": "sha512-uJq6108EgZMAl20KagGkzCKfMEjxmKvZHG7Tlq0Z6nOky7YF7aq4mOx6xK8TJ/i1LeK4Qus7INktacctDgY8Ow==",
+        "dependencies": {}
       }
     }
   },
@@ -39,7 +44,8 @@
       "dependencies": [
         "npm:@types/node@^20.11.16",
         "npm:busboy@^1.6.0",
-        "npm:mime@^4.0.1"
+        "npm:mime@^4.0.1",
+        "npm:ws@^8.17.0"
       ]
     }
   }

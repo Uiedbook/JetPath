@@ -2,99 +2,80 @@
 /// <reference types="node" />
 import { IncomingMessage } from "node:http";
 import { Stream } from "node:stream";
-export type AppCTX<Type = {}> = {
+export type AppCTX = {
     /**
-     * Parses the request as JSON
-     * :proto
+     * remove request control from the request
      */
-    json(): Promise<Record<string, any>>;
+    eject(): never;
     /**
-     * validate the request
-     * :proto
-     */
-    validate(data: any): Record<string, any>;
-    /**
-     * get and set status code
-     * :proto
-     */
-    code: number;
-    /**
-     * get search params after api/?
-     * :proto
-     */
-    search: Record<string, string>;
-    /**
-     * get route params in api/:thing
-     * :proto
-     */
-    params: Record<string, string>;
-    /**
-     * get original request
-     * :proto
+     * reply the request
      */
     request: IncomingMessage;
     /**
-     * get handler defined path
-     *
+     * API status
      */
-    path: string;
+    code: number;
+    /**
+     * an object you can set values to per request
+     */
+    app: Record<string, any>;
+    /**
+     * send a stream
+     */
+    sendStream(stream: Stream | string, ContentType: string): never;
     /**
      * reply the request
      *
      */
     send(data: unknown, ContentType?: string): never;
     /**
-     * reply the request
-     * :proto
-     */
-    sendReponse(response: Response): never;
-    /**
-     * remove request from the jetpath secure control
-     * :proto
-     */
-    eject(): never;
-    /**
      * end the request with an error
-     * :proto
      */
     throw(code?: number | string | Record<string, any> | unknown, message?: string | Record<string, any>): never;
     /**
-     * :proto
      * redirect the request
      */
     redirect(url: string): never;
     /**
      * get request header values
-     * :proto
      */
     get(field: string): string | undefined;
     /**
      * set request header values
-     * :proto
      */
     set(field: string, value: string): void;
     /**
-     * an object you can set values to per request
-     * :proto
+     * Parses the request as JSON
      */
-    app: Record<string, any>;
     /**
-     * send a stream
-     * :proto
+     * get and set status code
      */
-    pipe(stream: Stream | string, ContentType: string): never;
+    json(): Promise<Record<string, any>>;
+    /**
+     * get search params after api/?
+     */
+    search: Record<string, string>;
+    /**
+     * get route params in api/:thing
+     */
+    params: Record<string, string>;
+    /**
+     * get original request
+     */
+    path: string;
     _1?: string | undefined;
     _2?: Record<string, string>;
     _3?: Stream | undefined;
     _4?: boolean | undefined;
     _5?: (() => never) | undefined;
-} & Type;
+} | Record<string, any>;
 export interface JetSchema {
     body?: Record<string, {
         err?: string;
         type?: "string" | "number" | "file" | "object" | "boolean" | StringConstructor | NumberConstructor | BooleanConstructor | ObjectConstructor;
         RegExp?: RegExp;
-        inputType?: "color" | "date" | "email" | "file" | "text" | "image" | "password" | "number" | "time" | "tel" | "datetime" | "url";
+        inputAccept?: string;
+        inputType?: "color" | "date" | "email" | "file" | "text" | "password" | "number" | "time" | "tel" | "datetime" | "url";
         defaultValue?: string;
         nullable?: boolean;
         ranges?: Record<number, string>;
@@ -110,3 +91,37 @@ export interface JetSchema {
 export type contentType = "application/x-www-form-urlencoded" | "multipart/form-data" | "application/json";
 export type methods = "GET" | "POST" | "OPTIONS" | "DELETE" | "HEAD" | "PUT" | "PATCH";
 export type allowedMethods = methods[];
+export type jetOptions = {
+    apiDoc?: {
+        name?: string;
+        info?: string;
+        color?: string;
+        logo?: string;
+        path?: string;
+    };
+    source?: string;
+    credentials?: {
+        cert: string;
+        key: string;
+    };
+    APIdisplay?: "UI" | "HTTP" | false;
+    port?: number;
+    static?: {
+        route: string;
+        dir: string;
+    };
+    cors?: {
+        allowMethods?: allowedMethods;
+        secureContext?: boolean;
+        allowHeaders?: string[];
+        exposeHeaders?: string[];
+        keepHeadersOnError?: boolean;
+        maxAge?: string;
+        credentials?: boolean;
+        privateNetworkAccess?: any;
+        origin?: string;
+    } | boolean;
+    websocket?: {
+        idleTimeout?: number;
+    } | boolean;
+};

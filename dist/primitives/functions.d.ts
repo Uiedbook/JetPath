@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { type AppCTX, type JetSchema, type allowedMethods, type methods } from "./types.js";
 import { Stream } from "node:stream";
+import type { JetPlugin } from "./plugin.js";
 /**
  * an inbuilt CORS post hook
  *
@@ -31,8 +32,11 @@ export declare function corsHook(options: {
     origin: string[];
 }): Function;
 export declare const UTILS: {
+    wsFuncs: never[];
     ctx: {
-        app: {};
+        app: {
+            body: null;
+        };
         request: any;
         code: number;
         send(data: unknown, contentType: string): never;
@@ -41,10 +45,8 @@ export declare const UTILS: {
         get(field: string): string | undefined;
         set(field: string, value: string): void;
         eject(): never;
-        pipe(stream: Stream | string, ContentType: string): never;
-        sendReponse(response: Response): never;
+        sendStream(stream: Stream | string, ContentType: string): never;
         json<Type = Record<string, any>>(): Promise<Type>;
-        validate(data?: any): Record<string, any>;
         params: {};
         search: {};
         path: string;
@@ -53,7 +55,6 @@ export declare const UTILS: {
         _3: any;
         _4: boolean;
         _5: any;
-        _6: boolean;
     };
     ae(cb: {
         (): any;
@@ -63,7 +64,7 @@ export declare const UTILS: {
     set(): void;
     runtime: Record<string, boolean>;
     validators: Record<string, JetSchema>;
-    server(): {
+    server(plugs: JetPlugin[]): {
         listen: any;
     } | void;
 };

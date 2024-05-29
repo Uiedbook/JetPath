@@ -1,7 +1,8 @@
 import { JetPath } from "../dist/index.js";
+import { busboyjet } from "./plug.js";
 // const app = new JetPath({ source: "tests" });
 const app = new JetPath({
-    documentation: {
+    apiDoc: {
         name: "PetShop API Doc",
         info: `
     PetShop API Documentation
@@ -10,18 +11,9 @@ const app = new JetPath({
         logo: "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp",
     },
     source: "tests",
-    displayRoutes: "UI",
-    publicPath: { dir: "./src", route: "/assest" },
+    APIdisplay: "UI",
+    static: { dir: "./src", route: "/assest" },
     port: 9000,
 });
-// Spinning the HTTP server and the WebSocket server.
-const server = app.server;
-// const wss = new WebSocketServer({ server });
-// wss.on("connection", function connection(ws) {
-//   ws.on("error", console.error);
-//   ws.on("message", function message(data) {
-//     console.log("received: %s", data);
-//   });
-//   ws.send("something");
-// });
+app.use(busboyjet);
 app.listen();

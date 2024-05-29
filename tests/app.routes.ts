@@ -74,7 +74,7 @@ export function GET_petBy$id(ctx: AppCTX) {
 // Add a New Pet: Add a new pet to the inventory
 export async function POST_pets(ctx: AppCTX) {
   const body = (await ctx.json()) as object;
-  ctx.validate?.(body);
+  BODY_pets.validate?.(body);
   const newPet = body as { id: string; imageUrl: string; name: string };
   // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
   newPet.id = String(Date.now());
@@ -101,7 +101,6 @@ export async function PUT_petBy$id(ctx: AppCTX) {
   const updatedPetData = BODY_petBy$id.validate?.(await ctx.json());
   const petId = ctx.params.id;
   console.log({ updatedPetData, petId });
-
   const index = pets.findIndex((p) => p.id === petId);
   if (index !== -1) {
     // Update the existing pet's data
@@ -158,59 +157,26 @@ export async function POST_petImage$id(ctx: AppCTX) {
 
 // ? error hook
 export function hook__ERROR(ctx: AppCTX, err: unknown) {
-  ctx.code = 400;
-  // console.log(err);
-  ctx.send(String(err));
+  ctx.app.clean();
+  ctx.throw(String(err));
 }
 
 export async function GET_error(ctx: AppCTX) {
   ctx.throw("Edwinger loves jetpath");
 }
 
-import busboy from "busboy";
-import { WriteStream, createWriteStream } from "node:fs";
-
 export async function POST_(ctx: AppCTX) {
-  const contentType =
-    ctx.request.headers["content-type"] ||
-    (ctx.request.headers as unknown as Headers).get("content-type");
-  const bb = busboy({ headers: { "content-type": contentType } });
-  bb.on(
-    "file",
-    (
-      name: any,
-      file: { pipe: (arg0: WriteStream) => void },
-      info: { filename: string }
-    ) => {
-      console.log({
-        name,
-        info,
-      });
-      const saveTo = path.join(info.filename);
-      file.pipe(createWriteStream(saveTo));
-    }
-  );
-  bb.on("field", (name, val, info) => {
-    console.log(`Field [${name}]: value: %j`, val);
-  });
-  bb.on("close", () => {
-    ctx.send("done!");
-  });
-  console.log(ctx.request);
-
-  // const stream = new ReadableStream({
-  //   start(controller) {
-  //     controller.enqueue((ctx.request as unknown as Request).arrayBuffer);
-  //     controller.close();
-  //   },
-  // });
-  // stream.pipeThrough(bb);
-  ctx.request.pipe(bb);
-  ctx.eject();
+  const form = await ctx.app.formData(ctx);
+  console.log(form);
+  if (form.image) {
+    await form.image.saveTo(form.image.filename);
+  }
+  ctx.send(form);
 }
 export const BODY_: JetSchema = {
   body: {
-    filefield: { type: "file", inputType: "file" },
+    image: { type: "file", inputType: "file" },
+    video: { type: "file", inputType: "file" },
     textfield: { type: "string", nullable: false },
   },
   method: "POST",

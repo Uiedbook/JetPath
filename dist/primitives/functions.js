@@ -84,8 +84,9 @@ export function corsHook(options) {
     };
 }
 export const UTILS = {
+    wsFuncs: [],
     ctx: {
-        app: {},
+        app: { body: null },
         request: null,
         code: 200,
         send(data, contentType) {
@@ -185,7 +186,7 @@ export const UTILS = {
         eject() {
             throw _OFF;
         },
-        pipe(stream, ContentType) {
+        sendStream(stream, ContentType) {
             if (!this._2) {
                 this._2 = {};
             }
@@ -209,14 +210,13 @@ export const UTILS = {
             return undefined;
         },
         // TODO: make this working
-        sendReponse(response) {
-            this._1 = response;
-            this._4 = true;
-            if (!this._5)
-                throw _RES;
-            this._5();
-            return undefined;
-        },
+        // sendReponse(response: Response) {
+        //   this._1 = response;
+        //   this._4 = true;
+        //   if (!this._5) throw _RES;
+        //   this._5();
+        //   return undefined as never;
+        // },
         json() {
             // FIXME:  calling this function twice cause an request hang in nodejs
             if (!UTILS.runtime["node"]) {
@@ -242,12 +242,12 @@ export const UTILS = {
                 });
             });
         },
-        validate(data = {}) {
-            if (UTILS.validators[this.path]) {
-                return validate(UTILS.validators[this.path], data);
-            }
-            throw new Error("no validation BODY! for path " + this.path);
-        },
+        // validate(data: any = {}) {
+        //   if (UTILS.validators[this.path]) {
+        //     return validate(UTILS.validators[this.path!], data);
+        //   }
+        //   throw new Error("no validation BODY! for path " + this.path);
+        // },
         params: {},
         search: {},
         path: "/",
@@ -262,7 +262,7 @@ export const UTILS = {
         //? used to know if the request has been offloaded
         _5: false,
         //? response
-        _6: false,
+        // _6: false,
     },
     ae(cb) {
         try {
@@ -282,32 +282,51 @@ export const UTILS = {
     },
     runtime: null,
     validators: {},
-    server() {
+    server(plugs) {
+        let server;
+        let serverelse;
         if (UTILS.runtime["node"]) {
-            return createServer((x, y) => {
+            server = createServer((x, y) => {
                 JetPath_app(x, y);
             });
         }
         if (UTILS.runtime["deno"]) {
-            return {
+            server = {
                 listen(port) {
                     // @ts-ignore
-                    Deno.serve({ port: port }, JetPath_app);
+                    serverelse = Deno.serve({ port: port }, JetPath_app);
                 },
             };
         }
         if (UTILS.runtime["bun"]) {
-            return {
+            server = {
                 listen(port) {
                     // @ts-ignore
-                    Bun.serve({
+                    serverelse = Bun.serve({
                         port,
                         fetch: JetPath_app,
-                        websocket: _JetPath_paths?.POST?.["/ws"]?.(undefined),
+                        websocket: () => {
+                            // TODO make this working with plugins
+                            UTILS.wsFuncs;
+                        },
                     });
                 },
             };
         }
+        for (let i = 0; i < plugs.length; i++) {
+            const decorations = plugs[i]._setup({
+                server: (!UTILS.runtime["node"] ? serverelse : server),
+                runtime: UTILS.runtime,
+            });
+            if (typeof decorations === "object") {
+                for (const key in decorations) {
+                    if (!UTILS.ctx.app[key]) {
+                        UTILS.ctx.app[key] = decorations[key];
+                    }
+                }
+            }
+        }
+        return server;
     },
 };
 // ? setting up the runtime check
@@ -329,7 +348,7 @@ class JetPathErrors extends Error {
 }
 const _DONE = new JetPathErrors("done");
 const _OFF = new JetPathErrors("off");
-const _RES = new JetPathErrors("respond");
+// const _RES = new JetPathErrors("respond");
 export const _JetPath_app_config = {
     cors: false,
     set(opt, val) {
@@ -514,8 +533,8 @@ export async function getHandlers(source, print) {
                                     const decorator = module[p]();
                                     if (typeof decorator === "object") {
                                         for (const key in decorator) {
-                                            if (!UTILS.ctx[key]) {
-                                                UTILS.ctx[key] = decorator[key];
+                                            if (!UTILS.ctx.app[key]) {
+                                                UTILS.ctx.app[key] = decorator[key];
                                             }
                                         }
                                     }
@@ -546,7 +565,7 @@ export function validate(schema, data) {
         if (!data[prop] && nullable) {
             continue;
         }
-        if (!data[prop] && !nullable) {
+        if (data[prop] === undefined && !nullable) {
             if (err) {
                 errout = err;
             }

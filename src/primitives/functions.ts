@@ -13,6 +13,7 @@ import {
 } from "./types.js";
 import { Stream } from "node:stream";
 import { createReadStream } from "node:fs";
+import type { JetPlugin } from "./plugin.js";
 
 /**
  * an inbuilt CORS post hook
@@ -113,8 +114,9 @@ export function corsHook(options: {
 }
 
 export const UTILS = {
+  wsFuncs: [],
   ctx: {
-    app: {},
+    app: { body: null },
     request: null as any,
     code: 200,
     send(data: unknown, contentType: string) {
@@ -216,7 +218,7 @@ export const UTILS = {
       throw _OFF;
     },
 
-    pipe(stream: Stream | string, ContentType: string) {
+    sendStream(stream: Stream | string, ContentType: string) {
       if (!this._2) {
         this._2 = {};
       }
@@ -240,13 +242,13 @@ export const UTILS = {
       return undefined as never;
     },
     // TODO: make this working
-    sendReponse(response: Response) {
-      this._1 = response;
-      this._4 = true;
-      if (!this._5) throw _RES;
-      this._5();
-      return undefined as never;
-    },
+    // sendReponse(response: Response) {
+    //   this._1 = response;
+    //   this._4 = true;
+    //   if (!this._5) throw _RES;
+    //   this._5();
+    //   return undefined as never;
+    // },
 
     json<Type = Record<string, any>>(): Promise<Type> {
       // FIXME:  calling this function twice cause an request hang in nodejs
@@ -272,12 +274,12 @@ export const UTILS = {
       });
     },
 
-    validate(data: any = {}) {
-      if (UTILS.validators[this.path]) {
-        return validate(UTILS.validators[this.path!], data);
-      }
-      throw new Error("no validation BODY! for path " + this.path);
-    },
+    // validate(data: any = {}) {
+    //   if (UTILS.validators[this.path]) {
+    //     return validate(UTILS.validators[this.path!], data);
+    //   }
+    //   throw new Error("no validation BODY! for path " + this.path);
+    // },
     params: {},
     search: {},
     path: "/",
@@ -292,7 +294,7 @@ export const UTILS = {
     //? used to know if the request has been offloaded
     _5: false as any,
     //? response
-    _6: false,
+    // _6: false,
   },
   ae(cb: { (): any; (): any; (): void }) {
     try {
@@ -311,32 +313,51 @@ export const UTILS = {
   },
   runtime: null as unknown as Record<string, boolean>,
   validators: {} as Record<string, JetSchema>,
-  server(): { listen: any } | void {
+  server(plugs: JetPlugin[]): { listen: any } | void {
+    let server;
+    let serverelse;
     if (UTILS.runtime["node"]) {
-      return createServer((x: any, y: any) => {
+      server = createServer((x: any, y: any) => {
         JetPath_app(x, y);
       });
     }
     if (UTILS.runtime["deno"]) {
-      return {
+      server = {
         listen(port: number) {
           // @ts-ignore
-          Deno.serve({ port: port }, JetPath_app);
+          serverelse = Deno.serve({ port: port }, JetPath_app);
         },
       };
     }
     if (UTILS.runtime["bun"]) {
-      return {
+      server = {
         listen(port: number) {
           // @ts-ignore
-          Bun.serve({
+          serverelse = Bun.serve({
             port,
             fetch: JetPath_app,
-            websocket: _JetPath_paths?.POST?.["/ws"]?.(undefined as any),
+            websocket: () => {
+              // TODO make this working with plugins
+              UTILS.wsFuncs;
+            },
           });
         },
       };
     }
+    for (let i = 0; i < plugs.length; i++) {
+      const decorations = plugs[i]._setup({
+        server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
+        runtime: UTILS.runtime as any,
+      });
+      if (typeof decorations === "object") {
+        for (const key in decorations) {
+          if (!(UTILS.ctx.app as any)[key]) {
+            (UTILS.ctx.app as any)[key] = decorations[key];
+          }
+        }
+      }
+    }
+    return server!;
   },
 };
 // ? setting up the runtime check
@@ -367,7 +388,7 @@ class JetPathErrors extends Error {
 
 const _DONE = new JetPathErrors("done");
 const _OFF = new JetPathErrors("off");
-const _RES = new JetPathErrors("respond");
+// const _RES = new JetPathErrors("respond");
 
 export const _JetPath_app_config = {
   cors: false as unknown as (ctx: AppCTX) => void,
@@ -563,16 +584,11 @@ export async function getHandlers(source: string, print: boolean) {
               } else {
                 if (params === "DECORATOR") {
                   // ! DECORATOR point
-                  const decorator: AppCTX = module[p]();
+                  const decorator = module[p]();
                   if (typeof decorator === "object") {
                     for (const key in decorator) {
-                      if (!UTILS.ctx[key as keyof AppCTX]) {
-                        (
-                          UTILS.ctx as unknown as Record<
-                            string,
-                            (field: string) => string | undefined
-                          >
-                        )[key] = decorator[key as "get"];
+                      if (!(UTILS.ctx.app as any)[key]) {
+                        (UTILS.ctx.app as any)[key] = decorator[key];
                       }
                     }
                   }
@@ -603,7 +619,7 @@ export function validate(schema: JetSchema, data: any) {
     if (!data[prop] && nullable) {
       continue;
     }
-    if (!data[prop] && !nullable) {
+    if (data[prop] === undefined && !nullable) {
       if (err) {
         errout = err;
       } else {

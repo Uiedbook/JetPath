@@ -1,4 +1,3 @@
-import path from "path";
 //? Body validators
 export const BODY_pets = {
     body: {
@@ -65,7 +64,7 @@ export function GET_petBy$id(ctx) {
 // Add a New Pet: Add a new pet to the inventory
 export async function POST_pets(ctx) {
     const body = (await ctx.json());
-    ctx.validate?.(body);
+    BODY_pets.validate?.(body);
     const newPet = body;
     // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
     newPet.id = String(Date.now());
@@ -143,47 +142,24 @@ export async function POST_petImage$id(ctx) {
 }
 // ? error hook
 export function hook__ERROR(ctx, err) {
-    ctx.code = 400;
-    // console.log(err);
-    ctx.send(String(err));
+    ctx.app.clean();
+    ctx.throw(String(err));
 }
 export async function GET_error(ctx) {
     ctx.throw("Edwinger loves jetpath");
 }
-import busboy from "busboy";
-import { createWriteStream } from "node:fs";
 export async function POST_(ctx) {
-    const contentType = ctx.request.headers["content-type"] ||
-        ctx.request.headers.get("content-type");
-    const bb = busboy({ headers: { "content-type": contentType } });
-    bb.on("file", (name, file, info) => {
-        console.log({
-            name,
-            info,
-        });
-        const saveTo = path.join(info.filename);
-        file.pipe(createWriteStream(saveTo));
-    });
-    bb.on("field", (name, val, info) => {
-        console.log(`Field [${name}]: value: %j`, val);
-    });
-    bb.on("close", () => {
-        ctx.send("done!");
-    });
-    console.log(ctx.request);
-    // const stream = new ReadableStream({
-    //   start(controller) {
-    //     controller.enqueue((ctx.request as unknown as Request).arrayBuffer);
-    //     controller.close();
-    //   },
-    // });
-    // stream.pipeThrough(bb);
-    ctx.request.pipe(bb);
-    ctx.eject();
+    const form = await ctx.app.formData(ctx);
+    console.log(form);
+    if (form.image) {
+        await form.image.saveTo(form.image.filename);
+    }
+    ctx.send(form);
 }
 export const BODY_ = {
     body: {
-        filefield: { type: "file", inputType: "file" },
+        image: { type: "file", inputType: "file" },
+        video: { type: "file", inputType: "file" },
         textfield: { type: "string", nullable: false },
     },
     method: "POST",

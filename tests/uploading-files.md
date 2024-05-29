@@ -54,7 +54,7 @@ https://bun.sh/guides/http/file-uploads
 
 ```js
 // usage
-POST_upload_files(ctx) {
+export const POST_upload_image = (ctx) => {
      const formdata = await ctx.request.formData();
   const profilePicture = formdata.get("image");
   console.log(profilePicture);

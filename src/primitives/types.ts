@@ -1,97 +1,78 @@
 import { IncomingMessage } from "node:http";
 import { Stream } from "node:stream";
 
-export type AppCTX<Type = {}> = {
-  /**
-   * Parses the request as JSON
-   * :proto
-   */
-  json(): Promise<Record<string, any>>;
-  /**
-   * validate the request
-   * :proto
-   */
-  validate(data: any): Record<string, any>;
-  /**
-   * get and set status code
-   * :proto
-   */
-  code: number;
-  /**
-   * get search params after api/?
-   * :proto
-   */
-  search: Record<string, string>;
-  /**
-   * get route params in api/:thing
-   * :proto
-   */
-  params: Record<string, string>;
-  /**
-   * get original request
-   * :proto
-   */
-  request: IncomingMessage;
-  /**
-   * get handler defined path
-   *
-   */
-  path: string;
-  /**
-   * reply the request
-   *
-   */
-  send(data: unknown, ContentType?: string): never;
-  /**
-   * reply the request
-   * :proto
-   */
-  sendReponse(response: Response): never;
-  /**
-   * remove request from the jetpath secure control
-   * :proto
-   */
-  eject(): never;
-  /**
-   * end the request with an error
-   * :proto
-   */
-  throw(
-    code?: number | string | Record<string, any> | unknown,
-    message?: string | Record<string, any>
-  ): never;
-  /**
-   * :proto
-   * redirect the request
-   */
-  redirect(url: string): never;
-  /**
-   * get request header values
-   * :proto
-   */
-  get(field: string): string | undefined;
-  /**
-   * set request header values
-   * :proto
-   */
-  set(field: string, value: string): void;
-  /**
-   * an object you can set values to per request
-   * :proto
-   */
-  app: Record<string, any>;
-  /**
-   * send a stream
-   * :proto
-   */
-  pipe(stream: Stream | string, ContentType: string): never;
-  _1?: string | undefined;
-  _2?: Record<string, string>;
-  _3?: Stream | undefined;
-  _4?: boolean | undefined;
-  _5?: (() => never) | undefined;
-  // files(): Promise<any>;
-} & Type;
+export type AppCTX =
+  | {
+      /**
+       * remove request control from the request
+       */
+      eject(): never;
+      /**
+       * reply the request
+       */
+      request: IncomingMessage;
+      /**
+       * API status
+       */
+      code: number;
+      /**
+       * an object you can set values to per request
+       */
+      app: Record<string, any>;
+      /**
+       * send a stream
+       */
+      sendStream(stream: Stream | string, ContentType: string): never;
+      /**
+       * reply the request
+       *
+       */
+      send(data: unknown, ContentType?: string): never;
+      /**
+       * end the request with an error
+       */
+      throw(
+        code?: number | string | Record<string, any> | unknown,
+        message?: string | Record<string, any>
+      ): never;
+      /**
+       * redirect the request
+       */
+      redirect(url: string): never;
+      /**
+       * get request header values
+       */
+      get(field: string): string | undefined;
+      /**
+       * set request header values
+       */
+      set(field: string, value: string): void;
+      /**
+       * Parses the request as JSON
+       */
+      /**
+       * get and set status code
+       */
+      json(): Promise<Record<string, any>>;
+      /**
+       * get search params after api/?
+       */
+      search: Record<string, string>;
+      /**
+       * get route params in api/:thing
+       */
+      params: Record<string, string>;
+      /**
+       * get original request
+       */
+      path: string;
+      _1?: string | undefined;
+      _2?: Record<string, string>;
+      _3?: Stream | undefined;
+      _4?: boolean | undefined;
+      _5?: (() => never) | undefined;
+    }
+  | Record<string, any>;
 export interface JetSchema {
   body?: Record<
     string,
@@ -108,31 +89,19 @@ export interface JetSchema {
         | BooleanConstructor
         | ObjectConstructor;
       RegExp?: RegExp;
+      inputAccept?: string;
       inputType?:
         | "color"
         | "date"
         | "email"
         | "file"
         | "text"
-        | "image"
         | "password"
         | "number"
         | "time"
         | "tel"
         | "datetime"
         | "url";
-      // |"button"
-      // |"checkbox"
-      // |"hidden"
-      // |"month"
-      // |"radio"
-      // |"range"
-      // |"reset"
-      // |"search"
-      // |"submit"
-      // |"Play"
-      // "week";
-
       defaultValue?: string;
       nullable?: boolean;
       ranges?: Record<number, string>;
@@ -162,3 +131,39 @@ export type methods =
   | "PATCH";
 
 export type allowedMethods = methods[];
+
+export type jetOptions = {
+  apiDoc?: {
+    name?: string;
+    info?: string;
+    color?: string;
+    logo?: string;
+    path?: string;
+  };
+  source?: string;
+  credentials?: {
+    cert: string;
+    key: string;
+  };
+  APIdisplay?: "UI" | "HTTP" | false;
+  port?: number;
+  static?: { route: string; dir: string };
+  cors?:
+    | {
+        allowMethods?: allowedMethods;
+        secureContext?: boolean;
+        allowHeaders?: string[];
+        exposeHeaders?: string[];
+        keepHeadersOnError?: boolean;
+        maxAge?: string;
+        credentials?: boolean;
+        privateNetworkAccess?: any;
+        origin?: string;
+      }
+    | boolean;
+  websocket?:
+    | {
+        idleTimeout?: number;
+      }
+    | boolean;
+};

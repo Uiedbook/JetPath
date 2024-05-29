@@ -1,37 +1,13 @@
-import { type allowedMethods, type AppCTX } from "./primitives/types.js";
+import { type jetOptions } from "./primitives/types.js";
+export { JetPlugin } from "./primitives/plugin.js";
+import { JetPlugin } from "./primitives/plugin.js";
 export declare class JetPath {
     server: any;
     private listening;
     private options;
-    constructor(options?: {
-        documentation?: {
-            name?: string;
-            info?: string;
-            color?: string;
-            logo?: string;
-            path?: string;
-        };
-        source?: string;
-        credentials?: any;
-        displayRoutes?: "UI" | "HTTP";
-        port?: number;
-        publicPath?: {
-            route: string;
-            dir: string;
-        };
-        cors?: {
-            allowMethods?: allowedMethods;
-            secureContext?: boolean;
-            allowHeaders?: string[];
-            exposeHeaders?: string[];
-            keepHeadersOnError?: boolean;
-            maxAge?: string;
-            credentials?: boolean;
-            privateNetworkAccess?: any;
-            origin?: string;
-        } | boolean;
-    });
-    decorate(decorations: Record<string, (ctx: AppCTX) => void>): void;
+    private plugs;
+    constructor(options?: jetOptions);
+    use(plugin: JetPlugin): void;
     listen(): Promise<void>;
 }
 export type { AppCTX, JetSchema } from "./primitives/types.js";
