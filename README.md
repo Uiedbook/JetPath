@@ -5,7 +5,7 @@
   <h1 align="center">JetPath</h1>
 
   <p align="center">
-    JetPath 🚀 - A fast and minimalist framework for Node, Deno and Bun.js. Embrace a new dev DX!
+    JetPath 🚀 - Is a granular, fast and minimalist framework for Node, Deno and Bun. Embrace a new standard!!!
     <br/>
     <br/>
     <a href="https://github.com/uiedbook/JetPath#examples"><strong>Explore JetPath APIs »</strong></a>
@@ -51,32 +51,31 @@ this version we fixed issues with the inbuilt cors hook.
 
 # Rationale
 
-JetPath is a Small Server-side framework that is Fast and Easy to use.
+JetPath is a web framework that is Granularity, Fast and Easy to use.
 
 [benchmark repo](https://github.com/FridayCandour/jetpath-benchmark)
 
-- JetPath now runs one the runtime you are using, bun or node or deno.
+- JetPath now runs on the runtime you are using, bun or node or deno.
 - Function names as routing patterns (newest innovation you haven't seen before).
 - Pre, Post and Error request hooks.
 - Inbuilt Cors handlers.
 - Fast and small and easy as peasy.
 - A strong backup community moved with passion for making the web better.
-- Now supports file streaming.
-- Inbuilt swagger functionality.
+- Inbuilt API auto doc functionality.
 
-In JetPath, unlike express, fastify or other Javascript base server-side framworks, JetPath is designed as a light, simple and but powerful, using the an intuitive route as function name system. you can be able to design and manage your api(s) with the smallest granularity possible.
+JetPath is designed as a light, simple and but powerful, using the an intuitive route as function name system. you can be able to design and manage your api(s) with the smallest granularity possible.
 
-This benefits are very lovely and delighting, but trust me you have never written javascript app in this manner before and you should definitely check this out for a new taste beyound what the mainstream offers, an eciting DX.
+This benefits are very lovely and delighting, but trust me you have never written javascript app in this manner before and you should definitely check this out.
 
 --
 
 ## How JetPath works
 
-JetPath works by search through the source forder and join up any defined paths and hooks that follows it's formart.
+JetPath works by search through the source forder and join up any defined handlers and hooks that follows it's format in files named [anything].route.js.
 
 ## Requirements to use JetPath.
 
-JetPath support all server-side Javascript runtimes:
+JetPath support all web Javascript runtimes:
 
 - Nodejs.
 - Denojs.
@@ -92,204 +91,40 @@ Install JetPath Right away on your project using npm or Javascript other package
 npm i jetpath --save
 ```
 
-## Usage
-
-JetPath is very simple, it allows you to create the most actions in app in a very simple intuitive way.
-
-#### A Basic App setup
+#### An hello App setup
 
 ```ts
-// in your src/app.js
-import JetPath from "jetpath";
+// in your src/index.routes.js
+
+import { JetPath } from "jetpath";
 
 const app = new JetPath({
-  source: "./src", // optional
-  port: 3000, // optional
-  cors: true, // optional
+  port: 8080,
 });
+
 //? listening for requests
 app.listen();
-```
 
-#### Example routes
-
-```ts
-// in your ./src/routes/PathShop.js
-
-import { AppCTX, Schema } from "../dist/index.js";
-
-//? Body validators
-
-export const BODY_pets: Schema = {
-  name: { err: "please provide dog name", type: "string" },
-  image: { type: "string", nullable: true, inputType: "file" },
-  age: { type: "number" },
-};
-export const BODY_petBy$id: Schema = {
-  name: { err: "please provide dog name", type: "string" },
-  image: { type: "string", nullable: true, inputType: "file" },
-  age: { type: "number" },
-};
-export const BODY_petImage$id: Schema = {
-  image: { type: "string", inputType: "file" },
-};
-
-// ? Routes
-
-// ? PETshop temperaly Database
-const pets: { id: string; imageUrl: string; name: string }[] = [];
-
-// ? /
+// = /
 export async function GET_(ctx: AppCTX) {
-  ctx.send("Welcome to Petshop!");
-}
-
-// List Pets: Retrieve a list of pets available in the shop
-// ? /pets
-export function GET_pets(ctx: AppCTX) {
-  ctx.send(pets);
-}
-
-// ? /petBy/19388
-// Get a Pet by ID: Retrieve detailed information about a specific pet by its unique identifier
-export function GET_petBy$id(ctx: AppCTX) {
-  const petId = ctx.params?.id;
-  const pet = pets.find((p) => p.id === petId);
-  if (pet) {
-    ctx.send(pet);
-  } else {
-    ctx.code = 404;
-    ctx.send({ message: "Pet not found" });
-  }
-}
-
-// ? /pets
-// Add a New Pet: Add a new pet to the inventory
-export async function POST_pets(ctx: AppCTX) {
-  ctx.validate(await ctx.json());
-  const newPet: { id: string; imageUrl: string; name: string } = ctx.body;
-  // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
-  newPet.id = String(Date.now());
-  pets.push(newPet);
-  ctx.send({ message: "Pet added successfully", pet: newPet });
-}
-
-// Update a Pet: Modify the details of an existing pet
-// ? /petBy/8766
-export async function PUT_petBy$id(ctx: AppCTX) {
-  ctx.validate(await ctx.json());
-  const petId = ctx.params.id;
-  const updatedPetData = await ctx.json();
-  const index = pets.findIndex((p) => p.id === petId);
-  if (index !== -1) {
-    // Update the existing pet's data
-    pets[index] = { ...pets[index], ...updatedPetData };
-    ctx.send({ message: "Pet updated successfully", pet: pets[index] });
-  } else {
-    ctx.code = 404;
-    ctx.send({ message: "Pet not found" });
-  }
-}
-
-// ? /petBy/8766
-// Delete a Pet: Remove a pet from the inventory
-export function DELETE_petBy$id(ctx: AppCTX) {
-  const petId = ctx.params.id;
-  const index = pets.findIndex((p) => p.id === petId);
-  if (index !== -1) {
-    const deletedPet = pets.splice(index, 1)[0];
-    ctx.send({ message: "Pet deleted successfully", pet: deletedPet });
-  } else {
-    ctx.code = 404;
-    ctx.send({ message: "Pet not found" });
-  }
-}
-
-// ? /petImage/76554
-// Upload a Pet's Image: Add an image to a pet's profile
-export async function POST_petImage$id(ctx: AppCTX) {
-  const petId = ctx.params.id; 
-  console.log(ctx.request);
-  const formdata = await ctx.request.formData();
-  console.log(formdata);
-  const profilePicture = formdata.get("image");
-  if (!profilePicture) throw new Error("Must upload a profile picture.");
-  console.log({ formdata, profilePicture });
-
-  const index = pets.findIndex((p) => p.id === petId);
-  if (index !== -1) {
-    // Attach the image URL to the pet's profile (in a real scenario, consider storing images externally)
-    pets[index].imageUrl = `/images/${petId}.png`;
-    // write profilePicture to disk 
-    await Bun.write(pets[index].imageUrl, profilePicture);
-    ctx.send({
-      message: "Image uploaded successfully",
-      imageUrl: pets[index].imageUrl,
-    });
-  } else {
-    ctx.code = 404;
-    ctx.send({ message: "Pet not found" });
-  }
-}
-
-// ? error hook
-export function hook__ERROR(ctx: AppCTX, err: unknown) {
-  ctx.code = 400;
-  console.log(err);
-  ctx.send(String(err));
-}
-
-//? hooks
-export function hook__POST(ctx, data) {
-  ctx.throw("no handlers for this request");
-}
-
-export function hook__PRE(ctx) {
-  console.log(ctx.method);
+  ctx.send("hello world!");
 }
 ```
-
-### ctx Overview at current
-
-ctx is th JetPath parameter your route functions are called with.
-
-```ts
-export type AppCTX = {
-  json(): Promise<Record<string, any>> | undefined;
-  validate(data: any): Record<string, any>;
-  body?: any;
-  code: number;
-  search: Record<string, string>;
-  params: Record<string, string>;
-  request: IncomingMessage | Request;
-  method: string;
-  reply(data: unknown, ContentType?: string): void;
-  throw(
-    code?: number | string | Record<string, any> | unknown,
-    message?: string | Record<string, any>
-  ): void;
-  redirect(url: string): void;
-  get(field: string): string | undefined;
-  set(field: string, value: string): void;
-  pipe(stream: Stream | string, ContentType: string): void;
-  app: Record<string, any>;
-};
-```
-
-When improvements and changes rolls out, we will quickly update this page and the currently prepared [web documentation]("https://uiedbook.gitbook.io/jetpath/").
 
 ## Where's JetPath future gonna be like?
 
 We have exhausted our Roadmap, let's me what your suggestions are!
 
+we are currently working an integrated admin interface, let us know what you think about that!!!
+
 ## Apache 2.0 Lincenced
 
 Opensourced And Free.
 
-Uiedbook is an open source team of web focused engineers, their vision is to make the web better, improving and innovating infrastructures for a better web experience.
+Uiedbook is an open source, our vision is to make the web better, improving and innovating infrastructures for a better web experience.
 
-You can Join the [Uiedbook group]("https://t.me/UiedbookHQ") on telegram.
-Ask your questions and become a team-member/contributor by becoming an insider.
+You can [join]("https://t.me/UiedbookHQ") on telegram.
+Ask your questions and contribute XD.
 
 ### Contribution and License Agreement
 
