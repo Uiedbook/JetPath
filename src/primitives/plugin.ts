@@ -3,7 +3,14 @@ import type { IncomingMessage, Server, ServerResponse } from "http";
 export class JetPlugin {
   name: string;
   version: string;
-  executor: any;
+  executor: (init: {
+    runtime: {
+      node: boolean;
+      bun: boolean;
+      deno: boolean;
+    };
+    server: Server<typeof IncomingMessage, typeof ServerResponse>;
+  }) => Record<string, Function>;
   constructor({
     name,
     version,
@@ -23,7 +30,7 @@ export class JetPlugin {
   _setup(init: {
     runtime: { node: boolean; bun: boolean; deno: boolean };
     server: Server<typeof IncomingMessage, typeof ServerResponse>;
-  }) {
+  }): any {
     return this.executor(init);
   }
 }

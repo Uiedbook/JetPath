@@ -73,6 +73,7 @@ export type AppCTX =
       _5?: (() => never) | undefined;
     }
   | Record<string, any>;
+
 export interface JetSchema {
   body?: Record<
     string,

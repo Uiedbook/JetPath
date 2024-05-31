@@ -17,7 +17,7 @@ export class JetPath {
   public server: any;
   private listening: boolean = false;
   private options: jetOptions;
-  private plugs: any[] = [];
+  private plugs: JetPlugin[] = [];
   constructor(options?: jetOptions) {
     this.options = options || {
       APIdisplay: "UI",
@@ -30,7 +30,7 @@ export class JetPath {
       _JetPath_app_config.set("cors", true);
     }
   }
-  use(plugin: JetPlugin) {
+  use(plugin: JetPlugin): void {
     if (this.listening) {
       throw new Error("Your app is listening new plugins can't be added.");
     }
@@ -41,24 +41,7 @@ export class JetPath {
       throw Error("invalid Jetpath plugin");
     }
   }
-  // decorate(decorations: Record<string, (ctx: AppCTX) => void>) {
-  //   if (this.listening) {
-  //     throw new Error("Your app is listening new decorations can't be added.");
-  //   }
-  //   if (typeof decorations !== "object") {
-  //     // console.log({ decorations });
-  //     throw new Error("could not add decoration to ctx");
-  //   }
-  //   if (typeof decorations === "object") {
-  //     for (const key in decorations) {
-  //       if (!UTILS.ctx[key as keyof AppCTX]) {
-  //         (UTILS.ctx as unknown as Record<string, (ctx: AppCTX) => void>)[key] =
-  //           decorations[key];
-  //       }
-  //     }
-  //   }
-  // }
-  async listen() {
+  async listen(): Promise<void> {
     // ? kickoff server
     this.server = UTILS.server(this.plugs);
     // ? {-view-} here is replaced at build time to html
@@ -154,11 +137,6 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
           } to see the displayed routes in UI`
         );
       }
-      // if (this.options?.APIdisplay === "FILE") {
-      //   UI = compileUI(UI, this.options, t);
-      //   await writeFile("api-doc.html", UI);
-      //   console.log(`Open api-doc.html to view the rendered routes in UI`);
-      // }
       if (this.options?.APIdisplay === "HTTP") {
         await writeFile("api-doc.http", t);
         console.log(
