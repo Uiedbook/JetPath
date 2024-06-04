@@ -8,7 +8,7 @@ import {
 import os from "node:os";
 import { cwd } from "node:process";
 import busboy from "busboy";
-import { AppCTX, JetPlugin } from "../dist/index.js";
+import { Context, JetPlugin } from "../dist/index.js";
 import path from "node:path";
 
 export const busboyjet = new JetPlugin({
@@ -16,7 +16,7 @@ export const busboyjet = new JetPlugin({
   version: "1.0.0",
   executor({ runtime, server }) {
     return {
-      formData(ctx: AppCTX) {
+      formData(ctx: Context) {
         return new Promise((res, rej) => {
           const data = {};
           try {

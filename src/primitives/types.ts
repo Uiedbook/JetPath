@@ -1,7 +1,7 @@
 import { IncomingMessage } from "node:http";
 import { Stream } from "node:stream";
 
-export type AppCTX =
+export type Context =
   | {
       /**
        * remove request control from the request

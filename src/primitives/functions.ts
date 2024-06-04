@@ -6,14 +6,14 @@ import { createServer } from "node:http";
 // type imports
 import { IncomingMessage, ServerResponse } from "node:http";
 import {
-  type AppCTX,
+  type Context,
   type JetSchema,
   type allowedMethods,
   type methods,
 } from "./types.js";
 import { Stream } from "node:stream";
 import { createReadStream } from "node:fs";
-import type { JetPlugin } from "./plugin.js";
+import type { JetPlugin } from "./classes.js";
 
 /**
  * an inbuilt CORS post hook
@@ -58,7 +58,7 @@ export function corsHook(options: {
   options.keepHeadersOnError =
     options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
 
-  return function cors(ctx: AppCTX) {
+  return function cors(ctx: Context) {
     //? Add Vary header to indicate response varies based on the Origin header
     ctx.set("Vary", "Origin");
     if (options.credentials === true) {
@@ -365,7 +365,7 @@ UTILS.set();
 
 export let _JetPath_paths: Record<
   methods,
-  Record<string, (ctx: AppCTX) => void | Promise<void>>
+  Record<string, (ctx: Context) => void | Promise<void>>
 > = {
   GET: {},
   POST: {},
@@ -377,7 +377,7 @@ export let _JetPath_paths: Record<
 };
 export const _JetPath_hooks: Record<
   string,
-  (ctx: AppCTX) => void | Promise<void>
+  (ctx: Context) => void | Promise<void>
 > = {};
 
 class JetPathErrors extends Error {
@@ -391,7 +391,7 @@ const _OFF = new JetPathErrors("off");
 // const _RES = new JetPathErrors("respond");
 
 export const _JetPath_app_config = {
-  cors: false as unknown as (ctx: AppCTX) => void,
+  cors: false as unknown as (ctx: Context) => void,
   set(this: any, opt: string, val: any) {
     if (opt === "cors" && val !== false) {
       this.cors = corsHook({
@@ -418,8 +418,8 @@ export const _JetPath_app_config = {
   },
 };
 
-const createCTX = (req: IncomingMessage): AppCTX => {
-  const ctx: AppCTX = Object.create(UTILS.ctx);
+const createCTX = (req: IncomingMessage): Context => {
+  const ctx: Context = Object.create(UTILS.ctx);
   ctx.request = req;
   return ctx;
 };
@@ -428,7 +428,7 @@ const createResponse = (
   res: ServerResponse<IncomingMessage> & {
     req: IncomingMessage;
   },
-  ctx: AppCTX,
+  ctx: Context,
   four04?: boolean
 ) => {
   //? add cors headers
@@ -581,18 +581,6 @@ export async function getHandlers(source: string, print: boolean) {
             } else {
               if ("POST-PRE-ERROR".includes(params as string)) {
                 _JetPath_hooks[params as string] = module[p];
-              } else {
-                if (params === "DECORATOR") {
-                  // ! DECORATOR point
-                  const decorator = module[p]();
-                  if (typeof decorator === "object") {
-                    for (const key in decorator) {
-                      if (!(UTILS.ctx.app as any)[key]) {
-                        (UTILS.ctx.app as any)[key] = decorator[key];
-                      }
-                    }
-                  }
-                }
               }
             }
           }

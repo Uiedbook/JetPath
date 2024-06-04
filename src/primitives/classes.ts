@@ -1,8 +1,8 @@
 import type { IncomingMessage, Server, ServerResponse } from "http";
 
 export class JetPlugin {
-  name: string;
-  version: string;
+  name?: string;
+  version?: string;
   executor: (init: {
     runtime: {
       node: boolean;

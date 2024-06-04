@@ -1,5 +1,5 @@
 import path from "path";
-import { AppCTX, JetSchema } from "../dist/index.js";
+import { Context, JetSchema } from "../dist/index.js";
 
 //? Body validators
 
@@ -37,12 +37,11 @@ export const BODY_petImage$id: JetSchema = {
 const pets: { id: string; imageUrl: string; name: string }[] = [];
 
 // ? /
-export async function GET_(ctx: AppCTX) {
+export async function GET_(ctx: Context) {
   console.log({ ctx });
   for (const key in ctx) {
     console.log({ [key]: ctx[key] });
   }
-
   new Promise(() => {
     setTimeout(() => {
       ctx.send("Welcome to Petshop!");
@@ -53,13 +52,13 @@ export async function GET_(ctx: AppCTX) {
 
 // List Pets: Retrieve a list of pets available in the shop
 // ? /pets
-export function GET_pets(ctx: AppCTX) {
+export function GET_pets(ctx: Context) {
   ctx.send(pets);
 }
 
 // ? /petBy/19388
 // Get a Pet by ID: Retrieve detailed information about a specific pet by its unique identifier
-export function GET_petBy$id(ctx: AppCTX) {
+export function GET_petBy$id(ctx: Context) {
   const petId = ctx.params?.id;
   const pet = pets.find((p) => p.id === petId);
   if (pet) {
@@ -72,7 +71,7 @@ export function GET_petBy$id(ctx: AppCTX) {
 
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
-export async function POST_pets(ctx: AppCTX) {
+export async function POST_pets(ctx: Context) {
   const body = (await ctx.json()) as object;
   BODY_pets.validate?.(body);
   const newPet = body as { id: string; imageUrl: string; name: string };
@@ -84,7 +83,7 @@ export async function POST_pets(ctx: AppCTX) {
 
 // ? /pets/q/?
 // Add a New Pet: Add a new pet to the inventory
-export async function GET_pets_search$$(ctx: AppCTX) {
+export async function GET_pets_search$$(ctx: Context) {
   BODY_pets.validate?.(ctx.search);
   ctx.send({
     message: "Pets searched successfully",
@@ -97,7 +96,7 @@ export async function GET_pets_search$$(ctx: AppCTX) {
 
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
-export async function PUT_petBy$id(ctx: AppCTX) {
+export async function PUT_petBy$id(ctx: Context) {
   const updatedPetData = BODY_petBy$id.validate?.(await ctx.json());
   const petId = ctx.params.id;
   console.log({ updatedPetData, petId });
@@ -114,7 +113,7 @@ export async function PUT_petBy$id(ctx: AppCTX) {
 
 // ? /petBy/8766
 // Delete a Pet: Remove a pet from the inventory
-export function DELETE_petBy$id(ctx: AppCTX) {
+export function DELETE_petBy$id(ctx: Context) {
   const petId = ctx.params.id;
   const index = pets.findIndex((p) => p.id === petId);
   if (index !== -1) {
@@ -128,7 +127,7 @@ export function DELETE_petBy$id(ctx: AppCTX) {
 
 // ? /petImage/76554
 // Upload a Pet's Image: Add an image to a pet's profile
-export async function POST_petImage$id(ctx: AppCTX) {
+export async function POST_petImage$id(ctx: Context) {
   const petId = ctx.params.id;
   // @ts-ignore
   // console.log({ r: ctx.request });
@@ -156,16 +155,16 @@ export async function POST_petImage$id(ctx: AppCTX) {
 }
 
 // ? error hook
-export function hook__ERROR(ctx: AppCTX, err: unknown) {
+export function hook__ERROR(ctx: Context, err: unknown) {
   ctx.app.clean();
   ctx.throw(String(err));
 }
 
-export async function GET_error(ctx: AppCTX) {
+export async function GET_error(ctx: Context) {
   ctx.throw("Edwinger loves jetpath");
 }
 
-export async function POST_(ctx: AppCTX) {
+export async function POST_(ctx: Context) {
   const form = await ctx.app.formData(ctx);
   console.log(form);
   if (form.image) {

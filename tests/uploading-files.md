@@ -13,7 +13,7 @@ https://github.com/mscdex/busboy
 
 import busboy from "busboy";
 import { WriteStream, createWriteStream } from "fs";
-export async function POST_(ctx: AppCTX) {
+export async function POST_(ctx: Context) {
   const bb = busboy({ headers: ctx.request.headers });
   bb.on(
     "file",

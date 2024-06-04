@@ -5,7 +5,7 @@
   <h1 align="center">JetPath</h1>
 
   <p align="center">
-    JetPath 🚀 - Is a granular, fast and minimalist framework for Node, Deno and Bun. Embrace a new standard!!!
+    JetPath 🚀 - Is a granular, fast and minimalist framework for Node, Deno and Bun. Embrace new standards!!!
     <br/>
     <br/>
     <a href="https://github.com/uiedbook/JetPath#examples"><strong>Explore JetPath APIs »</strong></a>
@@ -106,7 +106,7 @@ const app = new JetPath({
 app.listen();
 
 // = /
-export async function GET_(ctx: AppCTX) {
+export async function GET_(ctx: Context) {
   ctx.send("hello world!");
 }
 ```

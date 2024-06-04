@@ -10,8 +10,7 @@ import {
   UTILS,
 } from "./primitives/functions.js";
 import { type jetOptions, type methods } from "./primitives/types.js";
-export { JetPlugin } from "./primitives/plugin.js";
-import { JetPlugin } from "./primitives/plugin.js";
+import { JetPlugin } from "./primitives/classes.js";
 
 export class JetPath {
   public server: any;
@@ -161,4 +160,5 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
 }
 
 //? exports
-export type { AppCTX, JetSchema } from "./primitives/types.js";
+export type { Context, JetSchema } from "./primitives/types.js";
+export { JetPlugin } from "./primitives/classes.js";
