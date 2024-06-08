@@ -9,6 +9,7 @@ import {
   type Context,
   type JetSchema,
   type allowedMethods,
+  type jetOptions,
   type methods,
 } from "./types.js";
 import { Stream } from "node:stream";
@@ -749,4 +750,48 @@ export const compileUI = (UI: string, options: any, api: string) => {
       "{INFO}",
       options?.documentation?.info || "This is a JethPath api preview."
     );
+};
+
+export const compileAPI = (options: jetOptions): [number, string] => {
+  let handlersCount = 0,
+    compiledAPI = "";
+  for (const k in _JetPath_paths) {
+    const r = _JetPath_paths[k as methods];
+    if (r && Object.keys(r).length) {
+      for (const p in r) {
+        const v = UTILS.validators[p] || {};
+        const b = v?.body || {};
+        const h_inial = v?.headers || {};
+        const h = [];
+        for (const name in h_inial) {
+          h.push(name + ":" + h_inial[name]);
+        }
+        const j: Record<string, any> = {};
+        if (b) {
+          for (const ke in b) {
+            j[ke] =
+              (b[ke as "info"] as any)?.defaultValue ||
+              (b[ke as "info"] as any)?.inputType ||
+              "text";
+          }
+        }
+        const api = `\n
+${k} ${
+          options?.APIdisplay === "UI"
+            ? "[--host--]"
+            : "http://localhost:" + (options?.port || 8080)
+        }${p} HTTP/1.1
+${h.length ? h.join("\n") : ""}\n
+${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
+          v && (v.method === k ? k : "") && v?.["info"]
+            ? "#" + v?.["info"] + "-JETE"
+            : ""
+        }
+###`;
+        compiledAPI += api;
+        handlersCount += 1;
+      }
+    }
+  }
+  return [handlersCount, compiledAPI];
 };

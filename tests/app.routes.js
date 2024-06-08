@@ -63,10 +63,8 @@ export function GET_petBy$id(ctx) {
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
 export async function POST_pets(ctx) {
-    const body = (await ctx.json());
-    BODY_pets.validate?.(body);
+    const body = BODY_pets.validate?.(await ctx.json());
     const newPet = body;
-    // Generate a unique ID for the new pet (in a real scenario, consider using a UUID or another robust method)
     newPet.id = String(Date.now());
     pets.push(newPet);
     ctx.send({ message: "Pet added successfully", pet: newPet });

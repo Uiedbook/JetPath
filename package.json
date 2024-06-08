@@ -37,7 +37,7 @@
     "deno": "deno run --allow-all tests/app.test.js",
     "bun": "bun -b tests/app.test.ts",
     "dev": "nodemon tests/app.test.js",
-    "watch": "tsc tests/* --target esnext --watch",
+    "watch": "tsc tests/*.ts --target esnext --watch",
     "build": "bun bundle.ts"
   },
   "engines": {
@@ -46,6 +46,7 @@
   },
   "private": false,
   "devDependencies": {
+    "@types/busboy": "^1.5.4",
     "@types/node": "^20.11.16",
     "busboy": "^1.6.0",
     "ws": "^8.17.0"
