@@ -794,12 +794,12 @@ export const compileAPI = (options: jetOptions): [number, string] => {
         }
         // ? combine api infos into .http formart
         const api = `\n
-        ${k} ${
+${k} ${
           options?.APIdisplay === "UI"
             ? "[--host--]"
             : "http://localhost:" + (options?.port || 8080)
         }${p} HTTP/1.1
-          ${h.length ? h.join("\n") : ""}\n
+${h.length ? h.join("\n") : ""}\n
 ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
           v && (v.method === k ? k : "") && v?.["info"]
             ? "#" + v?.["info"] + "-JETE"

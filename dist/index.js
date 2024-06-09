@@ -552,8 +552,7 @@ function parseRequest(requestString) {
 // API documentation
 const apiDocumentation = '{JETPATH}'.replaceAll("[--host--]", location.origin);
 const apiGlobalHeaders = '{JETPATHGH}';
-// parse headers
-console.log({apiGlobalHeaders});
+// parse headers 
 document.getElementById("keys")?.appendChild(
   parseINAPIBody(JSON.parse(apiGlobalHeaders))
   // parseINAPIBody(/*TODO: put the general api info here*/)

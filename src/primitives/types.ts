@@ -114,7 +114,7 @@ export interface JetSchema<JetBody extends HTTPBody = Record<string, any>> {
   info?: string;
   method?: methods;
   headers?: Record<string, string>;
-  search_params?: string[];
+  search?: Record<string, string>;
   validate?: (data?: any) => Record<keyof JetBody, any>;
 }
 
