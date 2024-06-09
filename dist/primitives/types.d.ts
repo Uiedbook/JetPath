@@ -76,7 +76,7 @@ interface HTTPBody {
         RegExp?: RegExp;
         inputAccept?: string;
         inputType?: "color" | "date" | "email" | "file" | "text" | "password" | "number" | "time" | "tel" | "datetime" | "url";
-        defaultValue?: string;
+        defaultValue?: string | number | boolean;
         nullable?: boolean;
         ranges?: Record<number, string>;
         model?: Record<string, Record<string, any>>;
@@ -95,6 +95,7 @@ export type contentType = "application/x-www-form-urlencoded" | "multipart/form-
 export type methods = "GET" | "POST" | "OPTIONS" | "DELETE" | "HEAD" | "PUT" | "PATCH";
 export type allowedMethods = methods[];
 export type jetOptions = {
+    globalHeaders?: Record<string, string>;
     apiDoc?: {
         name?: string;
         info?: string;

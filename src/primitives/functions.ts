@@ -337,10 +337,10 @@ export const UTILS = {
           serverelse = Bun.serve({
             port,
             fetch: JetPath_app,
-            websocket: () => {
-              // TODO make this working with plugins
-              UTILS.wsFuncs;
-            },
+            // TODO make this working with plugins
+            // websocket: () => {
+            // UTILS.wsFuncs;
+            // },
           });
         },
       };
@@ -738,7 +738,14 @@ const URLPARSER = (method: methods, url: string) => {
 };
 
 export const compileUI = (UI: string, options: any, api: string) => {
+  // ? global headers
+  const globalHeaders = JSON.stringify(
+    options?.globalHeaders || {
+      Authorization: "Bearer ****",
+    }
+  );
   return UI.replace("'{JETPATH}'", `\`${api}\``)
+    .replaceAll("{JETPATHGH}", `${globalHeaders}`)
     .replaceAll("{NAME}", options?.documentation?.name || "JethPath API Doc")
     .replaceAll("JETPATHCOLOR", options?.documentation?.color || "#007bff")
     .replaceAll(
@@ -755,39 +762,51 @@ export const compileUI = (UI: string, options: any, api: string) => {
 export const compileAPI = (options: jetOptions): [number, string] => {
   let handlersCount = 0,
     compiledAPI = "";
+  // ? global headers
+  const globalHeaders = options?.globalHeaders || {};
+  // ? loop through apis
   for (const k in _JetPath_paths) {
+    // ? Retrieve api info;
     const r = _JetPath_paths[k as methods];
     if (r && Object.keys(r).length) {
       for (const p in r) {
+        // ? Retrieve api BODY object
         const v = UTILS.validators[p] || {};
+        // ? Retrieve api body definitions
         const b = v?.body || {};
-        const h_inial = v?.headers || {};
+        // ? Retrieve api headers definitions
+        const h_inial = {};
+        Object.assign(h_inial, v?.headers || {}, globalHeaders);
         const h = [];
+        // ? parse headers
         for (const name in h_inial) {
-          h.push(name + ":" + h_inial[name]);
+          h.push(name + ":" + h_inial[name as keyof typeof h_inial]);
         }
+        // ? parse body
         const j: Record<string, any> = {};
         if (b) {
           for (const ke in b) {
             j[ke] =
-              (b[ke as "info"] as any)?.defaultValue ||
-              (b[ke as "info"] as any)?.inputType ||
+              (b[ke as keyof typeof b] as any)?.defaultValue ||
+              (b[ke as keyof typeof b] as any)?.inputType ||
               "text";
           }
         }
+        // ? combine api infos into .http formart
         const api = `\n
-${k} ${
+        ${k} ${
           options?.APIdisplay === "UI"
             ? "[--host--]"
             : "http://localhost:" + (options?.port || 8080)
         }${p} HTTP/1.1
-${h.length ? h.join("\n") : ""}\n
+          ${h.length ? h.join("\n") : ""}\n
 ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
           v && (v.method === k ? k : "") && v?.["info"]
             ? "#" + v?.["info"] + "-JETE"
             : ""
         }
 ###`;
+        // ? combine api(s)
         compiledAPI += api;
         handlersCount += 1;
       }

@@ -493,9 +493,7 @@ function parseUPAPIBody(packer) {
   if (!isSet) return; 
   return result;
 }
-function parseINAPIBody(api = {
-    Authorization: "Bearer ****",
-  }) {
+function parseINAPIBody(api) {
   const packer = div({ className: "body-pack" });
   const packs = (k) =>
     div(
@@ -507,9 +505,6 @@ function parseINAPIBody(api = {
   return packer;
 }
 
-document.getElementById("keys")?.appendChild(
-  parseINAPIBody(/*TODO: put the general api info here*/)
-);
 
 function parseApiDocumentation(apiDocumentation) {
   // get boundaries
@@ -556,6 +551,13 @@ function parseRequest(requestString) {
 }
 // API documentation
 const apiDocumentation = '{JETPATH}'.replaceAll("[--host--]", location.origin);
+const apiGlobalHeaders = '{JETPATHGH}';
+// parse headers
+console.log({apiGlobalHeaders});
+document.getElementById("keys")?.appendChild(
+  parseINAPIBody(JSON.parse(apiGlobalHeaders))
+  // parseINAPIBody(/*TODO: put the general api info here*/)
+);
 // Parse API documentation
 const parsedApi = parseApiDocumentation(apiDocumentation);
 const groupByFirstFeature = (apis) => {

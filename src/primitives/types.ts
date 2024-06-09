@@ -101,7 +101,7 @@ interface HTTPBody {
       | "tel"
       | "datetime"
       | "url";
-    defaultValue?: string;
+    defaultValue?: string | number | boolean;
     nullable?: boolean;
     ranges?: Record<number, string>;
     model?: Record<string, Record<string, any>>;
@@ -135,6 +135,7 @@ export type methods =
 export type allowedMethods = methods[];
 
 export type jetOptions = {
+  globalHeaders?: Record<string, string>;
   apiDoc?: {
     name?: string;
     info?: string;
