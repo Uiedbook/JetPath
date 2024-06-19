@@ -1,4 +1,5 @@
 import type { IncomingMessage, Server, ServerResponse } from "http";
+import type { _JetPath_paths } from "./functions";
 
 export class JetPlugin {
   name?: string;
@@ -30,6 +31,7 @@ export class JetPlugin {
   _setup(init: {
     runtime: { node: boolean; bun: boolean; deno: boolean };
     server: Server<typeof IncomingMessage, typeof ServerResponse>;
+    routesObject: typeof _JetPath_paths
   }): any {
     return this.executor(init);
   }

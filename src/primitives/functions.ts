@@ -226,9 +226,8 @@ export const UTILS = {
       this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
       this._2["Content-Type"] = ContentType;
       if (typeof stream === "string") {
-        this._2["Content-Disposition"] = `inline;filename="${
-          stream.split("/").at(-1) || "unnamed.bin"
-        }"`;
+        this._2["Content-Disposition"] = `inline;filename="${stream.split("/").at(-1) || "unnamed.bin"
+          }"`;
         if (UTILS.runtime["bun"]) {
           // @ts-ignore
           stream = Bun.file(stream);
@@ -349,6 +348,7 @@ export const UTILS = {
       const decorations = plugs[i]._setup({
         server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
         runtime: UTILS.runtime as any,
+        routesObject: _JetPath_paths,
       });
       if (typeof decorations === "object") {
         for (const key in decorations) {
@@ -586,7 +586,7 @@ export async function getHandlers(source: string, print: boolean) {
             }
           }
         }
-      } catch (error) {}
+      } catch (error) { }
     }
     if (
       dirent.isDirectory() &&
@@ -609,27 +609,18 @@ export function validate(schema: JetSchema, data: any) {
       continue;
     }
     if (data[prop] === undefined && !nullable) {
-      if (err) {
-        errout = err;
-      } else {
-        errout = `${prop} is required`;
-      }
+      errout = err || `${prop} is required`;
       continue;
     }
-    if (validator && !validator(data[prop])) {
-      if (err) {
-        errout = err;
-      } else {
-        errout = `${prop} must is invalid`;
+    if (validator) {
+      const v = validator(data[prop]) as any;
+      if (v !== true) {
+        errout = err || typeof v === "string" ? v : `${prop} must is invalid`;
       }
       continue;
     }
     if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
-      if (err) {
-        errout = err;
-      } else {
-        errout = `${prop} must is invalid`;
-      }
+      errout = err || `${prop} must is invalid`;
       continue;
     }
 
@@ -648,12 +639,8 @@ export function validate(schema: JetSchema, data: any) {
         out[prop] = type(data[prop]);
       }
       if (typeof type === "string" && type !== typeof data[prop]) {
-        if (err) {
-          errout = err;
-        } else {
-          if (type !== "file") {
-            errout = `${prop} type is invalid '${data[prop]}' `;
-          }
+        if (type !== "file") {
+          errout = err || `${prop} type is invalid '${data[prop]}' `;
         }
       }
       //
@@ -751,7 +738,7 @@ export const compileUI = (UI: string, options: any, api: string) => {
     .replaceAll(
       "{LOGO}",
       options?.documentation?.logo ||
-        "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
+      "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
     )
     .replaceAll(
       "{INFO}",
@@ -794,17 +781,15 @@ export const compileAPI = (options: jetOptions): [number, string] => {
         }
         // ? combine api infos into .http formart
         const api = `\n
-${k} ${
-          options?.APIdisplay === "UI"
+${k} ${options?.APIdisplay === "UI"
             ? "[--host--]"
             : "http://localhost:" + (options?.port || 8080)
-        }${p} HTTP/1.1
+          }${p} HTTP/1.1
 ${h.length ? h.join("\n") : ""}\n
-${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
-          v && (v.method === k ? k : "") && v?.["info"]
+${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v && (v.method === k ? k : "") && v?.["info"]
             ? "#" + v?.["info"] + "-JETE"
             : ""
-        }
+          }
 ###`;
         // ? combine api(s)
         compiledAPI += api;
