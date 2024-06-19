@@ -27,721 +27,713 @@ import { createReadStream } from "node:fs";
  * @public
  */
 export function corsHook(options) {
-    if (Array.isArray(options.allowMethods)) {
-        options.allowMethods = options.allowMethods.join(",");
+  if (Array.isArray(options.allowMethods)) {
+    options.allowMethods = options.allowMethods.join(",");
+  }
+  if (options.maxAge) {
+    options.maxAge = String(options.maxAge);
+  }
+  options.keepHeadersOnError =
+    options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
+  return function cors(ctx) {
+    //? Add Vary header to indicate response varies based on the Origin header
+    ctx.set("Vary", "Origin");
+    if (options.credentials === true) {
+      ctx.set("Access-Control-Allow-Credentials", "true");
+    } else {
+      //? Simple Cross-Origin Request, Actual Request, and Redirects
+      ctx.set("Access-Control-Allow-Origin", options.origin.join(","));
     }
-    if (options.maxAge) {
-        options.maxAge = String(options.maxAge);
+    if (ctx.request.method !== "OPTIONS") {
+      // if (options.exposeHeaders) {
+      //   ctx.set(
+      //     "Access-Control-Expose-Headers",
+      //     options.exposeHeaders.join(",")
+      //   );
+      // }
+      // if (options.secureContext) {
+      //   ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
+      //   ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
+      // }
+      if (options.allowHeaders) {
+        ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
+      }
+    } else {
+      //? Preflight Request
+      if (options.maxAge) {
+        ctx.set("Access-Control-Max-Age", options.maxAge);
+      }
+      if (
+        options.privateNetworkAccess &&
+        ctx.get("Access-Control-Request-Private-Network")
+      ) {
+        ctx.set("Access-Control-Allow-Private-Network", "true");
+      }
+      if (options.allowMethods) {
+        ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
+      }
+      if (options.secureContext) {
+        ctx.set("Cross-Origin-Opener-Policy", "same-origin");
+        ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
+      }
+      if (options.allowHeaders) {
+        ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
+      }
+      ctx.code = 204;
     }
-    options.keepHeadersOnError =
-        options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
-    return function cors(ctx) {
-        //? Add Vary header to indicate response varies based on the Origin header
-        ctx.set("Vary", "Origin");
-        if (options.credentials === true) {
-            ctx.set("Access-Control-Allow-Credentials", "true");
-        }
-        else {
-            //? Simple Cross-Origin Request, Actual Request, and Redirects
-            ctx.set("Access-Control-Allow-Origin", options.origin.join(","));
-        }
-        if (ctx.request.method !== "OPTIONS") {
-            // if (options.exposeHeaders) {
-            //   ctx.set(
-            //     "Access-Control-Expose-Headers",
-            //     options.exposeHeaders.join(",")
-            //   );
-            // }
-            // if (options.secureContext) {
-            //   ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
-            //   ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
-            // }
-            if (options.allowHeaders) {
-                ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
-            }
-        }
-        else {
-            //? Preflight Request
-            if (options.maxAge) {
-                ctx.set("Access-Control-Max-Age", options.maxAge);
-            }
-            if (options.privateNetworkAccess &&
-                ctx.get("Access-Control-Request-Private-Network")) {
-                ctx.set("Access-Control-Allow-Private-Network", "true");
-            }
-            if (options.allowMethods) {
-                ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
-            }
-            if (options.secureContext) {
-                ctx.set("Cross-Origin-Opener-Policy", "same-origin");
-                ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
-            }
-            if (options.allowHeaders) {
-                ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
-            }
-            ctx.code = 204;
-        }
-    };
+  };
 }
 export const UTILS = {
-    wsFuncs: [],
-    ctx: {
-        app: { body: null },
-        request: null,
-        code: 200,
-        send(data, contentType) {
-            let ctype;
-            switch (typeof data) {
-                case "string":
-                    ctype = "text/plain";
-                    this._1 = data;
-                    break;
-                case "object":
-                    ctype = "application/json";
-                    this._1 = JSON.stringify(data);
-                    break;
-                default:
-                    ctype = "text/plain";
-                    this._1 = String(data);
-                    break;
-            }
-            if (contentType) {
-                ctype = contentType;
-            }
-            if (!this._2) {
-                this._2 = {};
-            }
-            this._2["Content-Type"] = ctype;
-            this._4 = true;
-            if (!this._5)
-                throw _DONE;
-            this._5();
-            return undefined;
-        },
-        redirect(url) {
-            this.code = 301;
-            if (!this._2) {
-                this._2 = {};
-            }
-            this._2["Location"] = url;
-            this._1 = undefined;
-            this._4 = true;
-            if (!this._5)
-                throw _DONE;
-            this._5();
-            return undefined;
-        },
-        throw(code = 404, message = "Not Found") {
-            // ? could be a success but a wrong throw, so we check
-            if (!this._2) {
-                this._2 = {};
-            }
-            if (!this._4) {
-                this.code = 400;
-                switch (typeof code) {
-                    case "number":
-                        this.code = code;
-                        if (typeof message === "object") {
-                            this._2["Content-Type"] = "application/json";
-                            this._1 = JSON.stringify(message);
-                        }
-                        else if (typeof message === "string") {
-                            this._2["Content-Type"] = "text/plain";
-                            this._1 = message;
-                        }
-                        break;
-                    case "string":
-                        this._2["Content-Type"] = "text/plain";
-                        this._1 = code;
-                        break;
-                    case "object":
-                        this._2["Content-Type"] = "application/json";
-                        this._1 = JSON.stringify(code);
-                        break;
-                }
-            }
-            this._4 = true;
-            if (!this._5)
-                throw _DONE;
-            this._5();
-            return undefined;
-        },
-        get(field) {
-            if (field) {
-                if (UTILS.runtime["node"]) {
-                    return this.request.headers[field];
-                }
-                return this.request.headers.get(field);
-            }
-            return undefined;
-        },
-        set(field, value) {
-            if (!this._2) {
-                this._2 = {};
-            }
-            if (field && value) {
-                this._2[field] = value;
-            }
-        },
-        eject() {
-            throw _OFF;
-        },
-        sendStream(stream, ContentType) {
-            if (!this._2) {
-                this._2 = {};
-            }
-            this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
-            this._2["Content-Type"] = ContentType;
-            if (typeof stream === "string") {
-                this._2["Content-Disposition"] = `inline;filename="${stream.split("/").at(-1) || "unnamed.bin"}"`;
-                if (UTILS.runtime["bun"]) {
-                    // @ts-ignore
-                    stream = Bun.file(stream);
-                }
-                else {
-                    stream = createReadStream(stream);
-                }
-            }
-            this._3 = stream;
-            this._4 = true;
-            if (!this._5)
-                throw _DONE;
-            this._5();
-            return undefined;
-        },
-        // TODO: make this working
-        // sendReponse(response: Response) {
-        //   this._1 = response;
-        //   this._4 = true;
-        //   if (!this._5) throw _RES;
-        //   this._5();
-        //   return undefined as never;
-        // },
-        json() {
-            // FIXME:  calling this function twice cause an request hang in nodejs
-            if (!UTILS.runtime["node"]) {
-                try {
-                    return this.request.json();
-                }
-                catch (error) {
-                    return {};
-                }
-            }
-            return new Promise((r) => {
-                let body = "";
-                this.request.on("data", (data) => {
-                    body += data.toString();
-                });
-                this.request.on("end", () => {
-                    try {
-                        r(JSON.parse(body));
-                    }
-                    catch (error) {
-                        r({});
-                    }
-                });
-            });
-        },
-        // validate(data: any = {}) {
-        //   if (UTILS.validators[this.path]) {
-        //     return validate(UTILS.validators[this.path!], data);
-        //   }
-        //   throw new Error("no validation BODY! for path " + this.path);
-        // },
-        params: {},
-        search: {},
-        path: "/",
-        //? load
-        _1: undefined,
-        // ? header of response
-        _2: {},
-        // //? stream
-        _3: undefined,
-        //? used to know if the request has ended
-        _4: false,
-        //? used to know if the request has been offloaded
-        _5: false,
-        //? response
-        // _6: false,
+  wsFuncs: [],
+  ctx: {
+    app: { body: null },
+    request: null,
+    code: 200,
+    send(data, contentType) {
+      let ctype;
+      switch (typeof data) {
+        case "string":
+          ctype = "text/plain";
+          this._1 = data;
+          break;
+        case "object":
+          ctype = "application/json";
+          this._1 = JSON.stringify(data);
+          break;
+        default:
+          ctype = "text/plain";
+          this._1 = String(data);
+          break;
+      }
+      if (contentType) {
+        ctype = contentType;
+      }
+      if (!this._2) {
+        this._2 = {};
+      }
+      this._2["Content-Type"] = ctype;
+      this._4 = true;
+      if (!this._5) throw _DONE;
+      this._5();
+      return undefined;
     },
-    ae(cb) {
-        try {
-            cb();
-            return true;
+    redirect(url) {
+      this.code = 301;
+      if (!this._2) {
+        this._2 = {};
+      }
+      this._2["Location"] = url;
+      this._1 = undefined;
+      this._4 = true;
+      if (!this._5) throw _DONE;
+      this._5();
+      return undefined;
+    },
+    throw(code = 404, message = "Not Found") {
+      // ? could be a success but a wrong throw, so we check
+      if (!this._2) {
+        this._2 = {};
+      }
+      if (!this._4) {
+        this.code = 400;
+        switch (typeof code) {
+          case "number":
+            this.code = code;
+            if (typeof message === "object") {
+              this._2["Content-Type"] = "application/json";
+              this._1 = JSON.stringify(message);
+            } else if (typeof message === "string") {
+              this._2["Content-Type"] = "text/plain";
+              this._1 = message;
+            }
+            break;
+          case "string":
+            this._2["Content-Type"] = "text/plain";
+            this._1 = code;
+            break;
+          case "object":
+            this._2["Content-Type"] = "application/json";
+            this._1 = JSON.stringify(code);
+            break;
         }
-        catch (error) {
-            return false;
-        }
+      }
+      this._4 = true;
+      if (!this._5) throw _DONE;
+      this._5();
+      return undefined;
     },
-    set() {
-        // @ts-ignore
-        const bun = UTILS.ae(() => Bun);
-        // @ts-ignore
-        const deno = UTILS.ae(() => Deno);
-        this.runtime = { bun, deno, node: !bun && !deno };
-    },
-    runtime: null,
-    validators: {},
-    server(plugs) {
-        let server;
-        let serverelse;
+    get(field) {
+      if (field) {
         if (UTILS.runtime["node"]) {
-            server = createServer((x, y) => {
-                JetPath_app(x, y);
-            });
+          return this.request.headers[field];
         }
-        if (UTILS.runtime["deno"]) {
-            server = {
-                listen(port) {
-                    // @ts-ignore
-                    serverelse = Deno.serve({ port: port }, JetPath_app);
-                },
-            };
-        }
-        if (UTILS.runtime["bun"]) {
-            server = {
-                listen(port) {
-                    // @ts-ignore
-                    serverelse = Bun.serve({
-                        port,
-                        fetch: JetPath_app,
-                        // TODO make this working with plugins
-                        // websocket: () => {
-                        // UTILS.wsFuncs;
-                        // },
-                    });
-                },
-            };
-        }
-        for (let i = 0; i < plugs.length; i++) {
-            const decorations = plugs[i]._setup({
-                server: (!UTILS.runtime["node"] ? serverelse : server),
-                runtime: UTILS.runtime,
-            });
-            if (typeof decorations === "object") {
-                for (const key in decorations) {
-                    if (!UTILS.ctx.app[key]) {
-                        UTILS.ctx.app[key] = decorations[key];
-                    }
-                }
-            }
-        }
-        return server;
+        return this.request.headers.get(field);
+      }
+      return undefined;
     },
+    set(field, value) {
+      if (!this._2) {
+        this._2 = {};
+      }
+      if (field && value) {
+        this._2[field] = value;
+      }
+    },
+    eject() {
+      throw _OFF;
+    },
+    sendStream(stream, ContentType) {
+      if (!this._2) {
+        this._2 = {};
+      }
+      this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
+      this._2["Content-Type"] = ContentType;
+      if (typeof stream === "string") {
+        this._2["Content-Disposition"] = `inline;filename="${
+          stream.split("/").at(-1) || "unnamed.bin"
+        }"`;
+        if (UTILS.runtime["bun"]) {
+          // @ts-ignore
+          stream = Bun.file(stream);
+        } else {
+          stream = createReadStream(stream);
+        }
+      }
+      this._3 = stream;
+      this._4 = true;
+      if (!this._5) throw _DONE;
+      this._5();
+      return undefined;
+    },
+    // TODO: make this working
+    // sendReponse(response: Response) {
+    //   this._1 = response;
+    //   this._4 = true;
+    //   if (!this._5) throw _RES;
+    //   this._5();
+    //   return undefined as never;
+    // },
+    json() {
+      // FIXME:  calling this function twice cause an request hang in nodejs
+      if (!UTILS.runtime["node"]) {
+        try {
+          return this.request.json();
+        } catch (error) {
+          return {};
+        }
+      }
+      return new Promise((r) => {
+        let body = "";
+        this.request.on("data", (data) => {
+          body += data.toString();
+        });
+        this.request.on("end", () => {
+          try {
+            r(JSON.parse(body));
+          } catch (error) {
+            r({});
+          }
+        });
+      });
+    },
+    // validate(data: any = {}) {
+    //   if (UTILS.validators[this.path]) {
+    //     return validate(UTILS.validators[this.path!], data);
+    //   }
+    //   throw new Error("no validation BODY! for path " + this.path);
+    // },
+    params: {},
+    search: {},
+    path: "/",
+    //? load
+    _1: undefined,
+    // ? header of response
+    _2: {},
+    // //? stream
+    _3: undefined,
+    //? used to know if the request has ended
+    _4: false,
+    //? used to know if the request has been offloaded
+    _5: false,
+    //? response
+    // _6: false,
+  },
+  ae(cb) {
+    try {
+      cb();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  },
+  set() {
+    // @ts-ignore
+    const bun = UTILS.ae(() => Bun);
+    // @ts-ignore
+    const deno = UTILS.ae(() => Deno);
+    this.runtime = { bun, deno, node: !bun && !deno };
+  },
+  runtime: null,
+  validators: {},
+  server(plugs) {
+    let server;
+    let serverelse;
+    if (UTILS.runtime["node"]) {
+      server = createServer((x, y) => {
+        JetPath_app(x, y);
+      });
+    }
+    if (UTILS.runtime["deno"]) {
+      server = {
+        listen(port) {
+          // @ts-ignore
+          serverelse = Deno.serve({ port: port }, JetPath_app);
+        },
+      };
+    }
+    if (UTILS.runtime["bun"]) {
+      server = {
+        listen(port) {
+          // @ts-ignore
+          serverelse = Bun.serve({
+            port,
+            fetch: JetPath_app,
+            // TODO make this working with plugins
+            // websocket: () => {
+            // UTILS.wsFuncs;
+            // },
+          });
+        },
+      };
+    }
+    for (let i = 0; i < plugs.length; i++) {
+      const decorations = plugs[i]._setup({
+        server: !UTILS.runtime["node"] ? serverelse : server,
+        runtime: UTILS.runtime,
+      });
+      if (typeof decorations === "object") {
+        for (const key in decorations) {
+          if (!UTILS.ctx.app[key]) {
+            UTILS.ctx.app[key] = decorations[key];
+          }
+        }
+      }
+    }
+    return server;
+  },
 };
 // ? setting up the runtime check
 UTILS.set();
 export let _JetPath_paths = {
-    GET: {},
-    POST: {},
-    HEAD: {},
-    PUT: {},
-    PATCH: {},
-    DELETE: {},
-    OPTIONS: {},
+  GET: {},
+  POST: {},
+  HEAD: {},
+  PUT: {},
+  PATCH: {},
+  DELETE: {},
+  OPTIONS: {},
 };
 export const _JetPath_hooks = {};
 class JetPathErrors extends Error {
-    constructor(message) {
-        super(message);
-    }
+  constructor(message) {
+    super(message);
+  }
 }
 const _DONE = new JetPathErrors("done");
 const _OFF = new JetPathErrors("off");
 // const _RES = new JetPathErrors("respond");
 export const _JetPath_app_config = {
-    cors: false,
-    set(opt, val) {
-        if (opt === "cors" && val !== false) {
-            this.cors = corsHook({
-                exposeHeaders: [],
-                allowMethods: [],
-                allowHeaders: ["*"],
-                maxAge: "",
-                keepHeadersOnError: true,
-                secureContext: false,
-                privateNetworkAccess: false,
-                origin: ["*"],
-                credentials: undefined,
-                ...(typeof val === "object" ? val : {}),
-            });
-            if (Array.isArray(val["allowMethods"])) {
-                _JetPath_paths = {};
-                for (const med of val["allowMethods"]) {
-                    _JetPath_paths[med.toUpperCase()] = {};
-                }
-            }
-            return;
+  cors: false,
+  set(opt, val) {
+    if (opt === "cors" && val !== false) {
+      this.cors = corsHook({
+        exposeHeaders: [],
+        allowMethods: [],
+        allowHeaders: ["*"],
+        maxAge: "",
+        keepHeadersOnError: true,
+        secureContext: false,
+        privateNetworkAccess: false,
+        origin: ["*"],
+        credentials: undefined,
+        ...(typeof val === "object" ? val : {}),
+      });
+      if (Array.isArray(val["allowMethods"])) {
+        _JetPath_paths = {};
+        for (const med of val["allowMethods"]) {
+          _JetPath_paths[med.toUpperCase()] = {};
         }
-        this[opt] = val;
-    },
+      }
+      return;
+    }
+    this[opt] = val;
+  },
 };
 const createCTX = (req) => {
-    const ctx = Object.create(UTILS.ctx);
-    ctx.request = req;
-    return ctx;
+  const ctx = Object.create(UTILS.ctx);
+  ctx.request = req;
+  return ctx;
 };
 const createResponse = (res, ctx, four04) => {
-    //? add cors headers
-    _JetPath_app_config.cors(ctx);
-    if (!UTILS.runtime["node"]) {
-        if (ctx?.code === 301 && ctx._2?.["Location"]) {
-            return Response.redirect(ctx._2?.["Location"]);
-        }
-        if (ctx?._3) {
-            return new Response(ctx?._3, {
-                status: 200,
-                headers: ctx?._2,
-            });
-        }
-        return new Response(ctx?._1 || (four04 ? "Not found" : undefined), {
-            status: ctx?.code || 404,
-            headers: ctx?._2,
-        });
+  //? add cors headers
+  _JetPath_app_config.cors(ctx);
+  if (!UTILS.runtime["node"]) {
+    if (ctx?.code === 301 && ctx._2?.["Location"]) {
+      return Response.redirect(ctx._2?.["Location"]);
     }
     if (ctx?._3) {
-        res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
-        return ctx._3.pipe(res);
+      return new Response(ctx?._3, {
+        status: 200,
+        headers: ctx?._2,
+      });
     }
+    return new Response(ctx?._1 || (four04 ? "Not found" : undefined), {
+      status: ctx?.code || 404,
+      headers: ctx?._2,
+    });
+  }
+  if (ctx?._3) {
     res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
-    res.end(ctx?._1 || (four04 ? "Not found" : undefined));
+    return ctx._3.pipe(res);
+  }
+  res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
+  res.end(ctx?._1 || (four04 ? "Not found" : undefined));
 };
 const JetPath_app = async (req, res) => {
-    const paseredR = URLPARSER(req.method, req.url);
-    let off = false;
-    let ctx;
-    if (paseredR) {
-        ctx = createCTX(req);
-        const r = paseredR[0];
-        ctx.params = paseredR[1];
-        ctx.search = paseredR[2];
-        ctx.path = paseredR[3];
+  const paseredR = URLPARSER(req.method, req.url);
+  let off = false;
+  let ctx;
+  if (paseredR) {
+    ctx = createCTX(req);
+    const r = paseredR[0];
+    ctx.params = paseredR[1];
+    ctx.search = paseredR[2];
+    ctx.path = paseredR[3];
+    try {
+      //? pre-request hooks here
+      await _JetPath_hooks["PRE"]?.(ctx);
+      //? route handler call
+      await r(ctx);
+      //? post-request hooks here
+      await _JetPath_hooks["POST"]?.(ctx);
+      return createResponse(res, ctx);
+    } catch (error) {
+      if (error instanceof JetPathErrors) {
+        if (error.message !== "off") {
+          return createResponse(res, ctx);
+        } else {
+          off = true;
+        }
+      } else {
+        //? report error to error hook
         try {
-            //? pre-request hooks here
-            await _JetPath_hooks["PRE"]?.(ctx);
-            //? route handler call
-            await r(ctx);
-            //? post-request hooks here
-            await _JetPath_hooks["POST"]?.(ctx);
-            return createResponse(res, ctx);
+          // @ts-ignore
+          await _JetPath_hooks["ERROR"]?.(ctx, error);
+          //! if expose headers on error is
+          //! false remove this line so the last return will take effect;
+          return createResponse(res, ctx);
+        } catch (error) {
+          return createResponse(res, ctx);
         }
-        catch (error) {
-            if (error instanceof JetPathErrors) {
-                if (error.message !== "off") {
-                    return createResponse(res, ctx);
-                }
-                else {
-                    off = true;
-                }
-            }
-            else {
-                //? report error to error hook
-                try {
-                    // @ts-ignore
-                    await _JetPath_hooks["ERROR"]?.(ctx, error);
-                    //! if expose headers on error is
-                    //! false remove this line so the last return will take effect;
-                    return createResponse(res, ctx);
-                }
-                catch (error) {
-                    return createResponse(res, ctx);
-                }
-            }
-        }
+      }
     }
-    if (!off) {
-        return createResponse(res, createCTX(req), true);
-    }
-    else {
-        return new Promise((r) => {
-            // @ts-ignore
-            ctx._5 = () => {
-                r(createResponse(res, ctx, true));
-            };
-        });
-    }
+  }
+  if (!off) {
+    return createResponse(res, createCTX(req), true);
+  } else {
+    return new Promise((r) => {
+      // @ts-ignore
+      ctx._5 = () => {
+        r(createResponse(res, ctx, true));
+      };
+    });
+  }
 };
 const Handlerspath = (path) => {
-    if (path.includes("hook__")) {
-        //? hooks in place
-        return path.split("hook__")[1];
-    }
-    //? adding /(s) in place
-    path = path.split("_");
-    const method = path.shift();
-    path = "/" + path.join("/");
-    //? adding ?(s) in place
-    path = path.split("$$");
-    path = path.join("/?");
-    //? adding * in place
-    path = path.split("$0");
-    path = path.join("/*");
-    //? adding :(s) in place
-    path = path.split("$");
-    path = path.join("/:");
-    if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS|BODY)/.test(method)) {
-        //? adding methods in place
-        return [method, path];
-    }
-    return;
+  if (path.includes("hook__")) {
+    //? hooks in place
+    return path.split("hook__")[1];
+  }
+  //? adding /(s) in place
+  path = path.split("_");
+  const method = path.shift();
+  path = "/" + path.join("/");
+  //? adding ?(s) in place
+  path = path.split("$$");
+  path = path.join("/?");
+  //? adding * in place
+  path = path.split("$0");
+  path = path.join("/*");
+  //? adding :(s) in place
+  path = path.split("$");
+  path = path.join("/:");
+  if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS|BODY)/.test(method)) {
+    //? adding methods in place
+    return [method, path];
+  }
+  return;
 };
 const getModule = async (src, name) => {
-    try {
-        return await import(path.resolve(src + "/" + name));
+  try {
+    return await import(path.resolve(src + "/" + name));
+  } catch (error) {
+    if (name.includes(".routes.")) {
+      console.error(
+        "JetPath: an error occured in the file" + src + "/" + name,
+        { error }
+      );
     }
-    catch (error) {
-        if (name.includes(".routes.")) {
-            console.error("JetPath: an error occured in the file" + src + "/" + name, { error });
-        }
-        return {};
-    }
+    return {};
+  }
 };
 export async function getHandlers(source, print) {
-    source = source || cwd();
-    source = path.resolve(cwd(), source);
-    const dir = await opendir(source);
-    for await (const dirent of dir) {
-        if (dirent.isFile() && dirent.name.endsWith(".routes.js")) {
-            if (print) {
-                console.log("JetPath: loading routes at " + source + "/" + dirent.name);
+  source = source || cwd();
+  source = path.resolve(cwd(), source);
+  const dir = await opendir(source);
+  for await (const dirent of dir) {
+    if (dirent.isFile() && dirent.name.endsWith(".jet.js")) {
+      if (print) {
+        console.log("JetPath: loading routes at " + source + "/" + dirent.name);
+      }
+      try {
+        const module = await getModule(source, dirent.name);
+        for (const p in module) {
+          const params = Handlerspath(p);
+          if (params) {
+            if (params[0] === "BODY") {
+              // ! BODY parser
+              const validator = module[p];
+              if (typeof validator === "object") {
+                UTILS.validators[params[1]] = validator;
+                validator.validate = (data = {}) => validate(validator, data);
+              }
             }
-            try {
-                const module = await getModule(source, dirent.name);
-                for (const p in module) {
-                    const params = Handlerspath(p);
-                    if (params) {
-                        if (params[0] === "BODY") {
-                            // ! BODY parser
-                            const validator = module[p];
-                            if (typeof validator === "object") {
-                                UTILS.validators[params[1]] = validator;
-                                validator.validate = (data = {}) => validate(validator, data);
-                            }
-                        }
-                        if (typeof params !== "string" &&
-                            _JetPath_paths[params[0]]) {
-                            // ! HTTP handler
-                            _JetPath_paths[params[0]][params[1]] = module[p];
-                        }
-                        else {
-                            if ("POST-PRE-ERROR".includes(params)) {
-                                _JetPath_hooks[params] = module[p];
-                            }
-                        }
-                    }
-                }
+            if (typeof params !== "string" && _JetPath_paths[params[0]]) {
+              // ! HTTP handler
+              _JetPath_paths[params[0]][params[1]] = module[p];
+            } else {
+              if ("POST-PRE-ERROR".includes(params)) {
+                _JetPath_hooks[params] = module[p];
+              }
             }
-            catch (error) { }
+          }
         }
-        if (dirent.isDirectory() &&
-            dirent.name !== "node_modules" &&
-            dirent.name !== ".git") {
-            await getHandlers(source + "/" + dirent.name, print);
-        }
+      } catch (error) {}
     }
+    if (
+      dirent.isDirectory() &&
+      dirent.name !== "node_modules" &&
+      dirent.name !== ".git"
+    ) {
+      await getHandlers(source + "/" + dirent.name, print);
+    }
+  }
 }
 export function validate(schema, data) {
-    const out = {};
-    let errout = "";
-    if (!data)
-        throw new Error("invalid data => " + data);
-    if (!schema)
-        throw new Error("invalid schema => " + schema);
-    for (const [prop, value] of Object.entries(schema.body || {})) {
-        const { err, type, nullable, RegExp, validator } = value;
-        if (!data[prop] && nullable) {
-            continue;
-        }
-        if (data[prop] === undefined && !nullable) {
-            if (err) {
-                errout = err;
-            }
-            else {
-                errout = `${prop} is required`;
-            }
-            continue;
-        }
-        if (validator && !validator(data[prop])) {
-            if (err) {
-                errout = err;
-            }
-            else {
-                errout = `${prop} must is invalid`;
-            }
-            continue;
-        }
-        if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
-            if (err) {
-                errout = err;
-            }
-            else {
-                errout = `${prop} must is invalid`;
-            }
-            continue;
-        }
-        out[prop] = data[prop];
-        if (type) {
-            if (typeof type === "function") {
-                if (typeof type(data[prop]) !== typeof type()) {
-                    if (err) {
-                        errout = err;
-                    }
-                    else {
-                        errout = `${prop} type is invalid '${data[prop]}' `;
-                    }
-                    continue;
-                }
-                out[prop] = type(data[prop]);
-            }
-            if (typeof type === "string" && type !== typeof data[prop]) {
-                if (err) {
-                    errout = err;
-                }
-                else {
-                    if (type !== "file") {
-                        errout = `${prop} type is invalid '${data[prop]}' `;
-                    }
-                }
-            }
-            //
-            continue;
-        }
+  const out = {};
+  let errout = "";
+  if (!data) throw new Error("invalid data => " + data);
+  if (!schema) throw new Error("invalid schema => " + schema);
+  for (const [prop, value] of Object.entries(schema.body || {})) {
+    const { err, type, nullable, RegExp, validator } = value;
+    if (!data[prop] && nullable) {
+      continue;
     }
-    if (errout)
-        throw new Error(errout);
-    return out;
+    if (data[prop] === undefined && !nullable) {
+      if (err) {
+        errout = err;
+      } else {
+        errout = `${prop} is required`;
+      }
+      continue;
+    }
+    if (validator && !validator(data[prop])) {
+      if (err) {
+        errout = err;
+      } else {
+        errout = `${prop} must is invalid`;
+      }
+      continue;
+    }
+    if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
+      if (err) {
+        errout = err;
+      } else {
+        errout = `${prop} must is invalid`;
+      }
+      continue;
+    }
+    out[prop] = data[prop];
+    if (type) {
+      if (typeof type === "function") {
+        if (typeof type(data[prop]) !== typeof type()) {
+          if (err) {
+            errout = err;
+          } else {
+            errout = `${prop} type is invalid '${data[prop]}' `;
+          }
+          continue;
+        }
+        out[prop] = type(data[prop]);
+      }
+      if (typeof type === "string" && type !== typeof data[prop]) {
+        if (err) {
+          errout = err;
+        } else {
+          if (type !== "file") {
+            errout = `${prop} type is invalid '${data[prop]}' `;
+          }
+        }
+      }
+      //
+      continue;
+    }
+  }
+  if (errout) throw new Error(errout);
+  return out;
 }
 const URLPARSER = (method, url) => {
-    const routes = _JetPath_paths[method];
-    if (!UTILS.runtime["node"]) {
-        url = url.slice(url.indexOf("/", 7));
+  const routes = _JetPath_paths[method];
+  if (!UTILS.runtime["node"]) {
+    url = url.slice(url.indexOf("/", 7));
+  }
+  if (routes[url]) {
+    return [routes[url], {}, {}, url];
+  }
+  const search = {},
+    params = {};
+  let path, handler;
+  //? place holder & * route checks
+  for (const pathR in routes) {
+    // ? /* check
+    if (pathR.includes("*")) {
+      const Ried = pathR.slice(0, pathR.length - 1);
+      if (url.includes(Ried)) {
+        params.extraPath = url.slice(Ried.length);
+        path = pathR;
+        //? set path and handler
+        handler = routes[path];
+        break;
+      }
     }
-    if (routes[url]) {
-        return [routes[url], {}, {}, url];
-    }
-    const search = {}, params = {};
-    let path, handler;
-    //? place holder & * route checks
-    for (const pathR in routes) {
-        // ? /* check
-        if (pathR.includes("*")) {
-            const Ried = pathR.slice(0, pathR.length - 1);
-            if (url.includes(Ried)) {
-                params.extraPath = url.slice(Ried.length);
-                path = pathR;
-                //? set path and handler
-                handler = routes[path];
-                break;
-            }
+    // ? placeholder /: check
+    if (pathR.includes(":")) {
+      const urlFixtures = url.split("/");
+      const pathFixtures = pathR.split("/");
+      let fixtures = 0;
+      for (let i = 0; i < pathFixtures.length; i++) {
+        //? let's jump place holders in the pathR since we can't determine from them
+        //? we increment that we skipped a position because we need the count later
+        if (pathFixtures[i].includes(":")) {
+          fixtures++;
+          continue;
         }
-        // ? placeholder /: check
-        if (pathR.includes(":")) {
-            const urlFixtures = url.split("/");
-            const pathFixtures = pathR.split("/");
-            let fixtures = 0;
-            for (let i = 0; i < pathFixtures.length; i++) {
-                //? let's jump place holders in the pathR since we can't determine from them
-                //? we increment that we skipped a position because we need the count later
-                if (pathFixtures[i].includes(":")) {
-                    fixtures++;
-                    continue;
-                }
-                //? if it is part of the pathR then let increment a value for it
-                //? we will need it later
-                if (urlFixtures[i] === pathFixtures[i]) {
-                    fixtures++;
-                }
-            }
-            //? if after the checks it all our count are equal then we got it correctly
-            if (fixtures === pathFixtures.length) {
-                for (let i = 0; i < pathFixtures.length; i++) {
-                    const px = pathFixtures[i];
-                    if (px.includes(":")) {
-                        params[px.split(":")[1]] = urlFixtures[i];
-                    }
-                }
-                path = pathR;
-                //? set path and handler
-                handler = routes[path];
-                break;
-            }
+        //? if it is part of the pathR then let increment a value for it
+        //? we will need it later
+        if (urlFixtures[i] === pathFixtures[i]) {
+          fixtures++;
         }
-    }
-    //? check for search in the route
-    if (url.includes("/?")) {
-        path = url.split("/?")[0] + "/?";
-        const sraw = url.slice(path.length).split("=");
-        for (let s = 0; s < sraw.length; s = s + 2) {
-            search[sraw[s]] = sraw[s + 1];
+      }
+      //? if after the checks it all our count are equal then we got it correctly
+      if (fixtures === pathFixtures.length) {
+        for (let i = 0; i < pathFixtures.length; i++) {
+          const px = pathFixtures[i];
+          if (px.includes(":")) {
+            params[px.split(":")[1]] = urlFixtures[i];
+          }
         }
-        if (routes[path]) {
-            handler = routes[path];
-        }
+        path = pathR;
+        //? set path and handler
+        handler = routes[path];
+        break;
+      }
     }
-    if (handler) {
-        return [handler, params, search, path];
+  }
+  //? check for search in the route
+  if (url.includes("/?")) {
+    path = url.split("/?")[0] + "/?";
+    const sraw = url.slice(path.length).split("=");
+    for (let s = 0; s < sraw.length; s = s + 2) {
+      search[sraw[s]] = sraw[s + 1];
     }
+    if (routes[path]) {
+      handler = routes[path];
+    }
+  }
+  if (handler) {
+    return [handler, params, search, path];
+  }
 };
 export const compileUI = (UI, options, api) => {
-    // ? global headers
-    const globalHeaders = JSON.stringify(options?.globalHeaders || {
-        Authorization: "Bearer ****",
-    });
-    return UI.replace("'{JETPATH}'", `\`${api}\``)
-        .replaceAll("{JETPATHGH}", `${globalHeaders}`)
-        .replaceAll("{NAME}", options?.documentation?.name || "JethPath API Doc")
-        .replaceAll("JETPATHCOLOR", options?.documentation?.color || "#007bff")
-        .replaceAll("{LOGO}", options?.documentation?.logo ||
-        "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp")
-        .replaceAll("{INFO}", options?.documentation?.info || "This is a JethPath api preview.");
+  // ? global headers
+  const globalHeaders = JSON.stringify(
+    options?.globalHeaders || {
+      Authorization: "Bearer ****",
+    }
+  );
+  return UI.replace("'{JETPATH}'", `\`${api}\``)
+    .replaceAll("{JETPATHGH}", `${globalHeaders}`)
+    .replaceAll("{NAME}", options?.documentation?.name || "JethPath API Doc")
+    .replaceAll("JETPATHCOLOR", options?.documentation?.color || "#007bff")
+    .replaceAll(
+      "{LOGO}",
+      options?.documentation?.logo ||
+        "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
+    )
+    .replaceAll(
+      "{INFO}",
+      options?.documentation?.info || "This is a JethPath api preview."
+    );
 };
 export const compileAPI = (options) => {
-    let handlersCount = 0, compiledAPI = "";
-    // ? global headers
-    const globalHeaders = options?.globalHeaders || {};
-    // ? loop through apis
-    for (const k in _JetPath_paths) {
-        // ? Retrieve api info;
-        const r = _JetPath_paths[k];
-        if (r && Object.keys(r).length) {
-            for (const p in r) {
-                // ? Retrieve api BODY object
-                const v = UTILS.validators[p] || {};
-                // ? Retrieve api body definitions
-                const b = v?.body || {};
-                // ? Retrieve api headers definitions
-                const h_inial = {};
-                Object.assign(h_inial, v?.headers || {}, globalHeaders);
-                const h = [];
-                // ? parse headers
-                for (const name in h_inial) {
-                    h.push(name + ":" + h_inial[name]);
-                }
-                // ? parse body
-                const j = {};
-                if (b) {
-                    for (const ke in b) {
-                        j[ke] =
-                            b[ke]?.defaultValue ||
-                                b[ke]?.inputType ||
-                                "text";
-                    }
-                }
-                // ? combine api infos into .http formart
-                const api = `\n
-${k} ${options?.APIdisplay === "UI"
-                    ? "[--host--]"
-                    : "http://localhost:" + (options?.port || 8080)}${p} HTTP/1.1
-${h.length ? h.join("\n") : ""}\n
-${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v && (v.method === k ? k : "") && v?.["info"]
-                    ? "#" + v?.["info"] + "-JETE"
-                    : ""}
-###`;
-                // ? combine api(s)
-                compiledAPI += api;
-                handlersCount += 1;
-            }
+  let handlersCount = 0,
+    compiledAPI = "";
+  // ? global headers
+  const globalHeaders = options?.globalHeaders || {};
+  // ? loop through apis
+  for (const k in _JetPath_paths) {
+    // ? Retrieve api info;
+    const r = _JetPath_paths[k];
+    if (r && Object.keys(r).length) {
+      for (const p in r) {
+        // ? Retrieve api BODY object
+        const v = UTILS.validators[p] || {};
+        // ? Retrieve api body definitions
+        const b = v?.body || {};
+        // ? Retrieve api headers definitions
+        const h_inial = {};
+        Object.assign(h_inial, v?.headers || {}, globalHeaders);
+        const h = [];
+        // ? parse headers
+        for (const name in h_inial) {
+          h.push(name + ":" + h_inial[name]);
         }
+        // ? parse body
+        const j = {};
+        if (b) {
+          for (const ke in b) {
+            j[ke] = b[ke]?.defaultValue || b[ke]?.inputType || "text";
+          }
+        }
+        // ? combine api infos into .http formart
+        const api = `\n
+${k} ${
+          options?.APIdisplay === "UI"
+            ? "[--host--]"
+            : "http://localhost:" + (options?.port || 8080)
+        }${p} HTTP/1.1
+${h.length ? h.join("\n") : ""}\n
+${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${
+          v && (v.method === k ? k : "") && v?.["info"]
+            ? "#" + v?.["info"] + "-JETE"
+            : ""
+        }
+###`;
+        // ? combine api(s)
+        compiledAPI += api;
+        handlersCount += 1;
+      }
     }
-    return [handlersCount, compiledAPI];
+  }
+  return [handlersCount, compiledAPI];
 };

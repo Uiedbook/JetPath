@@ -94,7 +94,7 @@ npm i jetpath --save
 #### An hello App setup
 
 ```ts
-// in your src/index.routes.js
+// in your src/index.jet.js
 
 import { JetPath } from "jetpath";
 

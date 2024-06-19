@@ -251,7 +251,7 @@ export const UTILS = {
     // },
 
     json<Type = Record<string, any>>(): Promise<Type> {
-      // FIXME:  calling this function twice cause an request hang in nodejs
+      // TODO:  calling this function twice cause an request hang in nodejs
       if (!UTILS.runtime["node"]) {
         try {
           return (this.request as unknown as Request).json();
@@ -274,12 +274,6 @@ export const UTILS = {
       });
     },
 
-    // validate(data: any = {}) {
-    //   if (UTILS.validators[this.path]) {
-    //     return validate(UTILS.validators[this.path!], data);
-    //   }
-    //   throw new Error("no validation BODY! for path " + this.path);
-    // },
     params: {},
     search: {},
     path: "/",
@@ -492,7 +486,7 @@ const JetPath_app = async (
         try {
           // @ts-ignore
           await _JetPath_hooks["ERROR"]?.(ctx, error);
-          //! if expose headers on error is
+          //! if expose headers on error is set
           //! false remove this line so the last return will take effect;
           return createResponse(res, ctx);
         } catch (error) {
@@ -539,9 +533,10 @@ const Handlerspath = (path: any) => {
 };
 const getModule = async (src: string, name: string) => {
   try {
-    return await import(path.resolve(src + "/" + name));
+    const mod = await import(path.resolve(src + "/" + name));
+    return mod;
   } catch (error) {
-    if (name.includes(".routes.")) {
+    if (name.includes(".jet.js")) {
       console.error(
         "JetPath: an error occured in the file" + src + "/" + name,
         { error }
@@ -555,7 +550,7 @@ export async function getHandlers(source: string, print: boolean) {
   source = path.resolve(cwd(), source);
   const dir = await opendir(source);
   for await (const dirent of dir) {
-    if (dirent.isFile() && dirent.name.endsWith(".routes.js")) {
+    if (dirent.isFile() && dirent.name.endsWith(".jet.js")) {
       if (print) {
         console.log("JetPath: loading routes at " + source + "/" + dirent.name);
       }
@@ -564,29 +559,37 @@ export async function getHandlers(source: string, print: boolean) {
         for (const p in module) {
           const params = Handlerspath(p);
           if (params) {
+            // ! BODY parser
             if ((params[0] as any) === "BODY") {
-              // ! BODY parser
               const validator = module[p];
               if (typeof validator === "object") {
                 UTILS.validators[params[1]] = validator as JetSchema;
                 validator.validate = (data: any = {}) =>
                   validate(validator, data);
               }
-            }
-            if (
-              typeof params !== "string" &&
-              _JetPath_paths[params[0] as methods]
-            ) {
-              // ! HTTP handler
-              _JetPath_paths[params[0] as methods][params[1]] = module[p];
             } else {
-              if ("POST-PRE-ERROR".includes(params as string)) {
-                _JetPath_hooks[params as string] = module[p];
+              // ! HTTP handler
+              if (
+                typeof params !== "string" &&
+                _JetPath_paths[params[0] as methods]
+              ) {
+                _JetPath_paths[params[0] as methods][params[1]] = module[p];
+              } else {
+                if ("POST-PRE-ERROR".includes(params as string)) {
+                  _JetPath_hooks[params as string] = module[p];
+                }
               }
             }
           }
         }
-      } catch (error) { }
+      } catch (error) {
+        if (dirent.name.endsWith(".jet.js")) {
+          console.error(
+            "JetPath: an error occured in the file" + dirent.name,
+            { error }
+          );
+        }
+      }
     }
     if (
       dirent.isDirectory() &&
