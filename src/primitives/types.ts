@@ -74,42 +74,40 @@ export type Context =
   }
   | Record<string, any>;
 
-interface HTTPBody {
-  [x: string]: {
+type HTTPBody<Obj extends Record<string, any>> = {
+  [x in keyof Obj]: {
     err?: string;
-    type?:
-    | "string"
-    | "number"
-    | "file"
-    | "object"
-    | "boolean"
-    | StringConstructor
-    | NumberConstructor
-    | BooleanConstructor
-    | ObjectConstructor;
+    type?: "string" |
+    "number" |
+    "file" |
+    "object" |
+    "boolean" |
+    StringConstructor |
+    NumberConstructor |
+    BooleanConstructor |
+    ObjectConstructor;
     RegExp?: RegExp;
     inputAccept?: string;
-    inputType?:
-    | "color"
-    | "date"
-    | "email"
-    | "file"
-    | "text"
-    | "password"
-    | "number"
-    | "time"
-    | "tel"
-    | "datetime"
-    | "url";
+    inputType?: "color" |
+    "date" |
+    "email" |
+    "file" |
+    "text" |
+    "password" |
+    "number" |
+    "time" |
+    "tel" |
+    "datetime" |
+    "url";
     defaultValue?: string | number | boolean;
     nullable?: boolean;
     validator?: (value: any) => boolean;
   };
-}
+};
 
 
-export interface JetSchema<JetBody = Record<string, any>> {
-  body?: HTTPBody;
+export interface JetSchema<JetBody extends Record<string, any> = Record<string, any>> {
+  body?: HTTPBody<JetBody>;
   info?: string;
   method?: methods;
   headers?: Record<string, string>;
