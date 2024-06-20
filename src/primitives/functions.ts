@@ -347,7 +347,7 @@ export const UTILS = {
       if (typeof decorations === "object") {
         for (const key in decorations) {
           if (!(UTILS.ctx.app as any)[key]) {
-            (UTILS.ctx.app as any)[key] = decorations[key];
+            (UTILS.ctx.app as any)[key] = decorations[key].bind(UTILS.ctx);
           }
         }
       }

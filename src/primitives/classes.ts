@@ -18,8 +18,8 @@ export class JetPlugin {
     version,
     executor,
   }: {
-    name: string;
-    version: string;
+    name?: string;
+    version?: string;
     executor: (init: {
       runtime: { node: boolean; bun: boolean; deno: boolean };
       server: Server<typeof IncomingMessage, typeof ServerResponse>;
