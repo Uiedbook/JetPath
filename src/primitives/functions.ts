@@ -749,9 +749,10 @@ export const compileUI = (UI: string, options: any, api: string) => {
     );
 };
 
+// TODO: SORT THE API
 export const compileAPI = (options: jetOptions): [number, string] => {
   let handlersCount = 0,
-    compiledAPI = "";
+    compiledAPI = ""; // use any array here and sjoin after sorted
   // ? global headers
   const globalHeaders = options?.globalHeaders || {};
   // ? loop through apis
@@ -795,10 +796,11 @@ ${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v &
           }
 ###`;
         // ? combine api(s)
-        compiledAPI += api;
+        compiledAPI += api; // push here
         handlersCount += 1;
       }
     }
   }
+  // sort and join here
   return [handlersCount, compiledAPI];
 };

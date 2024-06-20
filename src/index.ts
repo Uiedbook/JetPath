@@ -71,8 +71,7 @@ export class JetPath {
 
     //? setting up api viewer
     if (
-      typeof this.options !== "object" ||
-      this.options?.APIdisplay !== false
+      this.options?.APIdisplay !== undefined
     ) {
       console.log("JetPath: compiling...");
       const startTime = performance.now();
@@ -91,8 +90,7 @@ export class JetPath {
           ctx.send(UI, "text/html");
         };
         console.log(
-          `visit http://localhost:${this.options?.port || 8080}${
-            this.options?.apiDoc?.path || "/api-doc"
+          `visit http://localhost:${this.options?.port || 8080}${this.options?.apiDoc?.path || "/api-doc"
           } to see the displayed routes in UI`
         );
       }
