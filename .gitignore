@@ -5,3 +5,5 @@ jetpath-**.tgz
 jetpath-**
 .history
 api-doc.http 
+dist
+./dist

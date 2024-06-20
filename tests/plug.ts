@@ -1,6 +1,4 @@
 import {
-  PathLike,
-  WriteStream,
   createReadStream,
   createWriteStream,
   unlink,
@@ -14,7 +12,7 @@ import path from "node:path";
 export const busboyjet = new JetPlugin({
   name: "busboyjet",
   version: "1.0.0",
-  executor({ runtime, server }) {
+  executor({ runtime, server, routesObject }) {
     return {
       formData(ctx: Context) {
         return new Promise((res, rej) => {

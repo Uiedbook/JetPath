@@ -1,4 +1,3 @@
-//? Body validators
 export const BODY_pets = {
     body: {
         name: { err: "please provide dog name", type: "string" },
@@ -31,7 +30,6 @@ export const BODY_petImage$id = {
 const pets = [];
 // ? /
 export async function GET_(ctx) {
-    console.log({ ctx });
     for (const key in ctx) {
         console.log({ [key]: ctx[key] });
     }
@@ -113,8 +111,6 @@ export function DELETE_petBy$id(ctx) {
 // Upload a Pet's Image: Add an image to a pet's profile
 export async function POST_petImage$id(ctx) {
     const petId = ctx.params.id;
-    // @ts-ignore
-    // console.log({ r: ctx.request });
     const formdata = await ctx.request.formData();
     // console.log(formdata);
     const profilePicture = formdata.get("image");
@@ -124,13 +120,13 @@ export async function POST_petImage$id(ctx) {
     const index = pets.findIndex((p) => p.id === petId);
     if (index !== -1) {
         // Attach the image URL to the pet's profile (in a real scenario, consider storing images externally)
-        pets[index].imageUrl = `/images/${petId}.png`;
+        pets[index].image = `/images/${petId}.png`;
         // write profilePicture to disk
         // @ts-ignore
         await Bun.write(pets[index].imageUrl, profilePicture);
         ctx.send({
             message: "Image uploaded successfully",
-            imageUrl: pets[index].imageUrl,
+            imageUrl: pets[index].image,
         });
     }
     else {

@@ -3,7 +3,11 @@ import { Context, JetSchema } from "../dist/index.js";
 
 //? Body validators
 
-export const BODY_pets: JetSchema = {
+type PetType = {
+  id: string; name: string, image?: string, age?: number
+}
+
+export const BODY_pets: JetSchema<PetType> = {
   body: {
     name: { err: "please provide dog name", type: "string" },
     image: { type: "string", nullable: true, inputType: "file" },
@@ -17,7 +21,7 @@ export const BODY_pets: JetSchema = {
   },
   method: "POST",
 };
-export const BODY_petBy$id: JetSchema = {
+export const BODY_petBy$id: JetSchema<PetType> = {
   body: {
     name: { err: "please provide dog name", type: "string" },
     image: { type: "file", nullable: true, inputType: "file" },
@@ -26,7 +30,8 @@ export const BODY_petBy$id: JetSchema = {
   info: "This api allows you to update a pet with it's ID",
   method: "PUT",
 };
-export const BODY_petImage$id: JetSchema = {
+
+export const BODY_petImage$id: JetSchema<PetType> = {
   body: { image: { type: "string", nullable: true, inputType: "file" } },
   method: "POST",
 };
@@ -34,11 +39,10 @@ export const BODY_petImage$id: JetSchema = {
 // ? Routes
 
 // ? PETshop temperaly Database
-const pets: { id: string; imageUrl: string; name: string }[] = [];
+const pets: PetType[] = [];
 
 // ? /
 export async function GET_(ctx: Context) {
-  console.log({ ctx });
   for (const key in ctx) {
     console.log({ [key]: ctx[key] });
   }
@@ -73,7 +77,7 @@ export function GET_petBy$id(ctx: Context) {
 // Add a New Pet: Add a new pet to the inventory
 export async function POST_pets(ctx: Context) {
   const body = BODY_pets.validate?.(await ctx.json())!;
-  const newPet = body as { id: string; imageUrl: string; name: string };
+  const newPet = body
   newPet.id = String(Date.now());
   pets.push(newPet);
   ctx.send({ message: "Pet added successfully", pet: newPet });
@@ -127,8 +131,6 @@ export function DELETE_petBy$id(ctx: Context) {
 // Upload a Pet's Image: Add an image to a pet's profile
 export async function POST_petImage$id(ctx: Context) {
   const petId = ctx.params.id;
-  // @ts-ignore
-  // console.log({ r: ctx.request });
   const formdata = await ctx.request.formData();
   // console.log(formdata);
   const profilePicture = formdata.get("image");
@@ -138,13 +140,13 @@ export async function POST_petImage$id(ctx: Context) {
   const index = pets.findIndex((p) => p.id === petId);
   if (index !== -1) {
     // Attach the image URL to the pet's profile (in a real scenario, consider storing images externally)
-    pets[index].imageUrl = `/images/${petId}.png`;
+    pets[index].image = `/images/${petId}.png`;
     // write profilePicture to disk
     // @ts-ignore
     await Bun.write(pets[index].imageUrl, profilePicture);
     ctx.send({
       message: "Image uploaded successfully",
-      imageUrl: pets[index].imageUrl,
+      imageUrl: pets[index].image,
     });
   } else {
     ctx.code = 404;

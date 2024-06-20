@@ -11,6 +11,7 @@ export class JetPlugin {
       deno: boolean;
     };
     server: Server<typeof IncomingMessage, typeof ServerResponse>;
+    routesObject: typeof _JetPath_paths
   }) => Record<string, Function>;
   constructor({
     name,
@@ -22,6 +23,7 @@ export class JetPlugin {
     executor: (init: {
       runtime: { node: boolean; bun: boolean; deno: boolean };
       server: Server<typeof IncomingMessage, typeof ServerResponse>;
+      routesObject: typeof _JetPath_paths
     }) => Record<string, Function>;
   }) {
     this.name = name;
