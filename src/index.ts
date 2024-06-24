@@ -11,7 +11,7 @@ import {
   UTILS,
 } from "./primitives/functions.js";
 import { type jetOptions } from "./primitives/types.js";
-import { JetPlugin } from "./primitives/classes.js";
+import { JetPlugin, Log } from "./primitives/classes.js";
 
 export class JetPath {
   public server: any;
@@ -37,7 +37,6 @@ export class JetPath {
     if (plugin instanceof JetPlugin) {
       this.plugs.push(plugin);
     } else {
-      console.log(plugin);
       throw Error("invalid Jetpath plugin");
     }
   }
@@ -73,12 +72,12 @@ export class JetPath {
     if (
       this.options?.APIdisplay !== undefined
     ) {
-      console.log("JetPath: compiling...");
+      Log.info("Compiling...");
       const startTime = performance.now();
       // ? Load all jetpath functions described in user code
-      await getHandlers(this.options?.source!, true);
+      const errorsCount = await getHandlers(this.options?.source!, true);
       const endTime = performance.now();
-      console.log("JetPath: done.");
+      Log.info("Done.");
       //? compile API
       const [handlersCount, compiledAPI] = compileAPI(this.options);
       // ? render API in UI
@@ -89,7 +88,7 @@ export class JetPath {
         ) => {
           ctx.send(UI, "text/html");
         };
-        console.log(
+        Log.success(
           `visit http://localhost:${this.options?.port || 8080}${this.options?.apiDoc?.path || "/api-doc"
           } to see the displayed routes in UI`
         );
@@ -97,21 +96,31 @@ export class JetPath {
       // ? render API in a .HTTP file
       if (this.options?.APIdisplay === "HTTP") {
         await writeFile("api-doc.http", compiledAPI);
-        console.log(
+        Log.success(
           `Check ./api-doc.http to test the routes Visual Studio rest client extension`
         );
       }
-      console.log(
-        `\n Parsed ${handlersCount} handlers in ${Math.round(
+      Log.info(
+        `Parsed ${handlersCount} handlers in ${Math.round(
           endTime - startTime
         )} milliseconds`
       );
+      if (errorsCount) {
+        Log.error(
+          `\nReport: ${errorsCount} files was not loaded due to errors: please resolve!`
+        );
+      }
     } else {
       // ? Load all jetpath functions described in user code
-      await getHandlers(this.options?.source!, false);
+      const errorsCount = await getHandlers(this.options?.source!, false);
+      if (errorsCount) {
+        Log.error(
+          `\nReport: ${errorsCount} files was not loaded due to errors: please resolve!`
+        );
+      }
     }
-    console.log(
-      `\nListening on http://localhost:${this.options?.port || 8080}/`
+    Log.success(
+      `Listening on http://localhost:${this.options?.port || 8080}/`
     );
     // ? start server
     this.listening = true;

@@ -14,7 +14,7 @@ import {
 } from "./types.js";
 import { Stream } from "node:stream";
 import { createReadStream } from "node:fs";
-import type { JetPlugin } from "./classes.js";
+import { Log, type JetPlugin } from "./classes.js";
 
 /**
  * an inbuilt CORS post hook
@@ -537,56 +537,60 @@ const getModule = async (src: string, name: string) => {
     return mod;
   } catch (error) {
     if (name.includes(".jet.js")) {
-      console.error(
-        "JetPath: an error occured in the file" + src + "/" + name,
-        { error }
+      Log.error(
+        "An error occured in the file " + src + "/" + name + " \n" + String(error) + " \n"
       );
     }
-    return {};
+    return;
   }
 };
-export async function getHandlers(source: string, print: boolean) {
+export async function getHandlers(source: string, print: boolean, errorsCount = 0) {
   source = source || cwd();
   source = path.resolve(cwd(), source);
   const dir = await opendir(source);
   for await (const dirent of dir) {
     if (dirent.isFile() && dirent.name.endsWith(".jet.js")) {
       if (print) {
-        console.log("JetPath: loading routes at " + source + "/" + dirent.name);
+        Log.info("Loading routes at " + source + "/" + dirent.name);
       }
       try {
         const module = await getModule(source, dirent.name);
-        for (const p in module) {
-          const params = Handlerspath(p);
-          if (params) {
-            // ! BODY parser
-            if ((params[0] as any) === "BODY") {
-              const validator = module[p];
-              if (typeof validator === "object") {
-                UTILS.validators[params[1]] = validator as JetSchema;
-                validator.validate = (data: any = {}) =>
-                  validate(validator, data);
-              }
-            } else {
-              // ! HTTP handler
-              if (
-                typeof params !== "string" &&
-                _JetPath_paths[params[0] as methods]
-              ) {
-                _JetPath_paths[params[0] as methods][params[1]] = module[p];
+        if (module) {
+
+          for (const p in module) {
+            const params = Handlerspath(p);
+            if (params) {
+              // ! BODY parser
+              if ((params[0] as any) === "BODY") {
+                const validator = module[p];
+                if (typeof validator === "object") {
+                  UTILS.validators[params[1]] = validator as JetSchema;
+                  validator.validate = (data: any = {}) =>
+                    validate(validator, data);
+                }
               } else {
-                if ("POST-PRE-ERROR".includes(params as string)) {
-                  _JetPath_hooks[params as string] = module[p];
+                // ! HTTP handler
+                if (
+                  typeof params !== "string" &&
+                  _JetPath_paths[params[0] as methods]
+                ) {
+                  _JetPath_paths[params[0] as methods][params[1]] = module[p];
+                } else {
+                  if ("POST-PRE-ERROR".includes(params as string)) {
+                    _JetPath_hooks[params as string] = module[p];
+                  }
                 }
               }
             }
           }
+        } else {
+          // record errors
+          errorsCount = errorsCount + 1
         }
       } catch (error) {
         if (dirent.name.endsWith(".jet.js")) {
-          console.error(
-            "JetPath: an error occured in the file" + dirent.name,
-            { error }
+          Log.error(
+            "An error occured in the file " + dirent.name + " \n" + String(error) + " \n"
           );
         }
       }
@@ -596,9 +600,10 @@ export async function getHandlers(source: string, print: boolean) {
       dirent.name !== "node_modules" &&
       dirent.name !== ".git"
     ) {
-      await getHandlers(source + "/" + dirent.name, print);
+      await getHandlers(source + "/" + dirent.name, print, errorsCount);
     }
   }
+  return errorsCount
 }
 
 export function validate(schema: JetSchema, data: any) {

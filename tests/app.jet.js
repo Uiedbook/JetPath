@@ -35,9 +35,9 @@ export async function GET_(ctx) {
     }
     new Promise(() => {
         setTimeout(() => {
-            ctx.send("Welcome to Petshop!");
-        }, 3000);
-    });
+    //         ctx.send("Welcome to Petshop!");
+    //     }, 3000);
+    // });
     ctx.eject();
 }
 // List Pets: Retrieve a list of pets available in the shop
