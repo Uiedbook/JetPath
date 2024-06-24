@@ -97,7 +97,7 @@ export class JetPath {
       if (this.options?.APIdisplay === "HTTP") {
         await writeFile("api-doc.http", compiledAPI);
         Log.success(
-          `Check ./api-doc.http to test the routes Visual Studio rest client extension`
+          `Check http file ./api-doc.http to test the routes Visual Studio rest client extension`
         );
       }
       Log.info(
@@ -120,7 +120,7 @@ export class JetPath {
       }
     }
     Log.success(
-      `Listening on http://localhost:${this.options?.port || 8080}/`
+      `Listening on http://localhost:${this.options?.port || 8080}`
     );
     // ? start server
     this.listening = true;

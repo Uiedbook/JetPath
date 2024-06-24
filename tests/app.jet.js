@@ -3,6 +3,7 @@ export const BODY_pets = {
         name: { err: "please provide dog name", type: "string" },
         image: { type: "string", nullable: true, inputType: "file" },
         age: { type: "number", nullable: true, inputType: "number" },
+        id: {}
     },
     info: "the pet api",
     headers: {
@@ -17,12 +18,13 @@ export const BODY_petBy$id = {
         name: { err: "please provide dog name", type: "string" },
         image: { type: "file", nullable: true, inputType: "file" },
         age: { type: "number", inputType: "number" },
+        id: {}
     },
     info: "This api allows you to update a pet with it's ID",
     method: "PUT",
 };
 export const BODY_petImage$id = {
-    body: { image: { type: "string", nullable: true, inputType: "file" } },
+    body: { image: { type: "string", nullable: true, inputType: "file" }, id: {}, name: {}, age: {} },
     method: "POST",
 };
 // ? Routes
@@ -35,9 +37,9 @@ export async function GET_(ctx) {
     }
     new Promise(() => {
         setTimeout(() => {
-    //         ctx.send("Welcome to Petshop!");
-    //     }, 3000);
-    // });
+            ctx.send("Welcome to Petshop!");
+        }, 3000);
+    });
     ctx.eject();
 }
 // List Pets: Retrieve a list of pets available in the shop
