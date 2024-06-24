@@ -751,56 +751,80 @@ export const compileUI = (UI: string, options: any, api: string) => {
 
 // TODO: SORT THE API
 export const compileAPI = (options: jetOptions): [number, string] => {
-  let handlersCount = 0,
-    compiledAPI = ""; // use any array here and sjoin after sorted
+  let handlersCount = 0;
+  let compiledAPIArray: string[] = [];
+  let compiledRoutes: string[] = [];
   // ? global headers
   const globalHeaders = options?.globalHeaders || {};
   // ? loop through apis
-  for (const k in _JetPath_paths) {
+  for (const method in _JetPath_paths) {
     // ? Retrieve api info;
-    const r = _JetPath_paths[k as methods];
-    if (r && Object.keys(r).length) {
-      for (const p in r) {
+    const routesOfMethod = _JetPath_paths[method as methods];
+    if (routesOfMethod && Object.keys(routesOfMethod).length) {
+      for (const route in routesOfMethod) {
         // ? Retrieve api BODY object
-        const v = UTILS.validators[p] || {};
+        const validator = UTILS.validators[route] || {};
         // ? Retrieve api body definitions
-        const b = v?.body || {};
+        const body = validator?.body || {};
         // ? Retrieve api headers definitions
-        const h_inial = {};
-        Object.assign(h_inial, v?.headers || {}, globalHeaders);
-        const h = [];
+        const inialHeader = {};
+        Object.assign(inialHeader, validator?.headers || {}, globalHeaders);
+        const headers = [];
         // ? parse headers
-        for (const name in h_inial) {
-          h.push(name + ":" + h_inial[name as keyof typeof h_inial]);
+        for (const name in inialHeader) {
+          headers.push(name + ":" + inialHeader[name as keyof typeof inialHeader]);
         }
         // ? parse body
-        const j: Record<string, any> = {};
-        if (b) {
-          for (const ke in b) {
-            j[ke] =
-              (b[ke as keyof typeof b] as any)?.defaultValue ||
-              (b[ke as keyof typeof b] as any)?.inputType ||
+        const bodyData: Record<string, any> = {};
+        if (body) {
+          for (const keyOfBody in body) {
+            bodyData[keyOfBody] =
+              (body[keyOfBody as keyof typeof body] as any)?.defaultValue ||
+              (body[keyOfBody as keyof typeof body] as any)?.inputType ||
               "text";
           }
         }
         // ? combine api infos into .http formart
         const api = `\n
-${k} ${options?.APIdisplay === "UI"
+${method} ${options?.APIdisplay === "UI"
             ? "[--host--]"
             : "http://localhost:" + (options?.port || 8080)
-          }${p} HTTP/1.1
-${h.length ? h.join("\n") : ""}\n
-${v && (v.method === k && k !== "GET" ? k : "") ? JSON.stringify(j) : ""}\n${v && (v.method === k ? k : "") && v?.["info"]
-            ? "#" + v?.["info"] + "-JETE"
+          }${route} HTTP/1.1
+${headers.length ? headers.join("\n") : ""}\n
+${validator && (validator.method === method && method !== "GET" ? method : "") ? JSON.stringify(bodyData) : ""}\n${validator && (validator.method === method ? method : "") && validator?.["info"]
+            ? "#" + validator?.["info"] + "-JETE"
             : ""
           }
 ###`;
-        // ? combine api(s)
-        compiledAPI += api; // push here
+        // ? combine api(s) 
+        const low = sorted_insert(compiledRoutes, route);
+        compiledRoutes.splice(low, 0, route);
+        compiledAPIArray.splice(low, 0, api);
+        // ? increment handler count
         handlersCount += 1;
       }
     }
   }
   // sort and join here
-  return [handlersCount, compiledAPI];
+
+  const compileAPIString = compiledAPIArray.join("");
+  return [handlersCount, compileAPIString];
+};
+
+
+
+
+const sorted_insert = (paths: string[], path: string): number => {
+  let low = 0;
+  let high = paths.length - 1;
+  for (; low <= high;) {
+    const mid = Math.floor((low + high) / 2);
+    const current = paths[mid];
+    if (current < path) {
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return low;
 };
