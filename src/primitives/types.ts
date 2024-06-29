@@ -1,5 +1,7 @@
-import { IncomingMessage } from "node:http";
-import { Stream } from "node:stream";
+import { IncomingMessage, Server, ServerResponse } from "node:http";
+// import { Stream } from "node:stream";
+import type { _JetPath_paths } from "./functions";
+import type { JetPlugin } from "./classes";
 
 export type Context =
   | {
@@ -22,7 +24,8 @@ export type Context =
     /**
      * send a stream
      */
-    sendStream(stream: Stream | string, ContentType: string): never;
+    // sendStream(stream: Stream | string, ContentType: string): never;
+    sendStream(stream: any | string, ContentType: string): never;
     /**
      * reply the request
      *
@@ -68,7 +71,7 @@ export type Context =
     path: string;
     _1?: string | undefined;
     _2?: Record<string, string>;
-    _3?: Stream | undefined;
+    _3?: any;//Stream | undefined; // Stream
     _4?: boolean | undefined;
     _5?: (() => never) | undefined;
   }
@@ -114,6 +117,17 @@ export interface JetSchema<JetBody extends Record<string, any> = Record<string, 
   search?: Record<string, string>;
   validate?: (data?: any) => JetBody;
 }
+export type JetPluginExecutorInitParams = {
+  runtime: {
+    node: boolean;
+    bun: boolean;
+    deno: boolean;
+  };
+  server: Server<typeof IncomingMessage, typeof ServerResponse>;
+  routesObject: typeof _JetPath_paths
+  JetPath_app: (req: Request) => Response;
+}
+export type JetPluginExecutor = (this: JetPlugin, init: JetPluginExecutorInitParams) => Record<string, any>
 
 export type contentType =
   | "application/x-www-form-urlencoded"

@@ -307,7 +307,7 @@ export const UTILS = {
   },
   runtime: null as unknown as Record<string, boolean>,
   validators: {} as Record<string, JetSchema>,
-  server(plugs: JetPlugin[]): { listen: any } | void {
+  server(plugs: JetPlugin[]): { listen: any, edge: boolean } | void {
     let server;
     let serverelse;
     if (UTILS.runtime["node"]) {
@@ -321,6 +321,7 @@ export const UTILS = {
           // @ts-ignore
           serverelse = Deno.serve({ port: port }, JetPath_app);
         },
+        edge: false
       };
     }
     if (UTILS.runtime["bun"]) {
@@ -336,20 +337,55 @@ export const UTILS = {
             // },
           });
         },
+        edge: false
       };
     }
+    //! likely on the edge
+    //! let's see what the plugins has to say
+
+    const decorations: Record<string, any> = {}
+
+    if (!server) {
+      const edgePluginIdx = plugs.findIndex((plug) => plug.hasServer);
+      const edgePlugin = plugs.splice(edgePluginIdx, 1)[0];
+      if (edgePlugin !== undefined && edgePlugin.hasServer) {
+        const decs = edgePlugin._setup({
+          server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
+          runtime: UTILS.runtime as any,
+          routesObject: _JetPath_paths,
+          JetPath_app: JetPath_app as any
+        });
+        Object.assign(decorations, decs);
+        //  setting the jet server from the plugin
+        if (edgePlugin.JetPathServer) {
+          server = edgePlugin.JetPathServer;
+          server.edge = true;
+        }
+      }
+    }
     for (let i = 0; i < plugs.length; i++) {
-      const decorations = plugs[i]._setup({
+      const decs = plugs[i]._setup({
         server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
         runtime: UTILS.runtime as any,
         routesObject: _JetPath_paths,
+        JetPath_app: JetPath_app as any
       });
-      if (typeof decorations === "object") {
-        for (const key in decorations) {
-          if (!(UTILS.ctx.app as any)[key]) {
-            (UTILS.ctx.app as any)[key] = decorations[key].bind(UTILS.ctx);
-          }
-        }
+      Object.assign(decorations, decs);
+    }
+    // ? adding ctx plugin bindings
+    for (const key in decorations) {
+      if (!(UTILS.ctx.app as any)[key]) {
+        (UTILS.ctx.app as any)[key] = decorations[key].bind(UTILS.ctx);
+      }
+    }
+
+
+    //! likely on the edge
+    //! let's see what the plugins has to say
+    if (!server) {
+      const edgeserver = plugs.find((plug) => plug.JetPathServer)?.JetPathServer;
+      if (edgeserver !== undefined) {
+        server = edgeserver;
       }
     }
     return server!;

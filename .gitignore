@@ -7,3 +7,4 @@ jetpath-**
 api-doc.http 
 dist
 ./dist
+.vscode

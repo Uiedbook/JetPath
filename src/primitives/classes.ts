@@ -1,41 +1,23 @@
-import type { IncomingMessage, Server, ServerResponse } from "http";
 import type { _JetPath_paths } from "./functions";
+import type { JetPluginExecutor, JetPluginExecutorInitParams } from "./types";
+
+
 
 export class JetPlugin {
   name?: string;
   version?: string;
-  executor: (init: {
-    runtime: {
-      node: boolean;
-      bun: boolean;
-      deno: boolean;
-    };
-    server: Server<typeof IncomingMessage, typeof ServerResponse>;
-    routesObject: typeof _JetPath_paths
-  }) => Record<string, Function>;
+  JetPathServer?: any;
+  hasServer?: boolean;
+  executor: JetPluginExecutor;
   constructor({
-    name,
-    version,
     executor,
   }: {
-    name?: string;
-    version?: string;
-    executor: (init: {
-      runtime: { node: boolean; bun: boolean; deno: boolean };
-      server: Server<typeof IncomingMessage, typeof ServerResponse>;
-      routesObject: typeof _JetPath_paths
-    }) => Record<string, Function>;
+    executor: JetPluginExecutor;
   }) {
-    this.name = name;
-    this.version = version;
     this.executor = executor;
   }
-  _setup(init: {
-    runtime: { node: boolean; bun: boolean; deno: boolean };
-    server: Server<typeof IncomingMessage, typeof ServerResponse>;
-    routesObject: typeof _JetPath_paths
-  }): any {
-    return this.executor(init);
+  _setup(init: JetPluginExecutorInitParams): any {
+    return this.executor.call(this, init);
   }
 }
 
