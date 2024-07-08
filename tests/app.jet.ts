@@ -182,3 +182,14 @@ export const BODY_: JetSchema = {
   },
   method: "POST",
 };
+
+
+
+
+export function GET_user_profile(ctx: Context) {
+  ctx.send("hello world");
+}
+
+export function POST_user_profile$id$$(ctx: Context) {
+  ctx.send("hello world");
+}

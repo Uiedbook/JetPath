@@ -160,3 +160,9 @@ export const BODY_ = {
     },
     method: "POST",
 };
+export function GET_user_profile(ctx) {
+    ctx.send("hello world");
+}
+export function POST_user_profile$id$$(ctx) {
+    ctx.send("hello world");
+}
