@@ -1,32 +1,3 @@
-export const BODY_pets = {
-    body: {
-        name: { err: "please provide dog name", type: "string" },
-        image: { type: "string", nullable: true, inputType: "file" },
-        age: { type: "number", nullable: true, inputType: "number" },
-        id: {}
-    },
-    info: "the pet api",
-    headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bear *********",
-        "X-Pet-Token": "token",
-    },
-    method: "POST",
-};
-export const BODY_petBy$id = {
-    body: {
-        name: { err: "please provide dog name", type: "string" },
-        image: { type: "file", nullable: true, inputType: "file" },
-        age: { type: "number", inputType: "number" },
-        id: {}
-    },
-    info: "This api allows you to update a pet with it's ID",
-    method: "PUT",
-};
-export const BODY_petImage$id = {
-    body: { image: { type: "string", nullable: true, inputType: "file" }, id: {}, name: {}, age: {} },
-    method: "POST",
-};
 // ? Routes
 // ? PETshop temperaly Database
 const pets = [];
@@ -49,7 +20,7 @@ export function GET_pets(ctx) {
 }
 // ? /petBy/19388
 // Get a Pet by ID: Retrieve detailed information about a specific pet by its unique identifier
-export function GET_petBy$id(ctx) {
+export const GET_petBy$id = async function (ctx) {
     const petId = ctx.params?.id;
     const pet = pets.find((p) => p.id === petId);
     if (pet) {
@@ -59,20 +30,42 @@ export function GET_petBy$id(ctx) {
         ctx.code = 404;
         ctx.send({ message: "Pet not found" });
     }
-}
+};
+GET_petBy$id.config = {
+    body: {
+        name: { err: "please provide dog name", type: "string" },
+        image: { type: "file", nullable: true, inputType: "file" },
+        age: { type: "number", inputType: "number" },
+        id: {},
+    },
+    info: "This api allows you to update a pet with it's ID",
+};
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
-export async function POST_pets(ctx) {
-    const body = BODY_pets.validate?.(await ctx.json());
+export const POST_pets = async function (ctx) {
+    const body = this.validate(await ctx.json());
     const newPet = body;
     newPet.id = String(Date.now());
     pets.push(newPet);
     ctx.send({ message: "Pet added successfully", pet: newPet });
-}
+};
+POST_pets.config = {
+    body: {
+        name: { err: "please provide dog name", type: "string" },
+        image: { type: "string", nullable: true, inputType: "file" },
+        age: { type: "number", nullable: true, inputType: "number" },
+        id: {},
+    },
+    headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bear *********",
+        "X-Pet-Token": "token",
+    },
+};
 // ? /pets/q/?
 // Add a New Pet: Add a new pet to the inventory
 export async function GET_pets_search$$(ctx) {
-    BODY_pets.validate?.(ctx.search);
+    POST_pets.validate?.(ctx.search);
     ctx.send({
         message: "Pets searched successfully",
         pets: pets.filter((pet) => pet.name === ctx.search.name || pet.name.includes(ctx.search.name)),
@@ -80,8 +73,8 @@ export async function GET_pets_search$$(ctx) {
 }
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
-export async function PUT_petBy$id(ctx) {
-    const updatedPetData = BODY_petBy$id.validate?.(await ctx.json());
+export const PUT_petBy$id = async function (ctx) {
+    const updatedPetData = PUT_petBy$id.validate?.(await ctx.json());
     const petId = ctx.params.id;
     console.log({ updatedPetData, petId });
     const index = pets.findIndex((p) => p.id === petId);
@@ -94,7 +87,14 @@ export async function PUT_petBy$id(ctx) {
         ctx.code = 404;
         ctx.send({ message: "Pet not found" });
     }
-}
+};
+PUT_petBy$id.config = {
+    body: {
+        image: { type: "file", inputType: "file" },
+        video: { type: "file", inputType: "file" },
+        textfield: { type: "string", nullable: false },
+    },
+};
 // ? /petBy/8766
 // Delete a Pet: Remove a pet from the inventory
 export function DELETE_petBy$id(ctx) {
@@ -111,7 +111,7 @@ export function DELETE_petBy$id(ctx) {
 }
 // ? /petImage/76554
 // Upload a Pet's Image: Add an image to a pet's profile
-export async function POST_petImage$id(ctx) {
+export const POST_petImage$id = async function (ctx) {
     const petId = ctx.params.id;
     const formdata = await ctx.request.formData();
     // console.log(formdata);
@@ -135,7 +135,15 @@ export async function POST_petImage$id(ctx) {
         ctx.code = 404;
         ctx.send({ message: "Pet not found" });
     }
-}
+};
+POST_petImage$id.config = {
+    body: {
+        image: { type: "string", nullable: true, inputType: "file" },
+        id: {},
+        name: {},
+        age: {},
+    },
+};
 // ? error hook
 export function hook__ERROR(ctx, err) {
     ctx.app.clean();
@@ -144,21 +152,20 @@ export function hook__ERROR(ctx, err) {
 export async function GET_error(ctx) {
     ctx.throw("Edwinger loves jetpath");
 }
-export async function POST_(ctx) {
+export const POST_ = async function (ctx) {
     const form = await ctx.app.formData(ctx);
     console.log(form);
     if (form.image) {
         await form.image.saveTo(form.image.filename);
     }
     ctx.send(form);
-}
-export const BODY_ = {
+};
+POST_.config = {
     body: {
         image: { type: "file", inputType: "file" },
         video: { type: "file", inputType: "file" },
         textfield: { type: "string", nullable: false },
     },
-    method: "POST",
 };
 export function GET_user_profile(ctx) {
     ctx.send("hello world");

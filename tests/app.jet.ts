@@ -1,41 +1,13 @@
-import path from "path";
-import { Context, JetSchema } from "../dist/index.js";
+import { Context } from "../dist/index.js";
+import { JetFunc } from "../dist/primitives/types.js";
 
 //? Body validators
 
 type PetType = {
-  id: string; name: string, image?: string, age?: number
-}
-
-export const BODY_pets: JetSchema<PetType> = {
-  body: {
-    name: { err: "please provide dog name", type: "string" },
-    image: { type: "string", nullable: true, inputType: "file" },
-    age: { type: "number", nullable: true, inputType: "number" },
-    id: {}
-  },
-  info: "the pet api",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: "Bear *********",
-    "X-Pet-Token": "token",
-  },
-  method: "POST",
-};
-export const BODY_petBy$id: JetSchema<PetType> = {
-  body: {
-    name: { err: "please provide dog name", type: "string" },
-    image: { type: "file", nullable: true, inputType: "file" },
-    age: { type: "number", inputType: "number" },
-    id: {}
-  },
-  info: "This api allows you to update a pet with it's ID",
-  method: "PUT",
-};
-
-export const BODY_petImage$id: JetSchema<PetType> = {
-  body: { image: { type: "string", nullable: true, inputType: "file" }, id: {}, name: {}, age: {} },
-  method: "POST",
+  id: string;
+  name: string;
+  image?: string;
+  age?: number;
 };
 
 // ? Routes
@@ -44,7 +16,7 @@ export const BODY_petImage$id: JetSchema<PetType> = {
 const pets: PetType[] = [];
 
 // ? /
-export async function GET_(ctx: Context) {
+export async function GET_(ctx) {
   for (const key in ctx) {
     console.log({ [key]: ctx[key] });
   }
@@ -58,14 +30,14 @@ export async function GET_(ctx: Context) {
 
 // List Pets: Retrieve a list of pets available in the shop
 // ? /pets
-export function GET_pets(ctx: Context) {
+export function GET_pets(ctx) {
   ctx.send(pets);
 }
 
 // ? /petBy/19388
 // Get a Pet by ID: Retrieve detailed information about a specific pet by its unique identifier
-export function GET_petBy$id(ctx: Context) {
-  const petId = ctx.params?.id;
+export const GET_petBy$id: JetFunc<{}, { id: string }> = async function (ctx) {
+  const petId = ctx.params.id;
   const pet = pets.find((p) => p.id === petId);
   if (pet) {
     ctx.send(pet);
@@ -73,35 +45,60 @@ export function GET_petBy$id(ctx: Context) {
     ctx.code = 404;
     ctx.send({ message: "Pet not found" });
   }
-}
+};
+
+GET_petBy$id.config = {
+  body: {
+    name: { err: "please provide dog name", type: "string" },
+    image: { type: "file", nullable: true, inputType: "file" },
+    age: { type: "number", inputType: "number" },
+    id: {},
+  },
+  info: "This api allows you to update a pet with it's ID",
+};
 
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
-export async function POST_pets(ctx: Context) {
-  const body = BODY_pets.validate?.(await ctx.json())!;
-  const newPet = body
+export const POST_pets: JetFunc<PetType> = async function (ctx) {
+  const body = this.validate(await ctx.json())!;
+  const newPet = body;
   newPet.id = String(Date.now());
   pets.push(newPet);
   ctx.send({ message: "Pet added successfully", pet: newPet });
-}
+};
+
+POST_pets.config = {
+  body: {
+    name: { err: "please provide dog name", type: "string" },
+    image: { type: "string", nullable: true, inputType: "file" },
+    age: { type: "number", nullable: true, inputType: "number" },
+    id: {},
+  },
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: "Bear *********",
+    "X-Pet-Token": "token",
+  },
+};
 
 // ? /pets/q/?
 // Add a New Pet: Add a new pet to the inventory
-export async function GET_pets_search$$(ctx: Context) {
-  BODY_pets.validate?.(ctx.search);
-  ctx.send({
-    message: "Pets searched successfully",
-    pets: pets.filter(
-      (pet) =>
-        pet.name === ctx.search.name || pet.name.includes(ctx.search.name)
-    ),
-  });
-}
+export const GET_pets_search$$: JetFunc<{}, {}, { name: string }> =
+  async function (ctx) {
+    POST_pets.validate?.(ctx.search);
+    ctx.send({
+      message: "Pets searched successfully",
+      pets: pets.filter(
+        (pet) =>
+          pet.name === ctx.search.name || pet.name.includes(ctx.search.name)
+      ),
+    });
+  };
 
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
-export async function PUT_petBy$id(ctx: Context) {
-  const updatedPetData = BODY_petBy$id.validate?.(await ctx.json());
+export const PUT_petBy$id: JetFunc<{}, { id: string }> = async function (ctx) {
+  const updatedPetData = PUT_petBy$id.validate?.(await ctx.json());
   const petId = ctx.params.id;
   console.log({ updatedPetData, petId });
   const index = pets.findIndex((p) => p.id === petId);
@@ -113,11 +110,19 @@ export async function PUT_petBy$id(ctx: Context) {
     ctx.code = 404;
     ctx.send({ message: "Pet not found" });
   }
-}
+};
+
+PUT_petBy$id.config = {
+  body: {
+    image: { type: "file", inputType: "file" },
+    video: { type: "file", inputType: "file" },
+    textfield: { type: "string", nullable: false },
+  },
+};
 
 // ? /petBy/8766
 // Delete a Pet: Remove a pet from the inventory
-export function DELETE_petBy$id(ctx: Context) {
+export function DELETE_petBy$id(ctx) {
   const petId = ctx.params.id;
   const index = pets.findIndex((p) => p.id === petId);
   if (index !== -1) {
@@ -131,8 +136,11 @@ export function DELETE_petBy$id(ctx: Context) {
 
 // ? /petImage/76554
 // Upload a Pet's Image: Add an image to a pet's profile
-export async function POST_petImage$id(ctx: Context) {
+export const POST_petImage$id: JetFunc<{}, { id: string }> = async function (
+  ctx
+) {
   const petId = ctx.params.id;
+  // @ts-expect-error
   const formdata = await ctx.request.formData();
   // console.log(formdata);
   const profilePicture = formdata.get("image");
@@ -154,7 +162,16 @@ export async function POST_petImage$id(ctx: Context) {
     ctx.code = 404;
     ctx.send({ message: "Pet not found" });
   }
-}
+};
+
+POST_petImage$id.config = {
+  body: {
+    image: { type: "string", nullable: true, inputType: "file" },
+    id: {},
+    name: {},
+    age: {},
+  },
+};
 
 // ? error hook
 export function hook__ERROR(ctx: Context, err: unknown) {
@@ -162,34 +179,32 @@ export function hook__ERROR(ctx: Context, err: unknown) {
   ctx.throw(String(err));
 }
 
-export async function GET_error(ctx: Context) {
+export const GET_error: JetFunc = async function (ctx) {
   ctx.throw("Edwinger loves jetpath");
-}
+};
 
-export async function POST_(ctx: Context) {
+export const POST_: JetFunc = async function (ctx) {
+  ctx.body;
   const form = await ctx.app.formData(ctx);
   console.log(form);
   if (form.image) {
     await form.image.saveTo(form.image.filename);
   }
   ctx.send(form);
-}
-export const BODY_: JetSchema = {
+};
+
+POST_.config = {
   body: {
     image: { type: "file", inputType: "file" },
     video: { type: "file", inputType: "file" },
     textfield: { type: "string", nullable: false },
   },
-  method: "POST",
 };
 
-
-
-
-export function GET_user_profile(ctx: Context) {
+export function GET_user_profile(ctx) {
   ctx.send("hello world");
 }
 
-export function POST_user_profile$id$$(ctx: Context) {
+export function POST_user_profile$id$$(ctx) {
   ctx.send("hello world");
 }

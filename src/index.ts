@@ -66,12 +66,16 @@ export class JetPath {
           return ctx.throw();
         }
       };
+      _JetPath_paths["GET"][this.options.static.route + "/*"].config = {
+        method: "GET",
+        path: this.options.static.route + "/*",
+      };
+
+      //
     }
 
     //? setting up api viewer
-    if (
-      this.options?.APIdisplay !== undefined
-    ) {
+    if (this.options?.APIdisplay !== undefined) {
       Log.info("Compiling...");
       const startTime = performance.now();
       // ? Load all jetpath functions described in user code
@@ -89,7 +93,8 @@ export class JetPath {
           ctx.send(UI, "text/html");
         };
         Log.success(
-          `visit http://localhost:${this.options?.port || 8080}${this.options?.apiDoc?.path || "/api-doc"
+          `visit http://localhost:${this.options?.port || 8080}${
+            this.options?.apiDoc?.path || "/api-doc"
           } to see the displayed routes in UI`
         );
       }
@@ -119,9 +124,7 @@ export class JetPath {
         );
       }
     }
-    Log.success(
-      `Listening on http://localhost:${this.options?.port || 8080}`
-    );
+    Log.success(`Listening on http://localhost:${this.options?.port || 8080}`);
     // ? start server
     this.listening = true;
     this.server.listen(this.options?.port || 8080);
@@ -129,5 +132,5 @@ export class JetPath {
 }
 
 //? exports
-export type { Context, JetSchema } from "./primitives/types.js";
+export type { Context, JetFunc } from "./primitives/types.js";
 export { JetPlugin } from "./primitives/classes.js";

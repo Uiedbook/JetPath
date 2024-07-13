@@ -1,4 +1,8 @@
-import { createReadStream, createWriteStream, unlink } from "node:fs";
+import {
+  createReadStream,
+  createWriteStream,
+  unlink,
+} from "node:fs";
 import os from "node:os";
 import { cwd } from "node:process";
 import busboy from "busboy";
@@ -6,6 +10,8 @@ import { Context, JetPlugin } from "../dist/index.js";
 import path from "node:path";
 
 export const busboyjet = new JetPlugin({
+  name: "busboyjet",
+  version: "1.0.0",
   executor({ runtime, server, routesObject }) {
     return {
       formData(ctx: Context) {
