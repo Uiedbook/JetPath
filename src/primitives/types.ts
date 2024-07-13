@@ -5,8 +5,8 @@ import type { JetPlugin } from "./classes";
 
 export type Context<
   JetBody extends Record<string, any> = {},
-  JetSearch extends Record<string, string> = {},
-  JetParams extends Record<string, string> = {}
+  JetParams extends Record<string, string> = {},
+  JetSearch extends Record<string, string> = {}
 > = {
   /**
    * get body params after api/?

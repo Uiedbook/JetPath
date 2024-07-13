@@ -152,7 +152,7 @@ export const POST_petImage$id: JetFunc<{}, { id: string }> = async function (
     // Attach the image URL to the pet's profile (in a real scenario, consider storing images externally)
     pets[index].image = `/images/${petId}.png`;
     // write profilePicture to disk
-    // @ts-ignore
+    // @ts-expect-error
     await Bun.write(pets[index].imageUrl, profilePicture);
     ctx.send({
       message: "Image uploaded successfully",

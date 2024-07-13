@@ -117,7 +117,7 @@ export function corsHook(options: {
 export const UTILS = {
   wsFuncs: [],
   ctx: {
-    app: { body: null },
+    app: {},
     request: null as any,
     code: 200,
     send(data: unknown, contentType: string) {
@@ -230,7 +230,7 @@ export const UTILS = {
           stream.split("/").at(-1) || "unnamed.bin"
         }"`;
         if (UTILS.runtime["bun"]) {
-          // @ts-ignore
+          // @ts-expect-error
           stream = Bun.file(stream);
         } else {
           stream = createReadStream(stream);
@@ -251,11 +251,12 @@ export const UTILS = {
     //   return undefined as never;
     // },
 
-    json<Type = Record<string, any>>(): Promise<Type> {
+    json<Type extends any = Record<string, any>>(): Promise<Type> {
       // TODO:  calling this function twice cause an request hang in nodejs
       if (!UTILS.runtime["node"]) {
         try {
-          return (this.request as unknown as Request).json();
+          this.body = (this.request as unknown as Request).json();
+          return this.body as Promise<Type>;
         } catch (error) {
           return {} as Promise<Type>;
         }
@@ -278,6 +279,7 @@ export const UTILS = {
 
     params: {},
     search: {},
+    body: {},
     path: "/",
     //? load
     _1: undefined as any,
@@ -291,7 +293,6 @@ export const UTILS = {
     _5: false as any,
     //? response
     // _6: false,
-    body: null,
   },
   ae(cb: { (): any; (): any; (): void }) {
     try {
@@ -302,9 +303,9 @@ export const UTILS = {
     }
   },
   set() {
-    // @ts-ignore
+     // @ts-expect-error
     const bun = UTILS.ae(() => Bun);
-    // @ts-ignore
+    // @ts-expect-error
     const deno = UTILS.ae(() => Deno);
     this.runtime = { bun, deno, node: !bun && !deno };
   },
@@ -321,7 +322,7 @@ export const UTILS = {
     if (UTILS.runtime["deno"]) {
       server = {
         listen(port: number) {
-          // @ts-ignore
+           // @ts-expect-error
           serverelse = Deno.serve({ port: port }, JetPath_app);
         },
         edge: false,
@@ -330,7 +331,7 @@ export const UTILS = {
     if (UTILS.runtime["bun"]) {
       server = {
         listen(port: number) {
-          // @ts-ignore
+           // @ts-expect-error
           serverelse = Bun.serve({
             port,
             fetch: JetPath_app,
@@ -521,7 +522,7 @@ const JetPath_app = async (
       } else {
         //? report error to error hook
         try {
-          // @ts-ignore
+           // @ts-expect-error
           await _JetPath_hooks["ERROR"]?.(ctx, error);
           //! if expose headers on error is set
           //! false remove this line so the last return will take effect;
@@ -536,7 +537,7 @@ const JetPath_app = async (
     return createResponse(res, createCTX(req), true);
   } else {
     return new Promise((r) => {
-      // @ts-ignore
+       // @ts-expect-error
       ctx!._5 = () => {
         r(createResponse(res, ctx!, true));
       };

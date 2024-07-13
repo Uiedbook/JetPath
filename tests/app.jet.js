@@ -21,7 +21,7 @@ export function GET_pets(ctx) {
 // ? /petBy/19388
 // Get a Pet by ID: Retrieve detailed information about a specific pet by its unique identifier
 export const GET_petBy$id = async function (ctx) {
-    const petId = ctx.params?.id;
+    const petId = ctx.params.id;
     const pet = pets.find((p) => p.id === petId);
     if (pet) {
         ctx.send(pet);
@@ -64,13 +64,13 @@ POST_pets.config = {
 };
 // ? /pets/q/?
 // Add a New Pet: Add a new pet to the inventory
-export async function GET_pets_search$$(ctx) {
+export const GET_pets_search$$ = async function (ctx) {
     POST_pets.validate?.(ctx.search);
     ctx.send({
         message: "Pets searched successfully",
         pets: pets.filter((pet) => pet.name === ctx.search.name || pet.name.includes(ctx.search.name)),
     });
-}
+};
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
 export const PUT_petBy$id = async function (ctx) {
@@ -113,6 +113,7 @@ export function DELETE_petBy$id(ctx) {
 // Upload a Pet's Image: Add an image to a pet's profile
 export const POST_petImage$id = async function (ctx) {
     const petId = ctx.params.id;
+    // @ts-expect-error
     const formdata = await ctx.request.formData();
     // console.log(formdata);
     const profilePicture = formdata.get("image");
@@ -124,7 +125,7 @@ export const POST_petImage$id = async function (ctx) {
         // Attach the image URL to the pet's profile (in a real scenario, consider storing images externally)
         pets[index].image = `/images/${petId}.png`;
         // write profilePicture to disk
-        // @ts-ignore
+        // @ts-expect-error
         await Bun.write(pets[index].imageUrl, profilePicture);
         ctx.send({
             message: "Image uploaded successfully",
@@ -149,10 +150,11 @@ export function hook__ERROR(ctx, err) {
     ctx.app.clean();
     ctx.throw(String(err));
 }
-export async function GET_error(ctx) {
+export const GET_error = async function (ctx) {
     ctx.throw("Edwinger loves jetpath");
-}
+};
 export const POST_ = async function (ctx) {
+    ctx.body;
     const form = await ctx.app.formData(ctx);
     console.log(form);
     if (form.image) {
