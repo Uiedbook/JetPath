@@ -12,8 +12,8 @@ const app = new JetPath({
     logo: "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp",
   },
   source: "tests",
-  APIdisplay: "UI",
-  // APIdisplay: "HTTP",
+  // APIdisplay: "UI",
+  APIdisplay: "HTTP",
   static: { dir: "./src", route: "/assest" },
   port: 9000,
   globalHeaders: {

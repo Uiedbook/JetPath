@@ -51,7 +51,8 @@ export class JetPath {
         const fileName =
           this.options?.static?.dir +
           "/" +
-          decodeURI(ctx.params?.["extraPath"]);
+          // @ts-expect-error
+          decodeURI(ctx.params?.["extraPath"] || "").split("?")[0];
         if (fileName) {
           const contentType = mime.getType(
             fileName.split(".").at(-1) || "application/octet-stream"
@@ -70,8 +71,6 @@ export class JetPath {
         method: "GET",
         path: this.options.static.route + "/*",
       };
-
-      //
     }
 
     //? setting up api viewer

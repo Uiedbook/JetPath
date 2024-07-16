@@ -6,15 +6,15 @@ import { createServer } from "node:http";
 // type imports
 import { IncomingMessage, ServerResponse } from "node:http";
 import {
-  type Context,
+  // type Context,
   type JetFunc,
   type allowedMethods,
   type jetOptions,
   type methods,
 } from "./types.js";
-import { Stream } from "node:stream";
-import { createReadStream } from "node:fs";
-import { Log, type JetPlugin } from "./classes.js";
+// import { Stream } from "node:stream";
+// import { createReadStream } from "node:fs";
+import { Context, Log, type JetPlugin } from "./classes.js";
 
 /**
  * an inbuilt CORS post hook
@@ -116,184 +116,186 @@ export function corsHook(options: {
 
 export const UTILS = {
   wsFuncs: [],
-  ctx: {
-    app: {},
-    request: null as any,
-    code: 200,
-    send(data: unknown, contentType: string) {
-      let ctype;
-      switch (typeof data) {
-        case "string":
-          ctype = "text/plain";
-          this._1 = data;
-          break;
-        case "object":
-          ctype = "application/json";
-          this._1 = JSON.stringify(data);
-          break;
-        default:
-          ctype = "text/plain";
-          this._1 = String(data);
-          break;
-      }
-      if (contentType) {
-        ctype = contentType;
-      }
-      if (!this._2) {
-        this._2 = {};
-      }
-      this._2["Content-Type"] = ctype;
-      this._4 = true;
-      if (!this._5) throw _DONE;
-      this._5();
-      return undefined as never;
-    },
-    redirect(url: string) {
-      this.code = 301;
-      if (!this._2) {
-        this._2 = {};
-      }
-      this._2["Location"] = url;
-      this._1 = undefined;
-      this._4 = true;
-      if (!this._5) throw _DONE;
-      this._5();
-      return undefined as never;
-    },
-    throw(code: unknown = 404, message: unknown = "Not Found") {
-      // ? could be a success but a wrong throw, so we check
-      if (!this._2) {
-        this._2 = {};
-      }
-      if (!this._4) {
-        this.code = 400;
-        switch (typeof code) {
-          case "number":
-            this.code = code;
-            if (typeof message === "object") {
-              this._2["Content-Type"] = "application/json";
-              this._1 = JSON.stringify(message);
-            } else if (typeof message === "string") {
-              this._2["Content-Type"] = "text/plain";
-              this._1 = message;
-            }
-            break;
-          case "string":
-            this._2["Content-Type"] = "text/plain";
-            this._1 = code;
-            break;
-          case "object":
-            this._2["Content-Type"] = "application/json";
-            this._1 = JSON.stringify(code);
-            break;
-        }
-      }
-      this._4 = true;
-      if (!this._5) throw _DONE;
-      this._5();
-      return undefined as never;
-    },
+  ctxPool: [] as Context[],
+  hooks: {},
+  // ctx: {
+  //   app: {},
+  //   request: null as any,
+  //   code: 200,
+  //   send(data: unknown, contentType: string) {
+  //     let ctype;
+  //     switch (typeof data) {
+  //       case "string":
+  //         ctype = "text/plain";
+  //         this._1 = data;
+  //         break;
+  //       case "object":
+  //         ctype = "application/json";
+  //         this._1 = JSON.stringify(data);
+  //         break;
+  //       default:
+  //         ctype = "text/plain";
+  //         this._1 = String(data);
+  //         break;
+  //     }
+  //     if (contentType) {
+  //       ctype = contentType;
+  //     }
+  //     if (!this._2) {
+  //       this._2 = {};
+  //     }
+  //     this._2["Content-Type"] = ctype;
+  //     this._4 = true;
+  //     if (!this._5) throw _DONE;
+  //     this._5();
+  //     return undefined as never;
+  //   },
+  //   redirect(url: string) {
+  //     this.code = 301;
+  //     if (!this._2) {
+  //       this._2 = {};
+  //     }
+  //     this._2["Location"] = url;
+  //     this._1 = undefined;
+  //     this._4 = true;
+  //     if (!this._5) throw _DONE;
+  //     this._5();
+  //     return undefined as never;
+  //   },
+  //   throw(code: unknown = 404, message: unknown = "Not Found") {
+  //     // ? could be a success but a wrong throw, so we check
+  //     if (!this._2) {
+  //       this._2 = {};
+  //     }
+  //     if (!this._4) {
+  //       this.code = 400;
+  //       switch (typeof code) {
+  //         case "number":
+  //           this.code = code;
+  //           if (typeof message === "object") {
+  //             this._2["Content-Type"] = "application/json";
+  //             this._1 = JSON.stringify(message);
+  //           } else if (typeof message === "string") {
+  //             this._2["Content-Type"] = "text/plain";
+  //             this._1 = message;
+  //           }
+  //           break;
+  //         case "string":
+  //           this._2["Content-Type"] = "text/plain";
+  //           this._1 = code;
+  //           break;
+  //         case "object":
+  //           this._2["Content-Type"] = "application/json";
+  //           this._1 = JSON.stringify(code);
+  //           break;
+  //       }
+  //     }
+  //     this._4 = true;
+  //     if (!this._5) throw _DONE;
+  //     this._5();
+  //     return undefined as never;
+  //   },
 
-    get(field: string) {
-      if (field) {
-        if (UTILS.runtime["node"]) {
-          return this.request.headers[field] as string;
-        }
-        return (this.request as unknown as Request).headers.get(
-          field
-        ) as string;
-      }
-      return undefined;
-    },
+  //   get(field: string) {
+  //     if (field) {
+  //       if (UTILS.runtime["node"]) {
+  //         return this.request.headers[field] as string;
+  //       }
+  //       return (this.request as unknown as Request).headers.get(
+  //         field
+  //       ) as string;
+  //     }
+  //     return undefined;
+  //   },
 
-    set(field: string, value: string) {
-      if (!this._2) {
-        this._2 = {};
-      }
-      if (field && value) {
-        this._2[field] = value;
-      }
-    },
+  //   set(field: string, value: string) {
+  //     if (!this._2) {
+  //       this._2 = {};
+  //     }
+  //     if (field && value) {
+  //       this._2[field] = value;
+  //     }
+  //   },
 
-    eject() {
-      throw _OFF;
-    },
+  //   eject() {
+  //     throw _OFF;
+  //   },
 
-    sendStream(stream: Stream | string, ContentType: string) {
-      if (!this._2) {
-        this._2 = {};
-      }
-      this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
-      this._2["Content-Type"] = ContentType;
-      if (typeof stream === "string") {
-        this._2["Content-Disposition"] = `inline;filename="${
-          stream.split("/").at(-1) || "unnamed.bin"
-        }"`;
-        if (UTILS.runtime["bun"]) {
-          // @ts-expect-error
-          stream = Bun.file(stream);
-        } else {
-          stream = createReadStream(stream);
-        }
-      }
-      this._3 = stream as Stream;
-      this._4 = true;
-      if (!this._5) throw _DONE;
-      this._5();
-      return undefined as never;
-    },
-    // TODO: make this working
-    // sendReponse(response: Response) {
-    //   this._1 = response;
-    //   this._4 = true;
-    //   if (!this._5) throw _RES;
-    //   this._5();
-    //   return undefined as never;
-    // },
+  //   sendStream(stream: Stream | string, ContentType: string) {
+  //     if (!this._2) {
+  //       this._2 = {};
+  //     }
+  //     this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
+  //     this._2["Content-Type"] = ContentType;
+  //     if (typeof stream === "string") {
+  //       this._2["Content-Disposition"] = `inline;filename="${
+  //         stream.split("/").at(-1) || "unnamed.bin"
+  //       }"`;
+  //       if (UTILS.runtime["bun"]) {
+  //         // @ts-expect-error
+  //         stream = Bun.file(stream);
+  //       } else {
+  //         stream = createReadStream(stream);
+  //       }
+  //     }
+  //     this._3 = stream as Stream;
+  //     this._4 = true;
+  //     if (!this._5) throw _DONE;
+  //     this._5();
+  //     return undefined as never;
+  //   },
+  //   // TODO: make this working
+  //   // sendReponse(response: Response) {
+  //   //   this._1 = response;
+  //   //   this._4 = true;
+  //   //   if (!this._5) throw _RES;
+  //   //   this._5();
+  //   //   return undefined as never;
+  //   // },
 
-    json<Type extends any = Record<string, any>>(): Promise<Type> {
-      // TODO:  calling this function twice cause an request hang in nodejs
-      if (!UTILS.runtime["node"]) {
-        try {
-          this.body = (this.request as unknown as Request).json();
-          return this.body as Promise<Type>;
-        } catch (error) {
-          return {} as Promise<Type>;
-        }
-      }
-      return new Promise<Type>((r) => {
-        let body = "";
-        this.request.on("data", (data: { toString: () => string }) => {
-          body += data.toString();
-        });
-        this.request.on("end", () => {
-          try {
-            this.body = JSON.parse(body);
-            r(this.body as Type);
-          } catch (error) {
-            r({} as Promise<Type>);
-          }
-        });
-      });
-    },
+  //   json<Type extends any = Record<string, any>>(): Promise<Type> {
+  //     // TODO:  calling this function twice cause an request hang in nodejs
+  //     if (!UTILS.runtime["node"]) {
+  //       try {
+  //         this.body = (this.request as unknown as Request).json();
+  //         return this.body as Promise<Type>;
+  //       } catch (error) {
+  //         return {} as Promise<Type>;
+  //       }
+  //     }
+  //     return new Promise<Type>((r) => {
+  //       let body = "";
+  //       this.request.on("data", (data: { toString: () => string }) => {
+  //         body += data.toString();
+  //       });
+  //       this.request.on("end", () => {
+  //         try {
+  //           this.body = JSON.parse(body);
+  //           r(this.body as Type);
+  //         } catch (error) {
+  //           r({} as Promise<Type>);
+  //         }
+  //       });
+  //     });
+  //   },
 
-    params: {},
-    search: {},
-    body: {},
-    path: "/",
-    //? load
-    _1: undefined as any,
-    // ? header of response
-    _2: {} as any,
-    // //? stream
-    _3: undefined as any,
-    //? used to know if the request has ended
-    _4: false,
-    //? used to know if the request has been offloaded
-    _5: false as any,
-    //? response
-    // _6: false,
-  },
+  //   params: {},
+  //   search: {},
+  //   body: {},
+  //   path: "/",
+  //   //? load
+  //   _1: undefined as any,
+  //   // ? header of response
+  //   _2: {} as any,
+  //   // //? stream
+  //   _3: undefined as any,
+  //   //? used to know if the request has ended
+  //   _4: false,
+  //   //? used to know if the request has been offloaded
+  //   _5: false as any,
+  //   //? response
+  //   // _6: false,
+  // },
   ae(cb: { (): any; (): any; (): void }) {
     try {
       cb();
@@ -303,7 +305,7 @@ export const UTILS = {
     }
   },
   set() {
-     // @ts-expect-error
+    // @ts-expect-error
     const bun = UTILS.ae(() => Bun);
     // @ts-expect-error
     const deno = UTILS.ae(() => Deno);
@@ -322,7 +324,7 @@ export const UTILS = {
     if (UTILS.runtime["deno"]) {
       server = {
         listen(port: number) {
-           // @ts-expect-error
+          // @ts-expect-error
           serverelse = Deno.serve({ port: port }, JetPath_app);
         },
         edge: false,
@@ -331,7 +333,7 @@ export const UTILS = {
     if (UTILS.runtime["bun"]) {
       server = {
         listen(port: number) {
-           // @ts-expect-error
+          // @ts-expect-error
           serverelse = Bun.serve({
             port,
             fetch: JetPath_app,
@@ -378,8 +380,8 @@ export const UTILS = {
     }
     // ? adding ctx plugin bindings
     for (const key in decorations) {
-      if (!(UTILS.ctx.app as any)[key]) {
-        (UTILS.ctx.app as any)[key] = decorations[key].bind(UTILS.ctx);
+      if (!(UTILS.hooks as any)[key]) {
+        (UTILS.hooks as any)[key] = decorations[key];
       }
     }
 
@@ -419,8 +421,8 @@ class JetPathErrors extends Error {
   }
 }
 
-const _DONE = new JetPathErrors("done");
-const _OFF = new JetPathErrors("off");
+export const _DONE = new JetPathErrors("done");
+export const _OFF = new JetPathErrors("off");
 // const _RES = new JetPathErrors("respond");
 
 export const _JetPath_app_config = {
@@ -451,9 +453,12 @@ export const _JetPath_app_config = {
   },
 };
 
-const createCTX = (req: IncomingMessage): Context => {
-  const ctx: Context = Object.create(UTILS.ctx);
-  ctx.request = req;
+const createCTX = (req: IncomingMessage | Request): Context => {
+  if (UTILS.ctxPool.length) {
+    const ctx = UTILS.ctxPool.shift()!;
+    ctx.request = req as Request;
+  }
+  const ctx = new Context(req as Request);
   return ctx;
 };
 
@@ -468,14 +473,17 @@ const createResponse = (
   _JetPath_app_config.cors(ctx);
   if (!UTILS.runtime["node"]) {
     if (ctx?.code === 301 && ctx._2?.["Location"]) {
+      UTILS.ctxPool.push(ctx);
       return Response.redirect(ctx._2?.["Location"]);
     }
     if (ctx?._3) {
+      UTILS.ctxPool.push(ctx);
       return new Response(ctx?._3 as unknown as BodyInit, {
         status: 200,
         headers: ctx?._2,
       });
     }
+    UTILS.ctxPool.push(ctx);
     return new Response(ctx?._1 || (four04 ? "Not found" : undefined), {
       status: ctx?.code || 404,
       headers: ctx?._2,
@@ -483,10 +491,12 @@ const createResponse = (
   }
   if (ctx?._3) {
     res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
+    UTILS.ctxPool.push(ctx);
     return ctx._3.pipe(res);
   }
   res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
   res.end(ctx?._1 || (four04 ? "Not found" : undefined));
+  UTILS.ctxPool.push(ctx);
 };
 
 const JetPath_app = async (
@@ -508,7 +518,7 @@ const JetPath_app = async (
       //? pre-request hooks here
       await _JetPath_hooks["PRE"]?.(ctx);
       //? route handler call
-      await (r as any)(ctx);
+      await (r as Function)(ctx);
       //? post-request hooks here
       await _JetPath_hooks["POST"]?.(ctx);
       return createResponse(res, ctx);
@@ -522,7 +532,7 @@ const JetPath_app = async (
       } else {
         //? report error to error hook
         try {
-           // @ts-expect-error
+          // @ts-expect-error
           await _JetPath_hooks["ERROR"]?.(ctx, error);
           //! if expose headers on error is set
           //! false remove this line so the last return will take effect;
@@ -537,7 +547,6 @@ const JetPath_app = async (
     return createResponse(res, createCTX(req), true);
   } else {
     return new Promise((r) => {
-       // @ts-expect-error
       ctx!._5 = () => {
         r(createResponse(res, ctx!, true));
       };
@@ -605,6 +614,8 @@ export async function getHandlers(
         const module = await getModule(source, dirent.name);
         if (module) {
           for (const p in module) {
+            console.log(module[p].bind(module[p]));
+
             const params = Handlerspath(p);
             if (params) {
               // ! HTTP handler
@@ -623,7 +634,9 @@ export async function getHandlers(
                 module[p].config!.method = params[0];
                 // ? set the path
                 module[p].config!.path = params[1];
-                _JetPath_paths[params[0] as methods][params[1]] = module[p];
+                _JetPath_paths[params[0] as methods][params[1]] = module[
+                  p
+                ] as JetFunc;
               } else {
                 if ("POST-PRE-ERROR".includes(params as string)) {
                   _JetPath_hooks[params as string] = module[p];
@@ -805,6 +818,7 @@ export const compileAPI = (options: jetOptions): [number, string] => {
   for (const method in _JetPath_paths) {
     // ? Retrieve api info;
     const routesOfMethod = _JetPath_paths[method as methods];
+
     if (routesOfMethod && Object.keys(routesOfMethod).length) {
       for (const route in routesOfMethod) {
         // ? Retrieve api BODY object
@@ -858,6 +872,7 @@ ${
             : ""
         }
 ###`;
+
         // ? combine api(s)
         const low = sorted_insert(compiledRoutes, route);
         compiledRoutes.splice(low, 0, route);

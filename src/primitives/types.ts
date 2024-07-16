@@ -183,7 +183,7 @@ export type JetFunc<
     this: {
       validate: (data: any) => JetBody;
     },
-    ctx: Context<JetBody, JetSearch, JetParams>
+    ctx: Context<JetBody, JetParams, JetSearch>
   ): Promise<void> | void;
   config?: {
     body?: HTTPBody<JetBody>;
