@@ -97,7 +97,13 @@ export const GET_pets_search$$: JetFunc<{}, {}, { name: string }> =
 
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
-export const PUT_petBy$id: JetFunc<{}, { id: string }> = async function (ctx) {
+export const PUT_petBy$id: JetFunc<
+  {},
+  { id: string },
+  {},
+  [{ b: () => void }]
+> = async function (ctx) {
+  ctx.app[0].b();
   // console.log(ctx);
 
   const updatedPetData = ctx.validate(await ctx.json());
@@ -181,8 +187,13 @@ export const GET_error: JetFunc = async function (ctx) {
   ctx.throw("Edwinger loves jetpath");
 };
 
-export const POST_: JetFunc = async function (ctx) {
-  const form = await ctx.app.formData(ctx);
+export const POST_: JetFunc<
+  {},
+  {},
+  {},
+  [{ formData: (ctx: any) => any }, { formData2: (ctx: any) => "lol" }]
+> = async function (ctx) {
+  const form = await ctx.app.formData2();
   console.log(form);
   if (form.image) {
     await form.image.saveTo(form.image.filename);

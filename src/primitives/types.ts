@@ -1,23 +1,43 @@
 import { IncomingMessage, Server, ServerResponse } from "node:http";
-// import { Stream } from "node:stream";
 import type { _JetPath_paths } from "./functions.js";
 import type { JetPlugin } from "./classes.js";
+
+type UnionToIntersection<U extends Record<string, unknown>[]> = (
+  U extends Record<string, unknown>[] ? (k: U) => void : never
+) extends (k: infer I extends U) => void
+  ? (I[0] | Record<string, any>) &
+      (I[1] | Record<string, any>) &
+      (I[2] | Record<string, any>) &
+      (I[3] | Record<string, any>) &
+      (I[4] | Record<string, any>) &
+      (I[5] | Record<string, any>) &
+      (I[6] | Record<string, any>) &
+      (I[7] | Record<string, any>) &
+      (I[8] | Record<string, any>) &
+      (I[9] | Record<string, any>) &
+      (I[10] | Record<string, any>)
+  : never;
 
 export type Context<
   JetBody extends Record<string, any>,
   JetParams extends Record<string, string>,
-  JetSearch extends Record<string, string>
+  JetSearch extends Record<string, string>,
+  JetPluginTypes extends Record<string, unknown>[]
 > = {
   /**
-   * get body params after api/?
+   * an object you can set values to per request
+   */
+  app: UnionToIntersection<JetPluginTypes>;
+  /**
+   * get body params after /?
    */
   body: JetBody;
   /**
-   * get search params after api/?
+   * get search params after /?
    */
   search: JetSearch;
   /**
-   * get route params in api/:thing
+   * get route params in /:thing
    */
   params: JetParams;
   /**
@@ -36,10 +56,7 @@ export type Context<
    * validate body
    */
   validate: (data: any) => JetBody;
-  /**
-   * an object you can set values to per request
-   */
-  app: Record<string, any>;
+
   /**
    * send a stream
    */
@@ -72,9 +89,7 @@ export type Context<
   /**
    * Parses the request as JSON
    */
-  /**
-   * get and set status code
-   */
+
   json(): Promise<Record<string, any>>;
 
   /**
@@ -181,9 +196,12 @@ export type HTTPBody<Obj extends Record<string, any>> = {
 export type JetFunc<
   JetBody extends Record<string, any> = {},
   JetParams extends Record<string, string> = {},
-  JetSearch extends Record<string, string> = {}
+  JetSearch extends Record<string, string> = {},
+  JetPluginTypes extends Record<string, unknown>[] = []
 > = {
-  (ctx: Context<JetBody, JetParams, JetSearch>): Promise<void> | void;
+  (
+    ctx: Context<JetBody, JetParams, JetSearch, JetPluginTypes>
+  ): Promise<void> | void;
   body?: HTTPBody<JetBody>;
   headers?: Record<string, string>;
   info?: string;

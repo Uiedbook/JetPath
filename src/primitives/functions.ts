@@ -69,7 +69,7 @@ export function corsHook(options: {
       //? Simple Cross-Origin Request, Actual Request, and Redirects
       ctx.set("Access-Control-Allow-Origin", options.origin!.join(","));
     }
-    if (ctx.request.method !== "OPTIONS") {
+    if (ctx.request!.method !== "OPTIONS") {
       // if (options.exposeHeaders) {
       //   ctx.set(
       //     "Access-Control-Expose-Headers",
@@ -119,184 +119,6 @@ export const UTILS = {
   wsFuncs: [],
   ctxPool: [] as Context[],
   hooks: {},
-  // ctx: {
-  //   app: {},
-  //   request: null as any,
-  //   code: 200,
-  //   send(data: unknown, contentType: string) {
-  //     let ctype;
-  //     switch (typeof data) {
-  //       case "string":
-  //         ctype = "text/plain";
-  //         this._1 = data;
-  //         break;
-  //       case "object":
-  //         ctype = "application/json";
-  //         this._1 = JSON.stringify(data);
-  //         break;
-  //       default:
-  //         ctype = "text/plain";
-  //         this._1 = String(data);
-  //         break;
-  //     }
-  //     if (contentType) {
-  //       ctype = contentType;
-  //     }
-  //     if (!this._2) {
-  //       this._2 = {};
-  //     }
-  //     this._2["Content-Type"] = ctype;
-  //     this._4 = true;
-  //     if (!this._5) throw _DONE;
-  //     this._5();
-  //     return undefined as never;
-  //   },
-  //   redirect(url: string) {
-  //     this.code = 301;
-  //     if (!this._2) {
-  //       this._2 = {};
-  //     }
-  //     this._2["Location"] = url;
-  //     this._1 = undefined;
-  //     this._4 = true;
-  //     if (!this._5) throw _DONE;
-  //     this._5();
-  //     return undefined as never;
-  //   },
-  //   throw(code: unknown = 404, message: unknown = "Not Found") {
-  //     // ? could be a success but a wrong throw, so we check
-  //     if (!this._2) {
-  //       this._2 = {};
-  //     }
-  //     if (!this._4) {
-  //       this.code = 400;
-  //       switch (typeof code) {
-  //         case "number":
-  //           this.code = code;
-  //           if (typeof message === "object") {
-  //             this._2["Content-Type"] = "application/json";
-  //             this._1 = JSON.stringify(message);
-  //           } else if (typeof message === "string") {
-  //             this._2["Content-Type"] = "text/plain";
-  //             this._1 = message;
-  //           }
-  //           break;
-  //         case "string":
-  //           this._2["Content-Type"] = "text/plain";
-  //           this._1 = code;
-  //           break;
-  //         case "object":
-  //           this._2["Content-Type"] = "application/json";
-  //           this._1 = JSON.stringify(code);
-  //           break;
-  //       }
-  //     }
-  //     this._4 = true;
-  //     if (!this._5) throw _DONE;
-  //     this._5();
-  //     return undefined as never;
-  //   },
-
-  //   get(field: string) {
-  //     if (field) {
-  //       if (UTILS.runtime["node"]) {
-  //         return this.request.headers[field] as string;
-  //       }
-  //       return (this.request as unknown as Request).headers.get(
-  //         field
-  //       ) as string;
-  //     }
-  //     return undefined;
-  //   },
-
-  //   set(field: string, value: string) {
-  //     if (!this._2) {
-  //       this._2 = {};
-  //     }
-  //     if (field && value) {
-  //       this._2[field] = value;
-  //     }
-  //   },
-
-  //   eject() {
-  //     throw _OFF;
-  //   },
-
-  //   sendStream(stream: Stream | string, ContentType: string) {
-  //     if (!this._2) {
-  //       this._2 = {};
-  //     }
-  //     this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
-  //     this._2["Content-Type"] = ContentType;
-  //     if (typeof stream === "string") {
-  //       this._2["Content-Disposition"] = `inline;filename="${
-  //         stream.split("/").at(-1) || "unnamed.bin"
-  //       }"`;
-  //       if (UTILS.runtime["bun"]) {
-  //         // @ts-expect-error
-  //         stream = Bun.file(stream);
-  //       } else {
-  //         stream = createReadStream(stream);
-  //       }
-  //     }
-  //     this._3 = stream as Stream;
-  //     this._4 = true;
-  //     if (!this._5) throw _DONE;
-  //     this._5();
-  //     return undefined as never;
-  //   },
-  //   // TODO: make this working
-  //   // sendReponse(response: Response) {
-  //   //   this._1 = response;
-  //   //   this._4 = true;
-  //   //   if (!this._5) throw _RES;
-  //   //   this._5();
-  //   //   return undefined as never;
-  //   // },
-
-  //   json<Type extends any = Record<string, any>>(): Promise<Type> {
-  //     // TODO:  calling this function twice cause an request hang in nodejs
-  //     if (!UTILS.runtime["node"]) {
-  //       try {
-  //         this.body = (this.request as unknown as Request).json();
-  //         return this.body as Promise<Type>;
-  //       } catch (error) {
-  //         return {} as Promise<Type>;
-  //       }
-  //     }
-  //     return new Promise<Type>((r) => {
-  //       let body = "";
-  //       this.request.on("data", (data: { toString: () => string }) => {
-  //         body += data.toString();
-  //       });
-  //       this.request.on("end", () => {
-  //         try {
-  //           this.body = JSON.parse(body);
-  //           r(this.body as Type);
-  //         } catch (error) {
-  //           r({} as Promise<Type>);
-  //         }
-  //       });
-  //     });
-  //   },
-
-  //   params: {},
-  //   search: {},
-  //   body: {},
-  //   path: "/",
-  //   //? load
-  //   _1: undefined as any,
-  //   // ? header of response
-  //   _2: {} as any,
-  //   // //? stream
-  //   _3: undefined as any,
-  //   //? used to know if the request has ended
-  //   _4: false,
-  //   //? used to know if the request has been offloaded
-  //   _5: false as any,
-  //   //? response
-  //   // _6: false,
-  // },
   ae(cb: { (): any; (): any; (): void }) {
     try {
       cb();
@@ -338,10 +160,6 @@ export const UTILS = {
           serverelse = Bun.serve({
             port,
             fetch: JetPath_app,
-            // TODO make this working with plugins
-            // websocket: () => {
-            // UTILS.wsFuncs;
-            // },
           });
         },
         edge: false,
@@ -352,27 +170,28 @@ export const UTILS = {
 
     const decorations: Record<string, any> = {};
 
-    if (!server) {
-      const edgePluginIdx = plugs.findIndex((plug) => plug.hasServer);
-      const edgePlugin = plugs.splice(edgePluginIdx, 1)[0];
-      if (edgePlugin !== undefined && edgePlugin.hasServer) {
-        const decs = edgePlugin._setup({
-          server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
-          runtime: UTILS.runtime as any,
-          routesObject: _JetPath_paths,
-          JetPath_app: JetPath_app as any,
-        });
-        Object.assign(decorations, decs);
-        //  setting the jet server from the plugin
-        if (edgePlugin.JetPathServer) {
-          server = edgePlugin.JetPathServer;
-          server.edge = true;
-        }
+    // ? yes a plugin can bring it's own server
+    const edgePluginIdx = plugs.findIndex((plug) => plug.hasServer);
+    const edgePlugin = plugs.splice(edgePluginIdx, 1)[0];
+    if (edgePlugin !== undefined && edgePlugin.hasServer) {
+      const decs = edgePlugin._setup({
+        server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
+        runtime: UTILS.runtime as any,
+        routesObject: _JetPath_paths,
+        JetPath_app: JetPath_app as any,
+      });
+      Object.assign(decorations, decs);
+      //? setting the jet server from the plugin
+      if (edgePlugin.JetPathServer) {
+        server = edgePlugin.JetPathServer;
+        server.edge = true;
       }
     }
+
+    //? compile plugins
     for (let i = 0; i < plugs.length; i++) {
       const decs = plugs[i]._setup({
-        server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
+        server: !UTILS.runtime["node"] ? serverelse! : server!,
         runtime: UTILS.runtime as any,
         routesObject: _JetPath_paths,
         JetPath_app: JetPath_app as any,
@@ -466,6 +285,8 @@ const createCTX = (
     return ctx;
   }
   const ctx = new Context();
+  // ? add hooks to the app object
+  Object.assign(ctx.app, UTILS.hooks);
   ctx._7(req as Request, path, params, search);
   return ctx;
 };
@@ -523,7 +344,7 @@ const JetPath_app = async (
       //? pre-request hooks here
       await _JetPath_hooks["PRE"]?.(ctx);
       //? route handler call
-      await r(ctx);
+      await r(ctx as any);
       //? post-request hooks here
       await _JetPath_hooks["POST"]?.(ctx);
       return createResponse(res, ctx);

@@ -76,9 +76,10 @@ export class Context {
   request: Request | undefined;
   params: Record<string, any> | undefined;
   search: Record<string, any> | undefined;
-  app: Record<string, any> = {};
-  body: Record<string, any> = {};
+  body: Record<string, any> | undefined;
   path: string | undefined;
+  // ?
+  app: Record<string, any> = {};
   //? load
   _1?: string = undefined;
   // ? header of response
