@@ -109,7 +109,8 @@ body {
 
 .card {
   border: none;
-/*  margin-bottom: 30px; */ 
+  margin-bottom: 30px;
+  max-width: 90%;
 }
 /* .card * {
   border: 1px red solid;
@@ -577,6 +578,7 @@ document.getElementById(cid).innerHTML = syntaxHighlight(response.body);
 }
 
 const card = (request, i) => {
+  console.log(request);
   const payload = JSON.parse(request.payload);
   return div(
     { className: "card" },

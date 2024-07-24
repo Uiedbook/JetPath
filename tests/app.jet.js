@@ -1,13 +1,13 @@
 const pets = [];
 // ? Routes
-export const GET_ = async function (ctx) {
-    for (const key in ctx) {
-        console.log({ [key]: ctx[key] });
-    }
+export const GET_ = function (ctx) {
+    ctx.send("hello world");
+};
+export const GET_greet = function (ctx) {
     new Promise(() => {
         setTimeout(() => {
             ctx.send("Welcome to Petshop!");
-        }, 3000);
+        }, 1000);
     });
     ctx.eject();
 };
@@ -29,12 +29,6 @@ export const GET_petBy$id = async function (ctx) {
         ctx.send({ message: "Pet not found" });
     }
 };
-GET_petBy$id.body = {
-    name: { err: "please provide dog name", type: "string" },
-    image: { type: "file", required: false, inputType: "file" },
-    age: { type: "number", inputType: "number" },
-};
-GET_petBy$id.info = "This api allows you to update a pet with it's ID";
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
 export const POST_pets = async function (ctx) {
@@ -44,14 +38,6 @@ export const POST_pets = async function (ctx) {
     pets.push(newPet);
     ctx.send({ message: "Pet added successfully", pet: newPet });
 };
-// export const POST_pets: JetFunc<PetType> = async function (this, ctx) {
-//   console.log(POST_pets);
-//   const body = ctx.validate(await ctx.json())!;
-//   const newPet = body;
-//   newPet.id = String(Date.now());
-//   pets.push(newPet);
-//   ctx.send({ message: "Pet added successfully", pet: newPet });
-// };
 POST_pets.body = {
     name: { err: "please provide dog name", type: "string" },
     image: { type: "string", required: false, inputType: "file" },
@@ -75,7 +61,6 @@ export const GET_pets_search$$ = async function (ctx) {
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
 export const PUT_petBy$id = async function (ctx) {
-    // console.log(ctx);
     const updatedPetData = ctx.validate(await ctx.json());
     console.log(updatedPetData);
     const petId = ctx.params.id;
@@ -95,7 +80,10 @@ PUT_petBy$id.body = {
     image: { type: "file", inputType: "file" },
     video: { type: "file", inputType: "file" },
     textfield: { type: "string", required: false },
+    name: { err: "please provide dog name", type: "string" },
+    age: { type: "number", inputType: "number" },
 };
+PUT_petBy$id.info = "This api allows you to update a pet with it's ID";
 // ? /petBy/8766
 // Delete a Pet: Remove a pet from the inventory
 export const DELETE_petBy$id = function (ctx) {

@@ -2,20 +2,10 @@ import { IncomingMessage, Server, ServerResponse } from "node:http";
 import type { _JetPath_paths } from "./functions.js";
 import type { JetPlugin } from "./classes.js";
 
-type UnionToIntersection<U extends Record<string, unknown>[]> = (
-  U extends Record<string, unknown>[] ? (k: U) => void : never
-) extends (k: infer I extends U) => void
-  ? (I[0] | Record<string, any>) &
-      (I[1] | Record<string, any>) &
-      (I[2] | Record<string, any>) &
-      (I[3] | Record<string, any>) &
-      (I[4] | Record<string, any>) &
-      (I[5] | Record<string, any>) &
-      (I[6] | Record<string, any>) &
-      (I[7] | Record<string, any>) &
-      (I[8] | Record<string, any>) &
-      (I[9] | Record<string, any>) &
-      (I[10] | Record<string, any>)
+type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
+  x: infer I
+) => void
+  ? I
   : never;
 
 export type Context<
@@ -27,7 +17,7 @@ export type Context<
   /**
    * an object you can set values to per request
    */
-  app: UnionToIntersection<JetPluginTypes> & Record<string, any>;
+  app: UnionToIntersection<JetPluginTypes[number]> & Record<string, any>;
   /**
    * get body params after /?
    */

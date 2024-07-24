@@ -11,14 +11,14 @@ const pets: PetType[] = [];
 
 // ? Routes
 
-export const GET_: JetFunc = async function (ctx) {
-  for (const key in ctx) {
-    console.log({ [key]: ctx[key] });
-  }
+export const GET_: JetFunc = function (ctx) {
+  ctx.send("hello world");
+};
+export const GET_greet: JetFunc = function (ctx) {
   new Promise(() => {
     setTimeout(() => {
       ctx.send("Welcome to Petshop!");
-    }, 3000);
+    }, 1000);
   });
   ctx.eject();
 };
@@ -44,13 +44,6 @@ export const GET_petBy$id: JetFunc<PetType, { id: string }> = async function (
   }
 };
 
-GET_petBy$id.body = {
-  name: { err: "please provide dog name", type: "string" },
-  image: { type: "file", required: false, inputType: "file" },
-  age: { type: "number", inputType: "number" },
-};
-GET_petBy$id.info = "This api allows you to update a pet with it's ID";
-
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
 export const POST_pets: JetFunc<PetType> = async function (ctx) {
@@ -60,14 +53,6 @@ export const POST_pets: JetFunc<PetType> = async function (ctx) {
   pets.push(newPet);
   ctx.send({ message: "Pet added successfully", pet: newPet });
 };
-// export const POST_pets: JetFunc<PetType> = async function (this, ctx) {
-//   console.log(POST_pets);
-//   const body = ctx.validate(await ctx.json())!;
-//   const newPet = body;
-//   newPet.id = String(Date.now());
-//   pets.push(newPet);
-//   ctx.send({ message: "Pet added successfully", pet: newPet });
-// };
 
 POST_pets.body = {
   name: { err: "please provide dog name", type: "string" },
@@ -97,15 +82,9 @@ export const GET_pets_search$$: JetFunc<{}, {}, { name: string }> =
 
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
-export const PUT_petBy$id: JetFunc<
-  {},
-  { id: string },
-  {},
-  [{ b: () => void }]
-> = async function (ctx) {
-  ctx.app[0].b();
-  // console.log(ctx);
-
+export const PUT_petBy$id: JetFunc<{}, { id: string }, {}> = async function (
+  ctx
+) {
   const updatedPetData = ctx.validate(await ctx.json());
   console.log(updatedPetData);
 
@@ -126,7 +105,10 @@ PUT_petBy$id.body = {
   image: { type: "file", inputType: "file" },
   video: { type: "file", inputType: "file" },
   textfield: { type: "string", required: false },
+  name: { err: "please provide dog name", type: "string" },
+  age: { type: "number", inputType: "number" },
 };
+PUT_petBy$id.info = "This api allows you to update a pet with it's ID";
 
 // ? /petBy/8766
 // Delete a Pet: Remove a pet from the inventory
@@ -191,9 +173,18 @@ export const POST_: JetFunc<
   {},
   {},
   {},
-  [{ formData: (ctx: any) => any }, { formData2: (ctx: any) => "lol" }]
+  [
+    {
+      formData: (ctx: any) => Promise<{
+        image: any;
+        video: string;
+        textfield: string;
+      }>;
+    },
+    { formData2: (ctx: any) => "lol" }
+  ]
 > = async function (ctx) {
-  const form = await ctx.app.formData();
+  const form = await ctx.app.formData(ctx);
   console.log(form);
   if (form.image) {
     await form.image.saveTo(form.image.filename);

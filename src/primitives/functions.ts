@@ -314,7 +314,7 @@ const createResponse = (
     }
     UTILS.ctxPool.push(ctx);
     return new Response(ctx?._1 || (four04 ? "Not found" : undefined), {
-      status: ctx?.code || 404,
+      status: (four04 && 404) || ctx.code,
       headers: ctx?._2,
     });
   }
@@ -323,7 +323,10 @@ const createResponse = (
     UTILS.ctxPool.push(ctx);
     return ctx._3.pipe(res);
   }
-  res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
+  res.writeHead(
+    (four04 && 404) || ctx.code,
+    ctx?._2 || { "Content-Type": "text/plain" }
+  );
   res.end(ctx?._1 || (four04 ? "Not found" : undefined));
   UTILS.ctxPool.push(ctx);
 };
@@ -663,7 +666,7 @@ export const compileAPI = (options: jetOptions): [number, string] => {
         const validator = routesOfMethod[route];
 
         // ? Retrieve api body definitions
-        const body = validator?.body || {};
+        const body = validator.body;
 
         // ? Retrieve api headers definitions
         const inialHeader = {};
@@ -676,8 +679,9 @@ export const compileAPI = (options: jetOptions): [number, string] => {
           );
         }
         // ? parse body
-        const bodyData: Record<string, any> = {};
+        let bodyData: Record<string, any> | undefined = undefined;
         if (body) {
+          bodyData = {};
           for (const keyOfBody in body) {
             bodyData[keyOfBody] =
               (body[keyOfBody as keyof typeof body] as any)?.defaultValue ||
@@ -693,16 +697,8 @@ ${method} ${
             : "http://localhost:" + (options?.port || 8080)
         }${route} HTTP/1.1
 ${headers.length ? headers.join("\n") : ""}\n
-${
-  validator && (validator?.method === method && method !== "GET" ? method : "")
-    ? JSON.stringify(bodyData)
-    : ""
-}\n${
-          validator &&
-          (validator!.method === method ? method : "") &&
-          validator?.["info"]
-            ? "#" + validator?.["info"] + "-JETE"
-            : ""
+${(body && method !== "GET" ? method : "") ? JSON.stringify(bodyData) : ""}\n${
+          validator?.["info"] ? "#" + validator?.["info"] + "-JETE" : ""
         }
 ###`;
 
