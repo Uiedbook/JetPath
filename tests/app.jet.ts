@@ -193,7 +193,7 @@ export const POST_: JetFunc<
   {},
   [{ formData: (ctx: any) => any }, { formData2: (ctx: any) => "lol" }]
 > = async function (ctx) {
-  const form = await ctx.app.formData2();
+  const form = await ctx.app.formData();
   console.log(form);
   if (form.image) {
     await form.image.saveTo(form.image.filename);

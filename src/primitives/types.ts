@@ -27,7 +27,7 @@ export type Context<
   /**
    * an object you can set values to per request
    */
-  app: UnionToIntersection<JetPluginTypes>;
+  app: UnionToIntersection<JetPluginTypes> & Record<string, any>;
   /**
    * get body params after /?
    */
