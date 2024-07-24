@@ -3,15 +3,16 @@
     // enable latest features
     "lib": ["es2022", "esnext", "dom", "dom.iterable"],
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "NodeNext",
     "moduleDetection": "force",
     "allowJs": true,
 
     // Bundler mode
-    "moduleResolution": "bundler",
+    "moduleResolution": "nodenext",
     "verbatimModuleSyntax": true,
     // "noEmit": true,
     "declaration": true,
+    "allowSyntheticDefaultImports": true,
 
     // Best practices
     "strict": true,
@@ -26,5 +27,5 @@
     "outDir": "./dist"
   },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "tests/app.test.ts"]
 }

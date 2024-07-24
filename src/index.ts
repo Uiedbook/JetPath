@@ -67,10 +67,8 @@ export class JetPath {
           return ctx.throw();
         }
       };
-      _JetPath_paths["GET"][this.options.static.route + "/*"].config = {
-        method: "GET",
-        path: this.options.static.route + "/*",
-      };
+
+      _JetPath_paths["GET"][this.options.static.route + "/*"].method = "GET";
     }
 
     //? setting up api viewer

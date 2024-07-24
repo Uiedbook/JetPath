@@ -6,6 +6,7 @@ import { createServer } from "node:http";
 // type imports
 import { IncomingMessage, ServerResponse } from "node:http";
 import {
+  type HTTPBody,
   // type Context,
   type JetFunc,
   type allowedMethods,
@@ -412,7 +413,7 @@ export let _JetPath_paths: Record<methods, Record<string, JetFunc>> = {
 };
 export const _JetPath_hooks: Record<
   string,
-  (ctx: Context) => void | Promise<void>
+  (ctx: Context, err?: unknown) => void | Promise<void>
 > = {};
 
 class JetPathErrors extends Error {
@@ -453,12 +454,19 @@ export const _JetPath_app_config = {
   },
 };
 
-const createCTX = (req: IncomingMessage | Request): Context => {
+const createCTX = (
+  req: IncomingMessage | Request,
+  path: string,
+  params?: Record<string, any>,
+  search?: Record<string, any>
+): Context => {
   if (UTILS.ctxPool.length) {
     const ctx = UTILS.ctxPool.shift()!;
-    ctx.request = req as Request;
+    ctx._7(req as Request, path, params, search);
+    return ctx;
   }
-  const ctx = new Context(req as Request);
+  const ctx = new Context();
+  ctx._7(req as Request, path, params, search);
   return ctx;
 };
 
@@ -507,18 +515,15 @@ const JetPath_app = async (
 ) => {
   const paseredR = URLPARSER(req.method as methods, req.url!);
   let off = false;
-  let ctx;
+  let ctx: Context;
   if (paseredR) {
-    ctx = createCTX(req);
     const r = paseredR[0];
-    ctx.params = paseredR[1] as any;
-    ctx.search = paseredR[2] as any;
-    ctx.path = paseredR[3] as any;
+    ctx = createCTX(req, paseredR[3], paseredR[1], paseredR[2]);
     try {
       //? pre-request hooks here
       await _JetPath_hooks["PRE"]?.(ctx);
       //? route handler call
-      await (r as Function)(ctx);
+      await r(ctx);
       //? post-request hooks here
       await _JetPath_hooks["POST"]?.(ctx);
       return createResponse(res, ctx);
@@ -532,7 +537,6 @@ const JetPath_app = async (
       } else {
         //? report error to error hook
         try {
-          // @ts-expect-error
           await _JetPath_hooks["ERROR"]?.(ctx, error);
           //! if expose headers on error is set
           //! false remove this line so the last return will take effect;
@@ -544,7 +548,7 @@ const JetPath_app = async (
     }
   }
   if (!off) {
-    return createResponse(res, createCTX(req), true);
+    return createResponse(res, createCTX(req, ""), true);
   } else {
     return new Promise((r) => {
       ctx!._5 = () => {
@@ -583,17 +587,16 @@ const getModule = async (src: string, name: string) => {
     const mod = await import(path.resolve(src + "/" + name));
     return mod;
   } catch (error) {
-    if (name.includes(".jet.js")) {
-      Log.error(
-        "An error occured in the file " +
-          src +
-          "/" +
-          name +
-          " \n" +
-          String(error) +
-          " \n"
-      );
-    }
+    Log.error(
+      "An error occured in the file " +
+        src +
+        "/" +
+        name +
+        " \n" +
+        String(error) +
+        " \n"
+    );
+
     return;
   }
 };
@@ -614,8 +617,6 @@ export async function getHandlers(
         const module = await getModule(source, dirent.name);
         if (module) {
           for (const p in module) {
-            console.log(module[p].bind(module[p]));
-
             const params = Handlerspath(p);
             if (params) {
               // ! HTTP handler
@@ -623,17 +624,10 @@ export async function getHandlers(
                 typeof params !== "string" &&
                 _JetPath_paths[params[0] as methods]
               ) {
-                // ! BODY parser
-                module[p].validate = (data: any = {}) =>
-                  validate(module[p], data);
-                // ? se the JetFunc
-                if (!module[p].config) {
-                  module[p].config = {};
-                }
                 // ? set the method
-                module[p].config!.method = params[0];
+                module[p]!.method = params[0];
                 // ? set the path
-                module[p].config!.path = params[1];
+                module[p]!.path = params[1];
                 _JetPath_paths[params[0] as methods][params[1]] = module[
                   p
                 ] as JetFunc;
@@ -649,16 +643,16 @@ export async function getHandlers(
           errorsCount = errorsCount + 1;
         }
       } catch (error) {
-        if (dirent.name.endsWith(".jet.js")) {
-          Log.error(
-            "An error occured in the file " +
-              dirent.name +
-              " \n" +
-              String(error) +
-              " \n"
-          );
-        }
+        // if (dirent.name.endsWith(".jet.js")) {
+        Log.error(
+          "An error occured in the file " +
+            dirent.name +
+            " \n" +
+            String(error) +
+            " \n"
+        );
       }
+      // }
     }
     if (
       dirent.isDirectory() &&
@@ -671,26 +665,20 @@ export async function getHandlers(
   return errorsCount;
 }
 
-export function validate(schema: JetFunc<any, any, any>, data: any) {
+export function validator(schema: HTTPBody<any> | undefined, data: any) {
   const out: Record<string, any> = {};
   let errout: string = "";
   if (!data) throw new Error("invalid data => " + data);
-  for (const [prop, value] of Object.entries(schema.config?.body || {})) {
-    const { err, type, nullable, RegExp, validator } = value;
-    if (!data[prop] && nullable) {
+  for (const [prop, value] of Object.entries(schema || {})) {
+    const { err, type, required, RegExp, validator } = value;
+    if (!data[prop] && required == false) {
       continue;
     }
-    if (data[prop] === undefined && !nullable) {
+    if (data[prop] === undefined && (required || required === undefined)) {
       errout = err || `${prop} is required`;
       continue;
     }
-    if (validator) {
-      const v = validator(data[prop]) as any;
-      if (v !== true) {
-        errout = err || typeof v === "string" ? v : `${prop} must is invalid`;
-      }
-      continue;
-    }
+
     if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
       errout = err || `${prop} must is invalid`;
       continue;
@@ -701,18 +689,38 @@ export function validate(schema: JetFunc<any, any, any>, data: any) {
     if (type) {
       if (typeof type === "string" && type !== typeof data[prop]) {
         if (type !== "file") {
+          // bypass file type
           errout = err || `${prop} type is invalid '${data[prop]}' `;
         }
       }
       //
       continue;
     }
+
+    if (validator) {
+      const v = validator(data[prop]) as any;
+      if (v !== true) {
+        errout = err || typeof v === "string" ? v : `${prop} must is invalid`;
+      }
+      continue;
+    }
+    //
   }
   if (errout) throw new Error(errout);
   return out;
 }
 
-const URLPARSER = (method: methods, url: string) => {
+/**
+ *
+ * @param method
+ * @param url
+ * @returns ? [handler, params, search, path]
+ */
+
+const URLPARSER = (
+  method: methods,
+  url: string
+): [JetFunc, Record<string, any>, Record<string, any>, string] | undefined => {
   const routes = _JetPath_paths[method];
   if (!UTILS.runtime["node"]) {
     url = url.slice(url.indexOf("/", 7));
@@ -720,11 +728,47 @@ const URLPARSER = (method: methods, url: string) => {
   if (routes[url]) {
     return [routes[url], {}, {}, url];
   }
+
   const search: Record<string, string> = {},
     params: Record<string, string> = {};
-  let path: string | undefined, handler: Function | undefined;
+  let path: string, handler: JetFunc;
   //? place holder & * route checks
   for (const pathR in routes) {
+    let breaked = false;
+    // ? placeholder /: check
+    if (pathR.includes(":")) {
+      const urlFixtures = url.split("/");
+      const pathFixtures = pathR.split("/");
+
+      if (urlFixtures.length !== pathFixtures.length) {
+        continue;
+      }
+
+      for (let i = 0; i < pathFixtures.length; i++) {
+        if (
+          !pathFixtures[i].includes(":") &&
+          urlFixtures[i] !== pathFixtures[i]
+        ) {
+          breaked = true;
+          break;
+        }
+      }
+      if (breaked) {
+        continue;
+      }
+
+      for (let i = 0; i < pathFixtures.length; i++) {
+        const px = pathFixtures[i];
+        if (px.includes(":")) {
+          params[px.split(":")[1]] = urlFixtures[i];
+        }
+      }
+      path = pathR;
+      //? set path and handler
+      handler = routes[path];
+      break;
+    }
+
     // ? /* check
     if (pathR.includes("*")) {
       const Ried = pathR.slice(0, pathR.length - 1);
@@ -736,52 +780,25 @@ const URLPARSER = (method: methods, url: string) => {
         break;
       }
     }
-    // ? placeholder /: check
-    if (pathR.includes(":")) {
-      const urlFixtures = url.split("/");
-      const pathFixtures = pathR.split("/");
-      let fixtures = 0;
-      for (let i = 0; i < pathFixtures.length; i++) {
-        //? let's jump place holders in the pathR since we can't determine from them
-        //? we increment that we skipped a position because we need the count later
-        if (pathFixtures[i].includes(":")) {
-          fixtures++;
-          continue;
-        }
-        //? if it is part of the pathR then let increment a value for it
-        //? we will need it later
-        if (urlFixtures[i] === pathFixtures[i]) {
-          fixtures++;
-        }
-      }
-      //? if after the checks it all our count are equal then we got it correctly
-      if (fixtures === pathFixtures.length) {
-        for (let i = 0; i < pathFixtures.length; i++) {
-          const px = pathFixtures[i];
-          if (px.includes(":")) {
-            params[px.split(":")[1]] = urlFixtures[i];
-          }
-        }
-        path = pathR;
-        //? set path and handler
-        handler = routes[path];
-        break;
-      }
-    }
   }
   //? check for search in the route
-  if (url.includes("/?")) {
-    path = url.split("/?")[0] + "/?";
-    const sraw = url.slice(path.length).split("=");
-    for (let s = 0; s < sraw.length; s = s + 2) {
-      search[sraw[s]] = sraw[s + 1];
+  const uio = url.indexOf("/?");
+
+  if (uio > -1) {
+    path = url.slice(0, uio + 2);
+    if (url.includes("=")) {
+      const sraw = url.slice(path.length).split("=");
+      for (let s = 0; s < sraw.length; s = s + 2) {
+        search[sraw[s]] = sraw[s + 1];
+      }
     }
     if (routes[path]) {
       handler = routes[path];
     }
   }
-  if (handler) {
-    return [handler, params, search, path];
+
+  if (handler!) {
+    return [handler, params, search, path!];
   }
 };
 
@@ -825,15 +842,11 @@ export const compileAPI = (options: jetOptions): [number, string] => {
         const validator = routesOfMethod[route];
 
         // ? Retrieve api body definitions
-        const body = validator?.config?.body || {};
+        const body = validator?.body || {};
 
         // ? Retrieve api headers definitions
         const inialHeader = {};
-        Object.assign(
-          inialHeader,
-          validator?.config?.headers || {},
-          globalHeaders
-        );
+        Object.assign(inialHeader, validator?.headers || {}, globalHeaders);
         const headers = [];
         // ? parse headers
         for (const name in inialHeader) {
@@ -860,15 +873,14 @@ ${method} ${
         }${route} HTTP/1.1
 ${headers.length ? headers.join("\n") : ""}\n
 ${
-  validator &&
-  (validator?.config!.method === method && method !== "GET" ? method : "")
+  validator && (validator?.method === method && method !== "GET" ? method : "")
     ? JSON.stringify(bodyData)
     : ""
 }\n${
           validator &&
-          (validator.config!.method === method ? method : "") &&
-          validator?.config?.["info"]
-            ? "#" + validator?.config?.["info"] + "-JETE"
+          (validator!.method === method ? method : "") &&
+          validator?.["info"]
+            ? "#" + validator?.["info"] + "-JETE"
             : ""
         }
 ###`;

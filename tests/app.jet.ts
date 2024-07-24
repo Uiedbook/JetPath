@@ -1,4 +1,3 @@
-import { Context } from "../dist/index.js";
 import { JetFunc } from "../dist/primitives/types.js";
 
 // ? types
@@ -45,53 +44,48 @@ export const GET_petBy$id: JetFunc<PetType, { id: string }> = async function (
   }
 };
 
-GET_petBy$id.config = {
-  body: {
-    name: { err: "please provide dog name", type: "string" },
-    image: { type: "file", nullable: true, inputType: "file" },
-    age: { type: "number", inputType: "number" },
-  },
-  info: "This api allows you to update a pet with it's ID",
+GET_petBy$id.body = {
+  name: { err: "please provide dog name", type: "string" },
+  image: { type: "file", required: false, inputType: "file" },
+  age: { type: "number", inputType: "number" },
 };
+GET_petBy$id.info = "This api allows you to update a pet with it's ID";
 
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
-export async function POST_pets(ctx) {
-  console.log(this, 890);
-  const body = this.validate(await ctx.json())!;
+export const POST_pets: JetFunc<PetType> = async function (ctx) {
+  const body = ctx.validate(await ctx.json())!;
   const newPet = body;
   newPet.id = String(Date.now());
   pets.push(newPet);
   ctx.send({ message: "Pet added successfully", pet: newPet });
-}
+};
 // export const POST_pets: JetFunc<PetType> = async function (this, ctx) {
 //   console.log(POST_pets);
-//   const body = this.validate(await ctx.json())!;
+//   const body = ctx.validate(await ctx.json())!;
 //   const newPet = body;
 //   newPet.id = String(Date.now());
 //   pets.push(newPet);
 //   ctx.send({ message: "Pet added successfully", pet: newPet });
 // };
 
-POST_pets.config = {
-  body: {
-    name: { err: "please provide dog name", type: "string" },
-    image: { type: "string", nullable: true, inputType: "file" },
-    age: { type: "number", nullable: true, inputType: "number" },
-    id: {},
-  },
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: "Bear *********",
-    "X-Pet-Token": "token",
-  },
+POST_pets.body = {
+  name: { err: "please provide dog name", type: "string" },
+  image: { type: "string", required: false, inputType: "file" },
+  age: { type: "number", required: false, inputType: "number" },
+  id: {},
+};
+POST_pets.headers = {
+  "Content-Type": "application/json",
+  Authorization: "Bear *********",
+  "X-Pet-Token": "token",
 };
 
 // ? /pets/q/?
 // Add a New Pet: Add a new pet to the inventory
 export const GET_pets_search$$: JetFunc<{}, {}, { name: string }> =
   async function (ctx) {
-    POST_pets.validate?.(ctx.search);
+    ctx.validate?.(ctx.search);
     ctx.send({
       message: "Pets searched successfully",
       pets: pets.filter(
@@ -104,7 +98,11 @@ export const GET_pets_search$$: JetFunc<{}, {}, { name: string }> =
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
 export const PUT_petBy$id: JetFunc<{}, { id: string }> = async function (ctx) {
-  const updatedPetData = PUT_petBy$id.validate?.(await ctx.json());
+  // console.log(ctx);
+
+  const updatedPetData = ctx.validate(await ctx.json());
+  console.log(updatedPetData);
+
   const petId = ctx.params.id;
   console.log({ updatedPetData, petId });
   const index = pets.findIndex((p) => p.id === petId);
@@ -118,17 +116,15 @@ export const PUT_petBy$id: JetFunc<{}, { id: string }> = async function (ctx) {
   }
 };
 
-PUT_petBy$id.config = {
-  body: {
-    image: { type: "file", inputType: "file" },
-    video: { type: "file", inputType: "file" },
-    textfield: { type: "string", nullable: false },
-  },
+PUT_petBy$id.body = {
+  image: { type: "file", inputType: "file" },
+  video: { type: "file", inputType: "file" },
+  textfield: { type: "string", required: false },
 };
 
 // ? /petBy/8766
 // Delete a Pet: Remove a pet from the inventory
-export function DELETE_petBy$id(ctx) {
+export const DELETE_petBy$id: JetFunc<{}, { id: string }> = function (ctx) {
   const petId = ctx.params.id;
   const index = pets.findIndex((p) => p.id === petId);
   if (index !== -1) {
@@ -138,7 +134,7 @@ export function DELETE_petBy$id(ctx) {
     ctx.code = 400;
     ctx.send({ message: "Pet not found" });
   }
-}
+};
 
 // ? /petImage/76554
 // Upload a Pet's Image: Add an image to a pet's profile
@@ -146,7 +142,6 @@ export const POST_petImage$id: JetFunc<{}, { id: string }> = async function (
   ctx
 ) {
   const petId = ctx.params.id;
-  // @ts-expect-error
   const formdata = await ctx.request.formData();
   // console.log(formdata);
   const profilePicture = formdata.get("image");
@@ -170,19 +165,16 @@ export const POST_petImage$id: JetFunc<{}, { id: string }> = async function (
   }
 };
 
-POST_petImage$id.config = {
-  body: {
-    image: { type: "string", nullable: true, inputType: "file" },
-    id: {},
-    name: {},
-    age: {},
-  },
+POST_petImage$id.body = {
+  image: { type: "string", required: false, inputType: "file" },
+  id: {},
+  name: {},
+  age: {},
 };
 
 // ? error hook
-export function hook__ERROR(ctx: Context, err: unknown) {
+export function hook__ERROR(ctx: any, err: unknown) {
   ctx.throw(String(err));
-  ctx.app.clean();
 }
 
 export const GET_error: JetFunc = async function (ctx) {
@@ -190,7 +182,6 @@ export const GET_error: JetFunc = async function (ctx) {
 };
 
 export const POST_: JetFunc = async function (ctx) {
-  console.log(ctx.body);
   const form = await ctx.app.formData(ctx);
   console.log(form);
   if (form.image) {
@@ -199,10 +190,8 @@ export const POST_: JetFunc = async function (ctx) {
   ctx.send(form);
 };
 
-POST_.config = {
-  body: {
-    image: { type: "file", inputType: "file" },
-    video: { type: "file", inputType: "file" },
-    textfield: { type: "string", nullable: false },
-  },
+POST_.body = {
+  image: { type: "file", inputType: "file" },
+  video: { type: "file", inputType: "file" },
+  textfield: { type: "string", required: false },
 };

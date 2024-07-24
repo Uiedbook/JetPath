@@ -1,12 +1,12 @@
 import { IncomingMessage, Server, ServerResponse } from "node:http";
 // import { Stream } from "node:stream";
-import type { _JetPath_paths } from "./functions";
-import type { JetPlugin } from "./classes";
+import type { _JetPath_paths } from "./functions.js";
+import type { JetPlugin } from "./classes.js";
 
 export type Context<
-  JetBody extends Record<string, any> = {},
-  JetParams extends Record<string, string> = {},
-  JetSearch extends Record<string, string> = {}
+  JetBody extends Record<string, any>,
+  JetParams extends Record<string, string>,
+  JetSearch extends Record<string, string>
 > = {
   /**
    * get body params after api/?
@@ -27,11 +27,15 @@ export type Context<
   /**
    * reply the request
    */
-  request: IncomingMessage;
+  request: Request;
   /**
    * API status
    */
   code: number;
+  /**
+   * validate body
+   */
+  validate: (data: any) => JetBody;
   /**
    * an object you can set values to per request
    */
@@ -152,7 +156,7 @@ export type jetOptions = {
     | boolean;
 };
 
-type HTTPBody<Obj extends Record<string, any>> = {
+export type HTTPBody<Obj extends Record<string, any>> = {
   [x in keyof Obj]: {
     err?: string;
     type?: "string" | "number" | "file" | "object" | "boolean";
@@ -169,7 +173,7 @@ type HTTPBody<Obj extends Record<string, any>> = {
       | "datetime"
       | "url";
     defaultValue?: string | number | boolean;
-    nullable?: boolean;
+    required?: boolean;
     validator?: (value: any) => boolean;
   };
 };
@@ -179,18 +183,9 @@ export type JetFunc<
   JetParams extends Record<string, string> = {},
   JetSearch extends Record<string, string> = {}
 > = {
-  (
-    this: {
-      validate: (data: any) => JetBody;
-    },
-    ctx: Context<JetBody, JetParams, JetSearch>
-  ): Promise<void> | void;
-  config?: {
-    body?: HTTPBody<JetBody>;
-    headers?: Record<string, string>;
-    info?: string;
-    path?: string;
-    method?: string;
-  };
-  validate?: (data: any) => JetBody;
+  (ctx: Context<JetBody, JetParams, JetSearch>): Promise<void> | void;
+  body?: HTTPBody<JetBody>;
+  headers?: Record<string, string>;
+  info?: string;
+  method?: string;
 };

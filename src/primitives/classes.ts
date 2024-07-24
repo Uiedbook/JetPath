@@ -1,7 +1,11 @@
 import { createReadStream } from "node:fs";
 import type { Stream } from "node:stream";
-import { _DONE, _OFF, UTILS, type _JetPath_paths } from "./functions";
-import type { JetPluginExecutor, JetPluginExecutorInitParams } from "./types";
+import { _DONE, _JetPath_paths, _OFF, UTILS, validator } from "./functions.js";
+import type {
+  JetPluginExecutor,
+  JetPluginExecutorInitParams,
+  methods,
+} from "./types.js";
 
 export class JetPlugin {
   name?: string;
@@ -69,11 +73,12 @@ export class Log {
 
 export class Context {
   code = 200;
-  request: Request;
-  params = {};
-  search = {};
-  body = {};
-  path = "/";
+  request: Request | undefined;
+  params: Record<string, any> | undefined;
+  search: Record<string, any> | undefined;
+  app: Record<string, any> = {};
+  body: Record<string, any> = {};
+  path: string | undefined;
   //? load
   _1?: string = undefined;
   // ? header of response
@@ -86,9 +91,18 @@ export class Context {
   _5: any = false;
   //? response
   _6 = false;
-
-  constructor(req: Request) {
+  method: methods | undefined;
+  _7(
+    req: Request,
+    path: string,
+    params?: Record<string, any>,
+    search?: Record<string, any>
+  ) {
     this.request = req;
+    this.method = req.method as "GET";
+    this.params = params || {};
+    this.search = search || {};
+    this.path = path;
   }
 
   send(data: unknown, contentType: string) {
@@ -118,6 +132,10 @@ export class Context {
     if (!this._5) throw _DONE;
     this._5();
     return undefined as never;
+  }
+
+  validate(data: any = {}) {
+    return validator(_JetPath_paths[this.method!][this.path!].body, data);
   }
 
   redirect(url: string) {
@@ -187,7 +205,7 @@ export class Context {
     }
   }
 
-  eject() {
+  eject(): never {
     throw _OFF;
   }
 

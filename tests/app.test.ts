@@ -1,7 +1,6 @@
 import { JetPath } from "../dist/index.js";
-import { busboyjet } from "./plug.js";
 
-// const app = new JetPath({ source: "tests" });
+// const app = new JetPath({ port: 1432, APIdisplay: "UI" });
 const app = new JetPath({
   apiDoc: {
     name: "PetShop API Doc",
@@ -20,5 +19,5 @@ const app = new JetPath({
     "X-PET-TOKEN": " xxxxxxxxxxxxxxx",
   },
 });
-app.use(busboyjet);
+
 app.listen();

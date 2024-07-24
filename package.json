@@ -35,7 +35,7 @@
     "compile": "bun bundle.ts",
     "node": "node tests/app.js",
     "deno": "deno run --allow-all tests/app.test.js",
-    "bun": "bun -b tests/app.test.ts",
+    "bun": "bun --watch tests/app.test.ts",
     "dev": "nodemon tests/app.test.js",
     "watch": "tsc tests/*.ts --target esnext --watch",
     "build": "bun bundle.ts"
