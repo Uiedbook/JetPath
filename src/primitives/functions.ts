@@ -7,14 +7,11 @@ import { createServer } from "node:http";
 import { IncomingMessage, ServerResponse } from "node:http";
 import {
   type HTTPBody,
-  // type Context,
   type JetFunc,
   type allowedMethods,
   type jetOptions,
   type methods,
 } from "./types.js";
-// import { Stream } from "node:stream";
-// import { createReadStream } from "node:fs";
 import { Context, Log, type JetPlugin } from "./classes.js";
 
 /**
@@ -76,40 +73,26 @@ export function corsHook(options: {
       //     options.exposeHeaders.join(",")
       //   );
       // }
-
       // if (options.secureContext) {
       //   ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
       //   ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
       // }
-      if (options.allowHeaders) {
-        ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
-      }
+      // options.allowHeaders &&
+      //   ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
     } else {
       //? Preflight Request
-
-      if (options.maxAge) {
-        ctx.set("Access-Control-Max-Age", options.maxAge);
-      }
-
-      if (
-        options.privateNetworkAccess &&
-        ctx.get("Access-Control-Request-Private-Network")
-      ) {
+      options.maxAge && ctx.set("Access-Control-Max-Age", options.maxAge);
+      options.privateNetworkAccess &&
+        ctx.get("Access-Control-Request-Private-Network") &&
         ctx.set("Access-Control-Allow-Private-Network", "true");
-      }
-
-      if (options.allowMethods) {
+      options.allowMethods &&
         ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
-      }
-
-      if (options.secureContext) {
-        ctx.set("Cross-Origin-Opener-Policy", "same-origin");
-        ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
-      }
-
-      if (options.allowHeaders) {
+      // if (options.secureContext) {
+      //   ctx.set("Cross-Origin-Opener-Policy", "same-origin");
+      //   ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
+      // }
+      options.allowHeaders &&
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
-      }
       ctx.code = 204;
     }
   };
@@ -400,7 +383,7 @@ const Handlerspath = (path: any) => {
   //? adding :(s) in place
   path = path.split("$");
   path = path.join("/:");
-  if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS|BODY)/.test(method)) {
+  if (/(GET|POST|PUT|PATCH|DELETE|OPTIONS)/.test(method)) {
     //? adding methods in place
     return [method, path] as [methods, string];
   }
@@ -662,12 +645,10 @@ export const compileAPI = (options: jetOptions): [number, string] => {
 
     if (routesOfMethod && Object.keys(routesOfMethod).length) {
       for (const route in routesOfMethod) {
-        // ? Retrieve api BODY object
+        // ? Retrieve api handler
         const validator = routesOfMethod[route];
-
         // ? Retrieve api body definitions
         const body = validator.body;
-
         // ? Retrieve api headers definitions
         const inialHeader = {};
         Object.assign(inialHeader, validator?.headers || {}, globalHeaders);
