@@ -272,7 +272,7 @@ const createCTX = (
   }
   const ctx = new Context();
   // ? add hooks to the app object
-  Object.assign(ctx.app, UTILS.hooks); 
+  Object.assign(ctx.app, UTILS.hooks);
   ctx._7(req as Request, path, params, search);
   return ctx;
 };
@@ -305,7 +305,7 @@ const createResponse = (
     });
   }
   if (ctx?._3) {
-    res.writeHead(ctx?.code, ctx?._2 || { "Content-Type": "text/plain" });
+    res.writeHead(ctx?.code, ctx?._2);
     UTILS.ctxPool.push(ctx);
     return ctx._3.pipe(res);
   }

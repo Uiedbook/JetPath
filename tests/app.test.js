@@ -24,9 +24,6 @@ const pluginExample = new JetPlugin({
             hello() {
                 console.log("hello world");
             },
-            accessCTX() {
-                console.log(this /*= ctx*/);
-            },
         };
     },
 });

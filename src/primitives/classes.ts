@@ -93,6 +93,7 @@ export class Context {
   //? response
   _6 = false;
   method: methods | undefined;
+  // ? reset the COntext to default state
   _7(
     req: Request,
     path: string,
@@ -104,6 +105,18 @@ export class Context {
     this.params = params || {};
     this.search = search || {};
     this.path = path;
+    //? load
+    this._1 = undefined;
+    // ? header of response
+    this._2 = {};
+    // //? stream
+    this._3 = undefined;
+    //? used to know if the request has ended
+    this._4 = false;
+    //? used to know if the request has been offloaded
+    this._5 = false;
+    //? response
+    this._6 = false;
   }
 
   send(data: unknown, contentType: string) {

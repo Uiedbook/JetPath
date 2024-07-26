@@ -48,7 +48,8 @@ export const GET_petBy$id: JetFunc<PetType, { id: string }> = async function (
 // ? /pets
 // Add a New Pet: Add a new pet to the inventory
 export const POST_pets: JetFunc<PetType> = async function (ctx) {
-  const body = ctx.validate(await ctx.json())!;
+  await ctx.json();
+  const body = ctx.validate(ctx.body);
   const newPet = body;
   newPet.id = String(Date.now());
   pets.push(newPet);
