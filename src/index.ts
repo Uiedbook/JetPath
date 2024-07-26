@@ -119,7 +119,7 @@ export class JetPath {
       if (errorsCount) {
         for (let i = 0; i < errorsCount.length; i++) {
           Log.error(
-            `\nReport: ${errorsCount[i].file} file was not loaded due to \n "${errorsCount[i].error}" error; \n please resolve!`
+            `\n\n\nReport: ${errorsCount[i].file} file was not loaded due to \n "${errorsCount[i].error}" error; \n please resolve!`
           );
         }
       }
