@@ -272,8 +272,7 @@ const createCTX = (
   }
   const ctx = new Context();
   // ? add hooks to the app object
-  Object.assign(ctx.app, UTILS.hooks);
-  console.log(ctx.app);
+  Object.assign(ctx.app, UTILS.hooks); 
   ctx._7(req as Request, path, params, search);
   return ctx;
 };
