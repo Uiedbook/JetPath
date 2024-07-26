@@ -12,6 +12,7 @@ const pets: PetType[] = [];
 // ? Routes
 
 export const GET_: JetFunc = function (ctx) {
+  console.log(ctx.app);
   ctx.send("hello world");
 };
 export const GET_greet: JetFunc = function (ctx) {

@@ -99,7 +99,7 @@ export function corsHook(options: {
 }
 
 export const UTILS = {
-  wsFuncs: [],
+  // wsFuncs: [],
   ctxPool: [] as Context[],
   hooks: {},
   ae(cb: { (): any; (): any; (): void }) {
@@ -155,19 +155,22 @@ export const UTILS = {
 
     // ? yes a plugin can bring it's own server
     const edgePluginIdx = plugs.findIndex((plug) => plug.hasServer);
-    const edgePlugin = plugs.splice(edgePluginIdx, 1)[0];
-    if (edgePlugin !== undefined && edgePlugin.hasServer) {
-      const decs = edgePlugin._setup({
-        server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
-        runtime: UTILS.runtime as any,
-        routesObject: _JetPath_paths,
-        JetPath_app: JetPath_app as any,
-      });
-      Object.assign(decorations, decs);
-      //? setting the jet server from the plugin
-      if (edgePlugin.JetPathServer) {
-        server = edgePlugin.JetPathServer;
-        server.edge = true;
+
+    if (edgePluginIdx > -1) {
+      const edgePlugin = plugs.splice(edgePluginIdx, 1)[0];
+      if (edgePlugin !== undefined && edgePlugin.hasServer) {
+        const decs = edgePlugin._setup({
+          server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
+          runtime: UTILS.runtime as any,
+          routesObject: _JetPath_paths,
+          JetPath_app: JetPath_app as any,
+        });
+        Object.assign(decorations, decs);
+        //? setting the jet server from the plugin
+        if (edgePlugin.JetPathServer) {
+          server = edgePlugin.JetPathServer;
+          server.edge = true;
+        }
       }
     }
 
@@ -270,6 +273,7 @@ const createCTX = (
   const ctx = new Context();
   // ? add hooks to the app object
   Object.assign(ctx.app, UTILS.hooks);
+  console.log(ctx.app);
   ctx._7(req as Request, path, params, search);
   return ctx;
 };

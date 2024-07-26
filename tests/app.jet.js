@@ -1,6 +1,7 @@
 const pets = [];
 // ? Routes
 export const GET_ = function (ctx) {
+    console.log(ctx.app);
     ctx.send("hello world");
 };
 export const GET_greet = function (ctx) {

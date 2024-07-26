@@ -1,4 +1,4 @@
-import { JetPath } from "../dist/index.js";
+import { JetPath, JetPlugin } from "../dist/index.js";
 // const app = new JetPath({ port: 1432, APIdisplay: "UI" });
 const app = new JetPath({
     apiDoc: {
@@ -18,4 +18,17 @@ const app = new JetPath({
         "X-PET-TOKEN": " xxxxxxxxxxxxxxx",
     },
 });
+const pluginExample = new JetPlugin({
+    executor() {
+        return {
+            hello() {
+                console.log("hello world");
+            },
+            accessCTX() {
+                console.log(this /*= ctx*/);
+            },
+        };
+    },
+});
+app.use(pluginExample);
 app.listen();
