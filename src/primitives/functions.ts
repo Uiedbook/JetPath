@@ -467,7 +467,11 @@ export async function getHandlers(
       dirent.name !== "node_modules" &&
       dirent.name !== ".git"
     ) {
-      await getHandlers(source + "/" + dirent.name, print, errorsCount);
+      errorsCount = await getHandlers(
+        source + "/" + dirent.name,
+        print,
+        errorsCount
+      );
     }
   }
   return errorsCount;

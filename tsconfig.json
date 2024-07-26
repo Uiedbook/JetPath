@@ -1,31 +1,20 @@
 {
   "compilerOptions": {
-    // enable latest features
-    "lib": ["es2022", "esnext", "dom", "dom.iterable"],
-    "target": "ESNext",
-    "module": "NodeNext",
-    "moduleDetection": "force",
-    "allowJs": true,
-
-    // Bundler mode
-    "moduleResolution": "nodenext",
-    "verbatimModuleSyntax": true,
-    // "noEmit": true,
-    "declaration": true,
-    "allowSyntheticDefaultImports": true,
-
-    // Best practices
+    "module": "esnext",
+    "target": "esnext",
+    "lib": ["ESNext", "esnext", "dom", "dom.iterable"],
+    "declaration": false,
     "strict": true,
-    "skipLibCheck": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-
-    // Some stricter flags
-    "useUnknownInCatchVariables": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "outDir": "./dist"
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": false,
+    "outDir": "lib"
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "tests/app.test.ts"]
+  "include": ["src", "tests"],
+  "exclude": ["node_modules"]
 }
