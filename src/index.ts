@@ -51,7 +51,6 @@ export class JetPath {
         const fileName =
           this.options?.static?.dir +
           "/" +
-          // @ts-expect-error
           decodeURI(ctx.params?.["extraPath"] || "").split("?")[0];
         if (fileName) {
           const contentType = mime.getType(
@@ -108,17 +107,21 @@ export class JetPath {
         )} milliseconds`
       );
       if (errorsCount) {
-        Log.error(
-          `\nReport: ${errorsCount} files was not loaded due to errors: please resolve!`
-        );
+        for (let i = 0; i < errorsCount.length; i++) {
+          Log.error(
+            `\nReport: ${errorsCount[i].file} file was not loaded due to \n "${errorsCount[i].error}" error; \n please resolve!`
+          );
+        }
       }
     } else {
       // ? Load all jetpath functions described in user code
       const errorsCount = await getHandlers(this.options?.source!, false);
       if (errorsCount) {
-        Log.error(
-          `\nReport: ${errorsCount} files was not loaded due to errors: please resolve!`
-        );
+        for (let i = 0; i < errorsCount.length; i++) {
+          Log.error(
+            `\nReport: ${errorsCount[i].file} file was not loaded due to \n "${errorsCount[i].error}" error; \n please resolve!`
+          );
+        }
       }
     }
     Log.success(`Listening on http://localhost:${this.options?.port || 8080}`);

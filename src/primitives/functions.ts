@@ -397,23 +397,13 @@ const getModule = async (src: string, name: string) => {
     const mod = await import(path.resolve(src + "/" + name));
     return mod;
   } catch (error) {
-    Log.error(
-      "An error occured in the file " +
-        src +
-        "/" +
-        name +
-        " \n" +
-        String(error) +
-        " \n"
-    );
-
-    return;
+    return String(error);
   }
 };
 export async function getHandlers(
   source: string,
   print: boolean,
-  errorsCount = 0
+  errorsCount: { file: string; error: string }[] | undefined = undefined
 ) {
   source = source || cwd();
   source = path.resolve(cwd(), source);
@@ -425,7 +415,7 @@ export async function getHandlers(
       }
       try {
         const module = await getModule(source, dirent.name);
-        if (module) {
+        if (typeof module !== "string") {
           for (const p in module) {
             const params = Handlerspath(p);
             if (params) {
@@ -450,19 +440,27 @@ export async function getHandlers(
           }
         } else {
           // record errors
-          errorsCount = errorsCount + 1;
+          if (dirent.name.endsWith(".jet.js")) {
+            if (!errorsCount) {
+              errorsCount = [];
+            }
+            errorsCount.push({
+              file: dirent.path + "/" + dirent.name,
+              error: module,
+            });
+          }
         }
       } catch (error) {
-        // if (dirent.name.endsWith(".jet.js")) {
-        Log.error(
-          "An error occured in the file " +
-            dirent.name +
-            " \n" +
-            String(error) +
-            " \n"
-        );
+        if (dirent.name.endsWith(".jet.js")) {
+          if (!errorsCount) {
+            errorsCount = [];
+          }
+          errorsCount.push({
+            file: dirent.path + "/" + dirent.name,
+            error: String(error),
+          });
+        }
       }
-      // }
     }
     if (
       dirent.isDirectory() &&
