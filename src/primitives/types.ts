@@ -184,9 +184,9 @@ export type HTTPBody<Obj extends Record<string, any>> = {
 };
 
 export type JetFunc<
-  JetBody extends Record<string, any> = {},
-  JetParams extends Record<string, string> = {},
-  JetSearch extends Record<string, string> = {},
+  JetBody extends Record<string, any> = Record<string, any>,
+  JetParams extends Record<string, string> = Record<string, any>,
+  JetSearch extends Record<string, string> = Record<string, any>,
   JetPluginTypes extends Record<string, unknown>[] = []
 > = {
   (
