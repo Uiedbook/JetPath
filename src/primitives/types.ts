@@ -45,7 +45,7 @@ export type Context<
   /**
    * validate body
    */
-  validate: (data: any) => JetBody;
+  validate: (data?: any) => JetBody;
 
   /**
    * send a stream
@@ -151,7 +151,7 @@ export type jetOptions = {
         maxAge?: string;
         credentials?: boolean;
         privateNetworkAccess?: any;
-        origin?: string;
+        origin?: string[];
       }
     | boolean;
   websocket?:

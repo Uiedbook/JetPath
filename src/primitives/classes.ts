@@ -148,7 +148,7 @@ export class Context {
     return undefined as never;
   }
 
-  validate(data: any = {}) {
+  validate(data: any = this.body || {}) {
     return validator(_JetPath_paths[this.method!][this.path!].body, data);
   }
 
@@ -247,17 +247,17 @@ export class Context {
     return undefined as never;
   }
 
-  json<Type extends any = Record<string, any>>(): Promise<Type> {
+  async json<Type extends any = Record<string, any>>(): Promise<Type> {
     // TODO:  calling this function twice cause an request hang in nodejs
     if (!UTILS.runtime["node"]) {
       try {
-        this.body = (this.request as unknown as Request).json();
+        this.body = await (this.request as unknown as Request).json();
         return this.body as Promise<Type>;
       } catch (error) {
         return {} as Promise<Type>;
       }
     }
-    return new Promise<Type>((r) => {
+    return await new Promise<Type>((r) => {
       let body = "";
       // @ts-expect-error
       this.request.on("data", (data: { toString: () => string }) => {

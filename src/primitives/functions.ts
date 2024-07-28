@@ -4,7 +4,7 @@ import path from "node:path";
 import { cwd } from "node:process";
 import { createServer } from "node:http";
 // type imports
-import { IncomingMessage, ServerResponse } from "node:http";
+import { type IncomingMessage, type ServerResponse } from "node:http";
 import {
   type HTTPBody,
   type JetFunc,
@@ -43,7 +43,7 @@ export function corsHook(options: {
   secureContext?: boolean;
   privateNetworkAccess?: any;
   origin: string[];
-}): Function {
+}): (ctx: Context) => void {
   if (Array.isArray(options.allowMethods)) {
     options.allowMethods = options.allowMethods.join(
       ","
@@ -190,9 +190,6 @@ export const UTILS = {
         (UTILS.hooks as any)[key] = decorations[key];
       }
     }
-
-    //! likely on the edge
-    //! let's see what the plugins has to say
     if (!server) {
       const edgeserver = plugs.find(
         (plug) => plug.JetPathServer
@@ -231,34 +228,6 @@ export const _DONE = new JetPathErrors("done");
 export const _OFF = new JetPathErrors("off");
 // const _RES = new JetPathErrors("respond");
 
-export const _JetPath_app_config = {
-  cors: false as unknown as (ctx: Context) => void,
-  set(this: any, opt: string, val: any) {
-    if (opt === "cors" && val !== false) {
-      this.cors = corsHook({
-        exposeHeaders: [],
-        allowMethods: [],
-        allowHeaders: ["*"],
-        maxAge: "",
-        keepHeadersOnError: true,
-        secureContext: false,
-        privateNetworkAccess: false,
-        origin: ["*"],
-        credentials: undefined,
-        ...(typeof val === "object" ? val : {}),
-      }) as any;
-      if (Array.isArray(val["allowMethods"])) {
-        _JetPath_paths = {} as any;
-        for (const med of val["allowMethods"]) {
-          _JetPath_paths[med.toUpperCase() as "GET"] = {};
-        }
-      }
-      return;
-    }
-    this[opt] = val;
-  },
-};
-
 const createCTX = (
   req: IncomingMessage | Request,
   path: string,
@@ -285,7 +254,7 @@ const createResponse = (
   four04?: boolean
 ) => {
   //? add cors headers
-  _JetPath_app_config.cors(ctx);
+  _JetPath_hooks["cors"]?.(ctx);
   if (!UTILS.runtime["node"]) {
     if (ctx?.code === 301 && ctx._2?.["Location"]) {
       UTILS.ctxPool.push(ctx);
@@ -362,7 +331,7 @@ const JetPath_app = async (
   } else {
     return new Promise((r) => {
       ctx!._5 = () => {
-        r(createResponse(res, ctx!, true));
+        r(createResponse(res, ctx!));
       };
     });
   }
@@ -421,8 +390,9 @@ export async function getHandlers(
             if (params) {
               // ! HTTP handler
               if (
-                typeof params !== "string" &&
-                _JetPath_paths[params[0] as methods]
+                typeof params !== "string"
+                // &&
+                // _JetPath_paths[params[0] as methods]
               ) {
                 // ? set the method
                 module[p]!.method = params[0];
@@ -482,41 +452,43 @@ export function validator(schema: HTTPBody<any> | undefined, data: any) {
   let errout: string = "";
   if (!data) throw new Error("invalid data => " + data);
   for (const [prop, value] of Object.entries(schema || {})) {
+    // ? extract validators
     const { err, type, required, RegExp, validator } = value;
+    //? nullabilty skip
     if (!data[prop] && required == false) {
       continue;
     }
+    //? nullabilty check
     if (data[prop] === undefined && (required || required === undefined)) {
       errout = err || `${prop} is required`;
-      continue;
+      break;
     }
 
-    if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
-      errout = err || `${prop} must is invalid`;
-      continue;
-    }
-
-    out[prop] = data[prop];
-
-    if (type) {
-      if (typeof type === "string" && type !== typeof data[prop]) {
-        if (type !== "file") {
-          // bypass file type
-          errout = err || `${prop} type is invalid '${data[prop]}' `;
-        }
+    // ? type check
+    if (typeof type === "string" && type !== typeof data[prop]) {
+      if (type !== "file") {
+        // bypass file type
+        errout = err || `${prop} type is invalid '${data[prop]}' `;
+        break;
       }
-      //
-      continue;
     }
 
-    if (validator) {
+    // ? regex check
+    if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
+      errout = err || `${prop} is invalid`;
+      break;
+    }
+
+    // ? custom check
+    if (typeof validator === "function") {
       const v = validator(data[prop]) as any;
       if (v !== true) {
         errout = err || typeof v === "string" ? v : `${prop} must is invalid`;
+        break;
       }
-      continue;
     }
-    //
+    //? set this prop as valid
+    out[prop] = data[prop];
   }
   if (errout) throw new Error(errout);
   return out;
@@ -537,6 +509,9 @@ const URLPARSER = (
   if (!UTILS.runtime["node"]) {
     url = url.slice(url.indexOf("/", 7));
   }
+
+  // if (!routes) return;
+
   if (routes[url]) {
     return [routes[url], {}, {}, url];
   }

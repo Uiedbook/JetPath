@@ -2,11 +2,11 @@ import mime from "mime/lite";
 
 import { access, writeFile } from "node:fs/promises";
 import {
-  _JetPath_app_config,
   _JetPath_hooks,
   _JetPath_paths,
   compileAPI,
   compileUI,
+  corsHook,
   getHandlers,
   UTILS,
 } from "./primitives/functions.js";
@@ -16,18 +16,25 @@ import { JetPlugin, Log } from "./primitives/classes.js";
 export class JetPath {
   public server: any;
   private listening: boolean = false;
-  private options: jetOptions;
+  private options: jetOptions = { port: 8080, APIdisplay: "UI", cors: true };
   private plugs: JetPlugin[] = [];
   constructor(options?: jetOptions) {
-    this.options = options || {
-      APIdisplay: "UI",
-    };
+    Object.assign(this.options, options || {});
+    if (!this.options.port) this.options.port = 8080;
     // ? setting up app configs
-    for (const [k, v] of Object.entries(this.options)) {
-      _JetPath_app_config.set(k, v);
-    }
-    if (!options?.cors) {
-      _JetPath_app_config.set("cors", true);
+    if (this.options.cors !== false) {
+      _JetPath_hooks["cors"] = corsHook({
+        exposeHeaders: [],
+        allowMethods: [],
+        allowHeaders: ["*"],
+        maxAge: "",
+        keepHeadersOnError: true,
+        secureContext: false,
+        privateNetworkAccess: false,
+        origin: ["*"],
+        credentials: undefined,
+        ...(typeof options?.cors === "object" ? options.cors : {}),
+      });
     }
   }
   use(plugin: JetPlugin): void {
@@ -44,7 +51,7 @@ export class JetPath {
     // ? kickoff server
     this.server = UTILS.server(this.plugs);
     // ? {-view-} here is replaced at build time to html
-    let UI = `{{view}}`;
+    let UI = `{{view}}`; //! could be loaded only when needed
     // ? setting up static server
     if (this.options?.static?.route && this.options?.static?.dir) {
       _JetPath_paths["GET"][this.options.static.route + "/*"] = async (ctx) => {
@@ -89,7 +96,7 @@ export class JetPath {
           ctx.send(UI, "text/html");
         };
         Log.success(
-          `visit http://localhost:${this.options?.port || 8080}${
+          `visit http://localhost:${this.options.port}${
             this.options?.apiDoc?.path || "/api-doc"
           } to see the displayed routes in UI`
         );
@@ -124,10 +131,10 @@ export class JetPath {
         }
       }
     }
-    Log.success(`Listening on http://localhost:${this.options?.port || 8080}`);
+    Log.success(`Listening on http://localhost:${this.options.port}`);
     // ? start server
     this.listening = true;
-    this.server.listen(this.options?.port || 8080);
+    this.server.listen(this.options.port);
   }
 }
 

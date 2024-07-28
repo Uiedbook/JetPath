@@ -16,11 +16,10 @@ export const GET_: JetFunc = function (ctx) {
   ctx.send("hello world");
 };
 export const GET_greet: JetFunc = function (ctx) {
-  new Promise(() => {
-    setTimeout(() => {
-      ctx.send("Welcome to Petshop!");
-    }, 1000);
-  });
+  setTimeout(() => {
+    ctx.send("Welcome to Petshop!");
+  }, 1000);
+
   ctx.eject();
 };
 
