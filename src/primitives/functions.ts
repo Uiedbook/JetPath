@@ -328,7 +328,7 @@ const JetPath_app = async (
     }
   }
   if (!off) {
-    if (req.method! !== "options") {
+    if (req.method! !== "OPTIONS") {
       return createResponse(res, createCTX(req, ""), true);
     }
     return createResponse(res, createCTX(req, ""));
