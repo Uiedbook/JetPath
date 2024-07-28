@@ -49,7 +49,6 @@ export function corsHook(options: {
       ","
     ) as unknown as methods[];
   }
-
   if (options.maxAge) {
     options.maxAge = String(options.maxAge);
   }
@@ -66,6 +65,7 @@ export function corsHook(options: {
       //? Simple Cross-Origin Request, Actual Request, and Redirects
       ctx.set("Access-Control-Allow-Origin", options.origin!.join(","));
     }
+
     if (ctx.request!.method !== "OPTIONS") {
       // if (options.exposeHeaders) {
       //   ctx.set(
@@ -86,11 +86,15 @@ export function corsHook(options: {
         ctx.get("Access-Control-Request-Private-Network") &&
         ctx.set("Access-Control-Allow-Private-Network", "true");
       options.allowMethods &&
-        ctx.set("Access-Control-Allow-Methods", options.allowMethods.join(","));
+        ctx.set(
+          "Access-Control-Allow-Methods",
+          options.allowMethods as unknown as string
+        );
       // if (options.secureContext) {
       //   ctx.set("Cross-Origin-Opener-Policy", "same-origin");
       //   ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
       // }
+      // ! pre compute the joins here
       options.allowHeaders &&
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
       ctx.code = 204;

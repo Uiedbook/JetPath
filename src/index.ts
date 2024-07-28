@@ -25,7 +25,7 @@ export class JetPath {
     if (this.options.cors !== false) {
       _JetPath_hooks["cors"] = corsHook({
         exposeHeaders: [],
-        allowMethods: [],
+        allowMethods: ["DELETE", "GET", "HEAD", "PATCH", "POST", "PUT"],
         allowHeaders: ["*"],
         maxAge: "",
         keepHeadersOnError: true,

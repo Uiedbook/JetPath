@@ -117,6 +117,8 @@ export class Context {
     this._5 = false;
     //? response
     this._6 = false;
+    // ? code
+    this.code = 200;
   }
 
   send(data: unknown, contentType?: string) {
