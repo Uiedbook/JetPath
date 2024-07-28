@@ -50,24 +50,24 @@ export class Log {
     bgCyan: "\x1b[46m",
     bgWhite: "\x1b[47m",
   };
-  static log(message: any, color: string) {
+  static print(message: any, color: string) {
     console.log(`${color}%s${Log.colors.reset}`, `Jetpath: ${message}`);
   }
 
   static info(message: string) {
-    Log.log(message, Log.colors.fgBlue);
+    Log.print(message, Log.colors.fgBlue);
   }
 
   static warn(message: string) {
-    Log.log(message, Log.colors.fgYellow);
+    Log.print(message, Log.colors.fgYellow);
   }
 
   static error(message: string) {
-    Log.log(message, Log.colors.fgRed);
+    Log.print(message, Log.colors.fgRed);
   }
 
   static success(message: string) {
-    Log.log(message, Log.colors.fgGreen);
+    Log.print(message, Log.colors.fgGreen);
   }
 }
 
