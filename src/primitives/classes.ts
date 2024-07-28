@@ -119,7 +119,7 @@ export class Context {
     this._6 = false;
   }
 
-  send(data: unknown, contentType: string) {
+  send(data: unknown, contentType?: string) {
     let ctype;
     switch (typeof data) {
       case "string":
@@ -132,7 +132,7 @@ export class Context {
         break;
       default:
         ctype = "text/plain";
-        this._1 = String(data);
+        this._1 = data ? String(data) : "";
         break;
     }
     if (contentType) {

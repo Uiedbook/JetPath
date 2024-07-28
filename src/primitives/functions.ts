@@ -255,6 +255,7 @@ const createResponse = (
 ) => {
   //? add cors headers
   _JetPath_hooks["cors"]?.(ctx);
+  // ? prepare response
   if (!UTILS.runtime["node"]) {
     if (ctx?.code === 301 && ctx._2?.["Location"]) {
       UTILS.ctxPool.push(ctx);
@@ -327,7 +328,10 @@ const JetPath_app = async (
     }
   }
   if (!off) {
-    return createResponse(res, createCTX(req, ""), true);
+    if (req.method! !== "options") {
+      return createResponse(res, createCTX(req, ""), true);
+    }
+    return createResponse(res, createCTX(req, ""));
   } else {
     return new Promise((r) => {
       ctx!._5 = () => {
