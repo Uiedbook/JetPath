@@ -81,22 +81,27 @@ export function corsHook(options: {
       //   ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
     } else {
       //? Preflight Request
-      options.maxAge && ctx.set("Access-Control-Max-Age", options.maxAge);
-      options.privateNetworkAccess &&
+      if (options.maxAge) {
+        ctx.set("Access-Control-Max-Age", options.maxAge);
+      }
+      if (options.privateNetworkAccess) {
         ctx.get("Access-Control-Request-Private-Network") &&
-        ctx.set("Access-Control-Allow-Private-Network", "true");
-      options.allowMethods &&
+          ctx.set("Access-Control-Allow-Private-Network", "true");
+      }
+      if (options.allowMethods) {
         ctx.set(
           "Access-Control-Allow-Methods",
           options.allowMethods as unknown as string
         );
+      }
       // if (options.secureContext) {
       //   ctx.set("Cross-Origin-Opener-Policy", "same-origin");
       //   ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
       // }
       // ! pre compute the joins here
-      options.allowHeaders &&
+      if (options.allowHeaders) {
         ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
+      }
       ctx.code = 204;
     }
   };
@@ -458,18 +463,20 @@ export async function getHandlers(
 export function validator(schema: HTTPBody<any> | undefined, data: any) {
   const out: Record<string, any> = {};
   let errout: string = "";
-  if (!data) throw new Error("invalid data => " + data);
+  if (typeof data !== "object") throw new Error("invalid data => " + data);
   for (const [prop, value] of Object.entries(schema || {})) {
     // ? extract validators
     const { err, type, required, RegExp, validator } = value;
-    //? nullabilty skip
-    if (!data[prop] && required == false) {
-      continue;
-    }
+
     //? nullabilty check
-    if (data[prop] === undefined && (required || required === undefined)) {
-      errout = err || `${prop} is required`;
-      break;
+    if (data[prop] === undefined || data[prop] === null) {
+      //? nullabilty skip
+      if (!required) {
+        continue;
+      } else {
+        errout = err || `${prop} is required`;
+        break;
+      }
     }
 
     // ? type check
