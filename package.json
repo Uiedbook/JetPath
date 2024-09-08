@@ -34,9 +34,9 @@
   "scripts": {
     "compile": "bun bundle.ts",
     "node": "node tests/app.js",
-    "deno": "deno run --allow-all tests/app.test.js",
-    "bun": "bun --watch tests/app.test.ts",
-    "dev": "nodemon tests/app.test.js",
+    "deno": "deno run --allow-all tests/app.jet.js",
+    "bun": "bun --watch tests/app.jet.js",
+    "dev": "nodemon tests/app.jet.js",
     "watch": "tsc tests/*.ts --target esnext --watch",
     "build": "bun bundle.ts"
   },
@@ -46,6 +46,7 @@
   },
   "private": false,
   "devDependencies": {
+    "@types/bun": "^1.1.8",
     "@types/busboy": "^1.5.4",
     "@types/node": "^20.11.16",
     "busboy": "^1.6.0",

@@ -1,6 +1,6 @@
 import mime from "mime/lite";
 
-import { access, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import {
   _JetPath_hooks,
   _JetPath_paths,
@@ -12,7 +12,6 @@ import {
 } from "./primitives/functions.js";
 import { type jetOptions } from "./primitives/types.js";
 import { JetPlugin, Log } from "./primitives/classes.js";
-
 export class JetPath {
   public server: any;
   private listening: boolean = false;
@@ -63,11 +62,6 @@ export class JetPath {
           const contentType = mime.getType(
             fileName.split(".").at(-1) || "application/octet-stream"
           );
-          try {
-            await access(fileName);
-          } catch (error) {
-            return ctx.throw();
-          }
           return ctx.sendStream(fileName, contentType!);
         } else {
           return ctx.throw();

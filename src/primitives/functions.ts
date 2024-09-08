@@ -120,7 +120,6 @@ export const UTILS = {
     }
   },
   set() {
-    // @ts-expect-error
     const bun = UTILS.ae(() => Bun);
     // @ts-expect-error
     const deno = UTILS.ae(() => Deno);
@@ -148,9 +147,9 @@ export const UTILS = {
     if (UTILS.runtime["bun"]) {
       server = {
         listen(port: number) {
-          // @ts-expect-error
           serverelse = Bun.serve({
             port,
+            // @ts-expect-error
             fetch: JetPath_app,
           });
         },
@@ -604,7 +603,7 @@ const URLPARSER = (
   }
 };
 
-export const compileUI = (UI: string, options: any, api: string) => {
+export const compileUI = (UI: string, options: jetOptions, api: string) => {
   // ? global headers
   const globalHeaders = JSON.stringify(
     options?.globalHeaders || {
@@ -613,16 +612,16 @@ export const compileUI = (UI: string, options: any, api: string) => {
   );
   return UI.replace("'{JETPATH}'", `\`${api}\``)
     .replaceAll("{JETPATHGH}", `${globalHeaders}`)
-    .replaceAll("{NAME}", options?.documentation?.name || "JethPath API Doc")
-    .replaceAll("JETPATHCOLOR", options?.documentation?.color || "#007bff")
+    .replaceAll("{NAME}", options?.apiDoc?.name || "JethPath API Doc")
+    .replaceAll("JETPATHCOLOR", options?.apiDoc?.color || "#007bff")
     .replaceAll(
       "{LOGO}",
-      options?.documentation?.logo ||
+      options?.apiDoc?.logo ||
         "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
     )
     .replaceAll(
       "{INFO}",
-      options?.documentation?.info || "This is a JethPath api preview."
+      options?.apiDoc?.info || "This is a JethPath api preview."
     );
 };
 

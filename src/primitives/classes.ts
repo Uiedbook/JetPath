@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs";
-import type { Stream } from "node:stream";
+import { Stream } from "node:stream";
 import { _DONE, _JetPath_paths, _OFF, UTILS, validator } from "./functions.js";
 import type {
   JetPluginExecutor,
