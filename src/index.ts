@@ -53,7 +53,10 @@ export class JetPath {
     let UI = `{{view}}`; //! could be loaded only when needed
     // ? setting up static server
     if (this.options?.static?.route && this.options?.static?.dir) {
-      _JetPath_paths["GET"][this.options.static.route + "/*"] = async (ctx) => {
+      _JetPath_paths["GET"][
+        (this.options.static.route === "/" ? "" : this.options.static.route) +
+          "/*"
+      ] = async (ctx) => {
         const fileName =
           this.options?.static?.dir +
           "/" +
@@ -68,7 +71,10 @@ export class JetPath {
         }
       };
 
-      _JetPath_paths["GET"][this.options.static.route + "/*"].method = "GET";
+      _JetPath_paths["GET"][
+        (this.options.static.route === "/" ? "" : this.options.static.route) +
+          "/*"
+      ].method = "GET";
     }
 
     //? setting up api viewer
