@@ -65,7 +65,7 @@ export class JetPath {
           const contentType = mime.getType(
             fileName.split(".").at(-1) || "application/octet-stream"
           );
-          return ctx.sendStream(fileName, contentType!);
+          await ctx.sendStream(fileName, contentType!);
         } else {
           return ctx.throw();
         }

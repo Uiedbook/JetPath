@@ -283,8 +283,19 @@ const createResponse = (
     });
   }
   if (ctx?._3) {
-    res.writeHead(ctx?.code, ctx?._2);
     UTILS.ctxPool.push(ctx);
+    ctx?._3.on("pipe", () => {
+      res.writeHead(ctx?.code, ctx?._2);
+    });
+    ctx?._3.on("error", (err) => {
+      if (err.code === "ENOENT") {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("File not found");
+      } else {
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Internal    server error");
+      }
+    });
     return ctx._3.pipe(res);
   }
   res.writeHead(

@@ -225,7 +225,7 @@ export class Context {
     throw _OFF;
   }
 
-  sendStream(stream: Stream | string, ContentType: string) {
+  async sendStream(stream: Stream | string, ContentType: string) {
     if (!this._2) {
       this._2 = {};
     }
@@ -239,7 +239,7 @@ export class Context {
         // @ts-expect-error
         stream = Bun.file(stream);
       } else {
-        stream = createReadStream(stream);
+        stream = createReadStream(stream as string, { autoClose: true });
       }
     }
     this._3 = stream as Stream;
