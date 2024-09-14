@@ -225,14 +225,13 @@ export class Context {
     throw _OFF;
   }
 
-  async sendStream(stream: Stream | string, ContentType: string) {
+  sendStream(stream: Stream | string, ContentType: string) {
     if (!this._2) {
       this._2 = {};
     }
-    this._2["Content-Disposition"] = `inline;filename="unnamed.bin"`;
-    this._2["Content-Type"] = ContentType;
+
     if (typeof stream === "string") {
-      this._2["Content-Disposition"] = `inline;filename="${
+      this._2["Content-Disposition"] = `inline; filename="${
         stream.split("/").at(-1) || "unnamed.bin"
       }"`;
       if (UTILS.runtime["bun"]) {
@@ -242,6 +241,7 @@ export class Context {
         stream = createReadStream(stream as string, { autoClose: true });
       }
     }
+    this._2["Content-Type"] = ContentType;
     this._3 = stream as Stream;
     this._4 = true;
     if (!this._5) throw _DONE;

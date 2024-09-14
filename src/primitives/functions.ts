@@ -263,38 +263,28 @@ const createResponse = (
 ) => {
   //? add cors headers
   _JetPath_hooks["cors"]?.(ctx);
+  UTILS.ctxPool.push(ctx);
   // ? prepare response
   if (!UTILS.runtime["node"]) {
     if (ctx?.code === 301 && ctx._2?.["Location"]) {
-      UTILS.ctxPool.push(ctx);
       return Response.redirect(ctx._2?.["Location"]);
     }
     if (ctx?._3) {
-      UTILS.ctxPool.push(ctx);
       return new Response(ctx?._3 as unknown as BodyInit, {
         status: 200,
         headers: ctx?._2,
       });
     }
-    UTILS.ctxPool.push(ctx);
     return new Response(ctx?._1 || (four04 ? "Not found" : undefined), {
       status: (four04 && 404) || ctx.code,
       headers: ctx?._2,
     });
   }
   if (ctx?._3) {
-    UTILS.ctxPool.push(ctx);
-    ctx?._3.on("pipe", () => {
-      res.writeHead(ctx?.code, ctx?._2);
-    });
-    ctx?._3.on("error", (err) => {
-      if (err.code === "ENOENT") {
-        res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end("File not found");
-      } else {
-        res.writeHead(500, { "Content-Type": "text/plain" });
-        res.end("Internal    server error");
-      }
+    res.writeHead(ctx?.code, ctx?._2);
+    ctx?._3.on("error", (_err) => {
+      res.statusCode;
+      res.end("File not found");
     });
     return ctx._3.pipe(res);
   }
@@ -303,7 +293,6 @@ const createResponse = (
     ctx?._2 || { "Content-Type": "text/plain" }
   );
   res.end(ctx?._1 || (four04 ? "Not found" : undefined));
-  UTILS.ctxPool.push(ctx);
 };
 
 const JetPath_app = async (

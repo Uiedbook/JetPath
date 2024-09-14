@@ -61,20 +61,9 @@ export class JetPath {
           this.options?.static?.dir +
           "/" +
           decodeURI(ctx.params?.["extraPath"] || "").split("?")[0];
-        if (fileName) {
-          const contentType = mime.getType(
-            fileName.split(".").at(-1) || "application/octet-stream"
-          );
-          await ctx.sendStream(fileName, contentType!);
-        } else {
-          return ctx.throw();
-        }
+        const contentType = mime.getType(fileName.split(".").at(-1) || "");
+        ctx.sendStream(fileName, contentType || "application/octet-stream");
       };
-
-      _JetPath_paths["GET"][
-        (this.options.static.route === "/" ? "" : this.options.static.route) +
-          "/*"
-      ].method = "GET";
     }
 
     //? setting up api viewer
