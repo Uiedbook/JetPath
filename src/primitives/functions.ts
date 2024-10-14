@@ -436,7 +436,7 @@ export async function getHandlers(
           }
         }
       } catch (error) {
-        if (dirent.name.endsWith(".jet.js")) {
+        if (dirent.name.includes(".jet.")) {
           if (!errorsCount) {
             errorsCount = [];
           }
