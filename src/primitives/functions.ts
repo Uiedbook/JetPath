@@ -425,7 +425,7 @@ export async function getHandlers(
           }
         } else {
           // record errors
-          if (dirent.name.endsWith(".jet.js")) {
+          if (dirent.name.endsWith(".jet.")) {
             if (!errorsCount) {
               errorsCount = [];
             }
