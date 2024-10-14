@@ -1,4 +1,4 @@
-import { JetPath, JetPlugin, JetFunc } from "../dist/index.js";
+import { JetPath, JetPlugin, type JetFunc } from "../dist/index.js";
 
 // const app = new JetPath({ port: 1432, APIdisplay: "UI" });
 const app = new JetPath({

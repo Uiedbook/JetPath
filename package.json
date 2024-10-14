@@ -1,6 +1,6 @@
 {
   "name": "jetpath",
-  "version": "1.5.26",
+  "version": "1.5.26-rc-1",
   "description": "JetPath - A fast, seamless and minimalist framework for Node, Deno and Bun.js. Embrace the speed and elegance of the next-gen server-side experience.",
   "main": "dist/index.js",
   "type": "module",
@@ -33,10 +33,10 @@
   "homepage": "https://github.com/fridaycandour/jetpath#readme",
   "scripts": {
     "compile": "bun bundle.ts",
-    "node": "node tests/app.js",
-    "deno": "deno run --allow-all tests/app.jet.js",
-    "bun": "bun --watch tests/app.jet.js",
-    "dev": "nodemon tests/app.jet.js",
+    "deno": "deno run --allow-all tests/app.jet.ts",
+    "bun": "bun --watch tests/app.jet.ts",
+    "dev": "node --watch --experimental-strip-types tests/app.jet.ts",
+    "node": "node --watch --experimental-strip-types tests/app.jet.ts",
     "watch": "tsc tests/*.ts --target esnext --watch",
     "build": "bun bundle.ts"
   },
