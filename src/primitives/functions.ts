@@ -390,7 +390,10 @@ export async function getHandlers(
   source = path.resolve(cwd(), source);
   const dir = await opendir(source);
   for await (const dirent of dir) {
-    if (dirent.isFile() && dirent.name.endsWith(".jet.js")) {
+    if (
+      dirent.isFile() &&
+      (dirent.name.endsWith(".jet.js") || dirent.name.endsWith(".jet.ts"))
+    ) {
       if (print) {
         Log.info("Loading routes at " + source + "/" + dirent.name);
       }
