@@ -1,4 +1,4 @@
-import { JetPath, JetPlugin, type JetFunc } from "../dist/index.js";
+import { JetFunc, JetPath, JetPlugin } from "../dist/index.js";
 
 // const app = new JetPath({ port: 1432, APIdisplay: "UI" });
 const app = new JetPath({
@@ -65,7 +65,7 @@ export const GET_pets: JetFunc = function (ctx) {
 // ? /petBy/19388
 // Get a Pet by ID: Retrieve detailed information about a specific pet by its unique identifier
 export const GET_petBy$id: JetFunc<PetType, { id: string }> = async function (
-  ctx
+  ctx,
 ) {
   const petId = ctx.params.id;
   const pet = pets.find((p) => p.id === petId);
@@ -109,7 +109,7 @@ export const GET_pets_search$$: JetFunc<{}, {}, { name: string }> =
       message: "Pets searched successfully",
       pets: pets.filter(
         (pet) =>
-          pet.name === ctx.search.name || pet.name.includes(ctx.search.name)
+          pet.name === ctx.search.name || pet.name.includes(ctx.search.name),
       ),
     });
   };
@@ -117,7 +117,7 @@ export const GET_pets_search$$: JetFunc<{}, {}, { name: string }> =
 // Update a Pet: Modify the details of an existing pet
 // ? /petBy/8766
 export const PUT_petBy$id: JetFunc<{}, { id: string }, {}> = async function (
-  ctx
+  ctx,
 ) {
   const updatedPetData = ctx.validate(await ctx.json());
   console.log(updatedPetData);
@@ -161,7 +161,7 @@ export const DELETE_petBy$id: JetFunc<{}, { id: string }> = function (ctx) {
 // ? /petImage/76554
 // Upload a Pet's Image: Add an image to a pet's profile
 export const POST_petImage$id: JetFunc<{}, { id: string }> = async function (
-  ctx
+  ctx,
 ) {
   const petId = ctx.params.id;
   const formdata = await ctx.request.formData();
@@ -215,7 +215,7 @@ export const POST_: JetFunc<
         textfield: string;
       }>;
     },
-    { formData2: (ctx: any) => "lol" }
+    { formData2: (ctx: any) => "lol" },
   ]
 > = async function (ctx) {
   const form = await ctx.app.formData(ctx);

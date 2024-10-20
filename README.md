@@ -2,9 +2,9 @@
 <p align="center">
      <img src="icon.webp" alt="JetPath" width="190" height="190">
 
-  <h1 align="center">JetPath</h1>
+<h1 align="center">JetPath</h1>
 
-  <p align="center">
+<p align="center">
     JetPath 🚀 - Is the granular, fast and minimalist framework for Node, Deno and Bun. Embrace new standards!!!
     <br/>
     <br/>
@@ -36,7 +36,8 @@ In this version, we added/tested these features on all runtimes.
 4. support for websockets [check this example](tests/websockets-usage.md).
 5. Jet Plugins.
 
-In this version (not this latest), multi-runtime support is no-longer based on compartiblity but pure engine api(s).
+In this version (not this latest), multi-runtime support is no-longer based on
+compartiblity but pure engine api(s).
 
 We Added Examples in the examples folder!
 
@@ -56,22 +57,28 @@ JetPath is the Granular web framework aimed for speed and ease of use.
 [benchmark repo](https://github.com/FridayCandour/jetpath-benchmark)
 
 - JetPath now runs on the runtime you are using, bun or node or deno.
-- Function names as routing patterns (newest innovation you haven't seen before).
+- Function names as routing patterns (newest innovation you haven't seen
+  before).
 - Pre, Post and Error request hooks.
 - Inbuilt Cors handlers hook.
 - Fast and small and easy as peasy.
 - A strong backup community moved with passion for making the web better.
 - Inbuilt API auto doc functionality.
 
-JetPath is designed as a light, simple and but powerful, using the an intuitive route as function name system. you can be able to design and manage your api(s) with the smallest granularity possible.
+JetPath is designed as a light, simple and but powerful, using the an intuitive
+route as function name system. you can be able to design and manage your api(s)
+with the smallest granularity possible.
 
-This benefits are very lovely and delighting, but trust me you have never written javascript app in this manner before and you should definitely check this out.
+This benefits are very lovely and delighting, but trust me you have never
+written javascript app in this manner before and you should definitely check
+this out.
 
 --
 
 ## How JetPath works
 
-JetPath works by search through the source forder and join up any defined handlers and hooks that follows it's format in files named [anything].jet.js.
+JetPath works by search through the source forder and join up any defined
+handlers and hooks that follows it's format in files named [anything].jet.js.
 
 ## Requirements to use JetPath.
 
@@ -85,7 +92,8 @@ JetPath support all web Javascript runtimes:
 
 ## Installation
 
-Install JetPath Right away on your project using npm or Javascript other package managers.
+Install JetPath Right away on your project using npm or Javascript other package
+managers.
 
 ```
 npm i jetpath --save
@@ -182,24 +190,30 @@ export const GET_api_v1_payment_status$paymentId: JetFunc<
 
 We have exhausted our Roadmap, let's me what your suggestions are!
 
-we are currently working an integrated admin interface, let us know what you think about that!!!
+we are currently working an integrated admin interface, let us know what you
+think about that!!!
 
 ## Apache 2.0 Lincenced
 
 Open sourced And Free.
 
-Uiedbook is an open source community, the vision is to make the web better, improving and innovating infrastructures for a better web experience.
+Uiedbook is an open source community, the vision is to make the web better,
+improving and innovating infrastructures for a better web experience.
 
-You can [join]("https://t.me/UiedbookHQ") on telegram.
-Ask your questions and contribute XD.
+You can [join]("https://t.me/UiedbookHQ") on telegram. Ask your questions and
+contribute XD.
 
 ### Contribution and License Agreement
 
-If you contribute code to this project, you are implicitly allowing your code to be distributed under the MIT license. You are also implicitly verifying that all code is your original work.
+If you contribute code to this project, you are implicitly allowing your code to
+be distributed under the MIT license. You are also implicitly verifying that all
+code is your original work.
 
 ### Support
 
-Your contribution(s) is a good force for change anytime you do it, you can ensure JetPath's continues growth and improvement by contributing a re-occuring or fixed donations to:
+Your contribution(s) is a good force for change anytime you do it, you can
+ensure JetPath's continues growth and improvement by contributing a re-occuring
+or fixed donations to:
 
 https://www.buymeacoffee.com/fridaycandour
 

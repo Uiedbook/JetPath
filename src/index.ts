@@ -55,10 +55,9 @@ export class JetPath {
     if (this.options?.static?.route && this.options?.static?.dir) {
       _JetPath_paths["GET"][
         (this.options.static.route === "/" ? "" : this.options.static.route) +
-          "/*"
+        "/*"
       ] = async (ctx) => {
-        const fileName =
-          this.options?.static?.dir +
+        const fileName = this.options?.static?.dir +
           "/" +
           decodeURI(ctx.params?.["extraPath"] || "").split("?")[0];
         const contentType = mime.getType(fileName.split(".").at(-1) || "");
@@ -80,32 +79,36 @@ export class JetPath {
       if (this.options?.APIdisplay === "UI") {
         UI = compileUI(UI, this.options, compiledAPI);
         _JetPath_paths["GET"][this.options?.apiDoc?.path || "/api-doc"] = (
-          ctx
+          ctx,
         ) => {
           ctx.send(UI, "text/html");
         };
         Log.success(
           `visit http://localhost:${this.options.port}${
             this.options?.apiDoc?.path || "/api-doc"
-          } to see the displayed routes in UI`
+          } to see the displayed routes in UI`,
         );
       }
       // ? render API in a .HTTP file
       if (this.options?.APIdisplay === "HTTP") {
         await writeFile("api-doc.http", compiledAPI);
         Log.success(
-          `Check http file ./api-doc.http to test the routes Visual Studio rest client extension`
+          `Check http file ./api-doc.http to test the routes Visual Studio rest client extension`,
         );
       }
       Log.info(
-        `Parsed ${handlersCount} handlers in ${Math.round(
-          endTime - startTime
-        )} milliseconds`
+        `Parsed ${handlersCount} handlers in ${
+          Math.round(
+            endTime - startTime,
+          )
+        } milliseconds`,
       );
       if (errorsCount) {
         for (let i = 0; i < errorsCount.length; i++) {
           Log.error(
-            `\nReport: ${errorsCount[i].file} file was not loaded due to \n "${errorsCount[i].error}" error; \n please resolve!`
+            `\nReport: ${errorsCount[i].file} file was not loaded due to \n "${
+              errorsCount[i].error
+            }" error; \n please resolve!`,
           );
         }
       }
@@ -115,7 +118,11 @@ export class JetPath {
       if (errorsCount) {
         for (let i = 0; i < errorsCount.length; i++) {
           Log.error(
-            `\n\n\nReport: ${errorsCount[i].file} file was not loaded due to \n "${errorsCount[i].error}" error; \n please resolve!`
+            `\n\n\nReport: ${
+              errorsCount[i].file
+            } file was not loaded due to \n "${
+              errorsCount[i].error
+            }" error; \n please resolve!`,
           );
         }
       }

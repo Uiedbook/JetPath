@@ -3,16 +3,15 @@ import type { _JetPath_paths } from "./functions.js";
 import type { JetPlugin } from "./classes.js";
 
 type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
-  x: infer I
-) => void
-  ? I
+  x: infer I,
+) => void ? I
   : never;
 
 export type Context<
   JetBody extends Record<string, any>,
   JetParams extends Record<string, string>,
   JetSearch extends Record<string, string>,
-  JetPluginTypes extends Record<string, unknown>[]
+  JetPluginTypes extends Record<string, unknown>[],
 > = {
   /**
    * an object you can set values to per request
@@ -54,7 +53,6 @@ export type Context<
   sendStream(stream: any | string, ContentType: string): never;
   /**
    * reply the request
-   *
    */
   send(data: unknown, ContentType?: string): never;
   /**
@@ -62,7 +60,7 @@ export type Context<
    */
   throw(
     code?: number | string | Record<string, any> | unknown,
-    message?: string | Record<string, any>
+    message?: string | Record<string, any>,
   ): never;
   /**
    * redirect the request
@@ -105,7 +103,7 @@ export type JetPluginExecutorInitParams = {
 };
 export type JetPluginExecutor = (
   this: JetPlugin,
-  init: JetPluginExecutorInitParams
+  init: JetPluginExecutorInitParams,
 ) => Record<string, any>;
 
 export type contentType =
@@ -143,21 +141,21 @@ export type jetOptions = {
   static?: { route: string; dir: string };
   cors?:
     | {
-        allowMethods?: allowedMethods;
-        secureContext?: boolean;
-        allowHeaders?: string[];
-        exposeHeaders?: string[];
-        keepHeadersOnError?: boolean;
-        maxAge?: string;
-        credentials?: boolean;
-        privateNetworkAccess?: any;
-        origin?: string[];
-      }
+      allowMethods?: allowedMethods;
+      secureContext?: boolean;
+      allowHeaders?: string[];
+      exposeHeaders?: string[];
+      keepHeadersOnError?: boolean;
+      maxAge?: string;
+      credentials?: boolean;
+      privateNetworkAccess?: any;
+      origin?: string[];
+    }
     | boolean;
   websocket?:
     | {
-        idleTimeout?: number;
-      }
+      idleTimeout?: number;
+    }
     | boolean;
 };
 
@@ -187,10 +185,10 @@ export type JetFunc<
   JetBody extends Record<string, any> = Record<string, any>,
   JetParams extends Record<string, string> = Record<string, any>,
   JetSearch extends Record<string, string> = Record<string, any>,
-  JetPluginTypes extends Record<string, unknown>[] = []
+  JetPluginTypes extends Record<string, unknown>[] = [],
 > = {
   (
-    ctx: Context<JetBody, JetParams, JetSearch, JetPluginTypes>
+    ctx: Context<JetBody, JetParams, JetSearch, JetPluginTypes>,
   ): Promise<void> | void;
   body?: HTTPBody<JetBody>;
   headers?: Record<string, string>;

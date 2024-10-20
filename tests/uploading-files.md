@@ -55,14 +55,14 @@ https://bun.sh/guides/http/file-uploads
 ```js
 // usage
 export const POST_upload_image = (ctx) => {
-     const formdata = await ctx.request.formData();
+  const formdata = await ctx.request.formData();
   const profilePicture = formdata.get("image");
   console.log(profilePicture);
   if (!profilePicture) throw new Error("Must upload image.");
   // write profilePicture to disk
   await Bun.write("profilePicture.png", profilePicture);
   ctx.send("done!");
-}
+};
 ```
 
 ## Deno

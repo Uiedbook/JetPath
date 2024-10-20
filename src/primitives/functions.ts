@@ -1,4 +1,4 @@
-// compartible node imports
+// compatible node imports
 import { opendir } from "node:fs/promises";
 import path from "node:path";
 import { cwd } from "node:process";
@@ -6,13 +6,13 @@ import { createServer } from "node:http";
 // type imports
 import { type IncomingMessage, type ServerResponse } from "node:http";
 import {
+  type allowedMethods,
   type HTTPBody,
   type JetFunc,
-  type allowedMethods,
   type jetOptions,
   type methods,
 } from "./types.js";
-import { Context, Log, type JetPlugin } from "./classes.js";
+import { Context, type JetPlugin, Log } from "./classes.js";
 
 /**
  * an inbuilt CORS post hook
@@ -129,17 +129,17 @@ export const UTILS = {
   // validators: {} as Record<string, JetSchema>,
   server(plugs: JetPlugin[]): { listen: any; edge: boolean } | void {
     let server;
-    let serverelse;
+    let server_else;
     if (UTILS.runtime["node"]) {
       server = createServer((x: any, y: any) => {
-        JetPath_app(x, y);
+        JetPath(x, y);
       });
     }
     if (UTILS.runtime["deno"]) {
       server = {
         listen(port: number) {
           // @ts-expect-error
-          serverelse = Deno.serve({ port: port }, JetPath_app);
+          server_else = Deno.serve({ port: port }, JetPath);
         },
         edge: false,
       };
@@ -147,10 +147,10 @@ export const UTILS = {
     if (UTILS.runtime["bun"]) {
       server = {
         listen(port: number) {
-          serverelse = Bun.serve({
+          server_else = Bun.serve({
             port,
             // @ts-expect-error
-            fetch: JetPath_app,
+            fetch: JetPath,
           });
         },
         edge: false,
@@ -168,10 +168,10 @@ export const UTILS = {
       const edgePlugin = plugs.splice(edgePluginIdx, 1)[0];
       if (edgePlugin !== undefined && edgePlugin.hasServer) {
         const decs = edgePlugin._setup({
-          server: (!UTILS.runtime["node"] ? serverelse! : server!) as any,
+          server: (!UTILS.runtime["node"] ? server_else! : server!) as any,
           runtime: UTILS.runtime as any,
           routesObject: _JetPath_paths,
-          JetPath_app: JetPath_app as any,
+          JetPath_app: JetPath as any,
         });
         Object.assign(decorations, decs);
         //? setting the jet server from the plugin
@@ -185,10 +185,10 @@ export const UTILS = {
     //? compile plugins
     for (let i = 0; i < plugs.length; i++) {
       const decs = plugs[i]._setup({
-        server: !UTILS.runtime["node"] ? serverelse! : server!,
+        server: !UTILS.runtime["node"] ? server_else! : server!,
         runtime: UTILS.runtime as any,
         routesObject: _JetPath_paths,
-        JetPath_app: JetPath_app as any,
+        JetPath_app: JetPath as any,
       });
       Object.assign(decorations, decs);
     }
@@ -199,11 +199,11 @@ export const UTILS = {
       }
     }
     if (!server) {
-      const edgeserver = plugs.find(
+      const edge_server = plugs.find(
         (plug) => plug.JetPathServer
       )?.JetPathServer;
-      if (edgeserver !== undefined) {
-        server = edgeserver;
+      if (edge_server !== undefined) {
+        server = edge_server;
       }
     }
     return server!;
@@ -295,18 +295,18 @@ const createResponse = (
   res.end(ctx?._1 || (four04 ? "Not found" : undefined));
 };
 
-const JetPath_app = async (
+const JetPath = async (
   req: IncomingMessage,
   res: ServerResponse<IncomingMessage> & {
     req: IncomingMessage;
   }
 ) => {
-  const paseredR = URLPARSER(req.method as methods, req.url!);
+  const parsedR = URL_PARSER(req.method as methods, req.url!);
   let off = false;
   let ctx: Context;
-  if (paseredR) {
-    const r = paseredR[0];
-    ctx = createCTX(req, paseredR[3], paseredR[1], paseredR[2]);
+  if (parsedR) {
+    const r = parsedR[0];
+    ctx = createCTX(req, parsedR[3], parsedR[1], parsedR[2]);
     try {
       //? pre-request hooks here
       await _JetPath_hooks["PRE"]?.(ctx);
@@ -349,7 +349,7 @@ const JetPath_app = async (
   }
 };
 
-const Handlerspath = (path: any) => {
+const Handlers_path = (path: any) => {
   if ((path as string).includes("hook__")) {
     //? hooks in place
     return (path as string).split("hook__")[1];
@@ -401,7 +401,7 @@ export async function getHandlers(
         const module = await getModule(source, dirent.name);
         if (typeof module !== "string") {
           for (const p in module) {
-            const params = Handlerspath(p);
+            const params = Handlers_path(p);
             if (params) {
               // ! HTTP handler
               if (
@@ -464,19 +464,18 @@ export async function getHandlers(
 
 export function validator(schema: HTTPBody<any> | undefined, data: any) {
   const out: Record<string, any> = {};
-  let errout: string = "";
+  let err_out: string = "";
   if (typeof data !== "object") throw new Error("invalid data => " + data);
   for (const [prop, value] of Object.entries(schema || {})) {
     // ? extract validators
     const { err, type, required, RegExp, validator } = value;
-
-    //? nullabilty check
+    //? nullability check
     if (data[prop] === undefined || data[prop] === null) {
-      //? nullabilty skip
+      //? nullability skip
       if (!required) {
         continue;
       } else {
-        errout = err || `${prop} is required`;
+        err_out = err || `${prop} is required`;
         break;
       }
     }
@@ -484,15 +483,15 @@ export function validator(schema: HTTPBody<any> | undefined, data: any) {
     // ? type check
     if (typeof type === "string" && type !== typeof data[prop]) {
       if (type !== "file") {
-        // bypass file type
-        errout = err || `${prop} type is invalid '${data[prop]}' `;
+        //? bypass file type
+        err_out = err || `${prop} type is invalid '${data[prop]}' `;
         break;
       }
     }
 
     // ? regex check
     if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
-      errout = err || `${prop} is invalid`;
+      err_out = err || `${prop} is invalid`;
       break;
     }
 
@@ -500,25 +499,24 @@ export function validator(schema: HTTPBody<any> | undefined, data: any) {
     if (typeof validator === "function") {
       const v = validator(data[prop]) as any;
       if (v !== true) {
-        errout = err || typeof v === "string" ? v : `${prop} must is invalid`;
+        err_out = err || typeof v === "string" ? v : `${prop} must is invalid`;
         break;
       }
     }
     //? set this prop as valid
     out[prop] = data[prop];
   }
-  if (errout) throw new Error(errout);
+  if (err_out) throw new Error(err_out);
   return out;
 }
 
 /**
- *
  * @param method
  * @param url
  * @returns ? [handler, params, search, path]
  */
 
-const URLPARSER = (
+const URL_PARSER = (
   method: methods,
   url: string
 ): [JetFunc, Record<string, any>, Record<string, any>, string] | undefined => {
@@ -543,7 +541,6 @@ const URLPARSER = (
     if (pathR.includes(":")) {
       const urlFixtures = url.split("/");
       const pathFixtures = pathR.split("/");
-
       if (urlFixtures.length !== pathFixtures.length) {
         continue;
       }
@@ -591,9 +588,9 @@ const URLPARSER = (
   if (uio > -1) {
     path = url.slice(0, uio + 2);
     if (url.includes("=")) {
-      const sraw = url.slice(path.length).split("=");
-      for (let s = 0; s < sraw.length; s = s + 2) {
-        search[sraw[s]] = sraw[s + 1];
+      const s_raw = url.slice(path.length).split("=");
+      for (let s = 0; s < s_raw.length; s = s + 2) {
+        search[s_raw[s]] = s_raw[s + 1];
       }
     }
     if (routes[path]) {
@@ -613,9 +610,10 @@ export const compileUI = (UI: string, options: jetOptions, api: string) => {
       Authorization: "Bearer ****",
     }
   );
-  return UI.replace("'{JETPATH}'", `\`${api}\``)
-    .replaceAll("{JETPATHGH}", `${globalHeaders}`)
-    .replaceAll("{NAME}", options?.apiDoc?.name || "JethPath API Doc")
+
+  return UI.replace("{ JETPATH }", `\`${api}\``)
+    .replaceAll("{ JETPATHGH }", `${JSON.stringify(globalHeaders)}`)
+    .replaceAll("{NAME}", options?.apiDoc?.name || "JetPath API Doc")
     .replaceAll("JETPATHCOLOR", options?.apiDoc?.color || "#007bff")
     .replaceAll(
       "{LOGO}",
@@ -624,7 +622,7 @@ export const compileUI = (UI: string, options: jetOptions, api: string) => {
     )
     .replaceAll(
       "{INFO}",
-      options?.apiDoc?.info || "This is a JethPath api preview."
+      options?.apiDoc?.info || "This is a JetPath api preview."
     );
 };
 
@@ -647,13 +645,13 @@ export const compileAPI = (options: jetOptions): [number, string] => {
         // ? Retrieve api body definitions
         const body = validator.body;
         // ? Retrieve api headers definitions
-        const inialHeader = {};
-        Object.assign(inialHeader, validator?.headers || {}, globalHeaders);
+        const initialHeader = {};
+        Object.assign(initialHeader, validator?.headers || {}, globalHeaders);
         const headers = [];
         // ? parse headers
-        for (const name in inialHeader) {
+        for (const name in initialHeader) {
           headers.push(
-            name + ":" + inialHeader[name as keyof typeof inialHeader]
+            name + ":" + initialHeader[name as keyof typeof initialHeader]
           );
         }
         // ? parse body
@@ -667,7 +665,7 @@ export const compileAPI = (options: jetOptions): [number, string] => {
               "text";
           }
         }
-        // ? combine api infos into .http formart
+        // ? combine api infos into .http format
         const api = `\n
 ${method} ${
           options?.APIdisplay === "UI"
