@@ -3,15 +3,18 @@ import type { _JetPath_paths } from "./functions.js";
 import type { JetPlugin } from "./classes.js";
 
 type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (
-  x: infer I,
-) => void ? I
+  x: infer I
+) => void
+  ? I
   : never;
 
 export type Context<
-  JetBody extends Record<string, any>,
-  JetParams extends Record<string, string>,
-  JetSearch extends Record<string, string>,
-  JetPluginTypes extends Record<string, unknown>[],
+  JetData extends {
+    body?: Record<string, any>;
+    params?: Record<string, any>;
+    search?: Record<string, any>;
+  },
+  JetPluginTypes extends Record<string, unknown>[]
 > = {
   /**
    * an object you can set values to per request
@@ -20,15 +23,15 @@ export type Context<
   /**
    * get body params after /?
    */
-  body: JetBody;
+  body: JetData["body"];
   /**
    * get search params after /?
    */
-  search: JetSearch;
+  search: JetData["search"];
   /**
    * get route params in /:thing
    */
-  params: JetParams;
+  params: JetData["params"];
   /**
    * remove request control from the request
    */
@@ -44,8 +47,7 @@ export type Context<
   /**
    * validate body
    */
-  validate: (data?: any) => JetBody;
-
+  validate: (data?: any) => JetData["body"];
   /**
    * send a stream
    */
@@ -60,7 +62,7 @@ export type Context<
    */
   throw(
     code?: number | string | Record<string, any> | unknown,
-    message?: string | Record<string, any>,
+    message?: string | Record<string, any>
   ): never;
   /**
    * redirect the request
@@ -103,7 +105,7 @@ export type JetPluginExecutorInitParams = {
 };
 export type JetPluginExecutor = (
   this: JetPlugin,
-  init: JetPluginExecutorInitParams,
+  init: JetPluginExecutorInitParams
 ) => Record<string, any>;
 
 export type contentType =
@@ -141,21 +143,21 @@ export type jetOptions = {
   static?: { route: string; dir: string };
   cors?:
     | {
-      allowMethods?: allowedMethods;
-      secureContext?: boolean;
-      allowHeaders?: string[];
-      exposeHeaders?: string[];
-      keepHeadersOnError?: boolean;
-      maxAge?: string;
-      credentials?: boolean;
-      privateNetworkAccess?: any;
-      origin?: string[];
-    }
+        allowMethods?: allowedMethods;
+        secureContext?: boolean;
+        allowHeaders?: string[];
+        exposeHeaders?: string[];
+        keepHeadersOnError?: boolean;
+        maxAge?: string;
+        credentials?: boolean;
+        privateNetworkAccess?: any;
+        origin?: string[];
+      }
     | boolean;
   websocket?:
     | {
-      idleTimeout?: number;
-    }
+        idleTimeout?: number;
+      }
     | boolean;
 };
 
@@ -182,15 +184,15 @@ export type HTTPBody<Obj extends Record<string, any>> = {
 };
 
 export type JetFunc<
-  JetBody extends Record<string, any> = Record<string, any>,
-  JetParams extends Record<string, string> = Record<string, any>,
-  JetSearch extends Record<string, string> = Record<string, any>,
-  JetPluginTypes extends Record<string, unknown>[] = [],
+  JetData extends {
+    body?: Record<string, any>;
+    params?: Record<string, any>;
+    search?: Record<string, any>;
+  } = { body: {}; params: {}; search: {} },
+  JetPluginTypes extends Record<string, unknown>[] = []
 > = {
-  (
-    ctx: Context<JetBody, JetParams, JetSearch, JetPluginTypes>,
-  ): Promise<void> | void;
-  body?: HTTPBody<JetBody>;
+  (ctx: Context<JetData, JetPluginTypes>): Promise<void> | void;
+  body?: HTTPBody<JetData["body"] & Record<string, any>>;
   headers?: Record<string, string>;
   info?: string;
   method?: string;

@@ -3,7 +3,6 @@ console.log("JetPath: compiling...");
 const html = await readFile("src/primitives/api-doc.html", {
   encoding: "utf-8",
 });
-// @ts-expect-error
 const build = Bun.spawn(["./pack"]);
 await build.exited;
 const code = await readFile("dist/index.js", {
