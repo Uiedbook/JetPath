@@ -46,15 +46,15 @@ export function corsHook(options: {
 }): (ctx: Context) => void {
   if (Array.isArray(options.allowMethods)) {
     options.allowMethods = options.allowMethods.join(
-      ",",
+      ","
     ) as unknown as methods[];
   }
   if (options.maxAge) {
     options.maxAge = String(options.maxAge);
   }
 
-  options.keepHeadersOnError = options.keepHeadersOnError === undefined ||
-    !!options.keepHeadersOnError;
+  options.keepHeadersOnError =
+    options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
 
   return function cors(ctx: Context) {
     //? Add Vary header to indicate response varies based on the Origin header
@@ -91,7 +91,7 @@ export function corsHook(options: {
       if (options.allowMethods) {
         ctx.set(
           "Access-Control-Allow-Methods",
-          options.allowMethods as unknown as string,
+          options.allowMethods as unknown as string
         );
       }
       // if (options.secureContext) {
@@ -200,7 +200,7 @@ export const UTILS = {
     }
     if (!server) {
       const edge_server = plugs.find(
-        (plug) => plug.JetPathServer,
+        (plug) => plug.JetPathServer
       )?.JetPathServer;
       if (edge_server !== undefined) {
         server = edge_server;
@@ -240,7 +240,7 @@ const createCTX = (
   req: IncomingMessage | Request,
   path: string,
   params?: Record<string, any>,
-  search?: Record<string, any>,
+  search?: Record<string, any>
 ): Context => {
   if (UTILS.ctxPool.length) {
     const ctx = UTILS.ctxPool.shift()!;
@@ -259,7 +259,7 @@ const createResponse = (
     req: IncomingMessage;
   },
   ctx: Context,
-  four04?: boolean,
+  four04?: boolean
 ) => {
   //? add cors headers
   _JetPath_hooks["cors"]?.(ctx);
@@ -290,7 +290,7 @@ const createResponse = (
   }
   res.writeHead(
     (four04 && 404) || ctx.code,
-    ctx?._2 || { "Content-Type": "text/plain" },
+    ctx?._2 || { "Content-Type": "text/plain" }
   );
   res.end(ctx?._1 || (four04 ? "Not found" : undefined));
 };
@@ -299,7 +299,7 @@ const JetPath = async (
   req: IncomingMessage,
   res: ServerResponse<IncomingMessage> & {
     req: IncomingMessage;
-  },
+  }
 ) => {
   const parsedR = URL_PARSER(req.method as methods, req.url!);
   let off = false;
@@ -312,8 +312,6 @@ const JetPath = async (
       await _JetPath_hooks["PRE"]?.(ctx);
       //? route handler call
       await r(ctx as any);
-      //? post-request hooks here
-      await _JetPath_hooks["POST"]?.(ctx);
       return createResponse(res, ctx);
     } catch (error) {
       if (error instanceof JetPathErrors) {
@@ -384,7 +382,7 @@ const getModule = async (src: string, name: string) => {
 export async function getHandlers(
   source: string,
   print: boolean,
-  errorsCount: { file: string; error: string }[] | undefined = undefined,
+  errorsCount: { file: string; error: string }[] | undefined = undefined
 ) {
   source = source || cwd();
   source = path.resolve(cwd(), source);
@@ -417,7 +415,7 @@ export async function getHandlers(
                   p
                 ] as JetFunc;
               } else {
-                if ("POST-PRE-ERROR".includes(params as string)) {
+                if ("PRE-ERROR".includes(params as string)) {
                   _JetPath_hooks[params as string] = module[p];
                 }
               }
@@ -455,7 +453,7 @@ export async function getHandlers(
       errorsCount = await getHandlers(
         source + "/" + dirent.name,
         print,
-        errorsCount,
+        errorsCount
       );
     }
   }
@@ -518,7 +516,7 @@ export function validator(schema: HTTPBody<any> | undefined, data: any) {
 
 const URL_PARSER = (
   method: methods,
-  url: string,
+  url: string
 ): [JetFunc, Record<string, any>, Record<string, any>, string] | undefined => {
   const routes = _JetPath_paths[method];
   if (!UTILS.runtime["node"]) {
@@ -608,7 +606,7 @@ export const compileUI = (UI: string, options: jetOptions, api: string) => {
   const globalHeaders = JSON.stringify(
     options?.globalHeaders || {
       Authorization: "Bearer ****",
-    },
+    }
   );
 
   return UI.replace("{ JETPATH }", `\`${api}\``)
@@ -618,11 +616,11 @@ export const compileUI = (UI: string, options: jetOptions, api: string) => {
     .replaceAll(
       "{LOGO}",
       options?.apiDoc?.logo ||
-        "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp",
+        "https://raw.githubusercontent.com/Uiedbook/JetPath/main/icon-transparent.webp"
     )
     .replaceAll(
       "{INFO}",
-      options?.apiDoc?.info || "This is a JetPath api preview.",
+      options?.apiDoc?.info || "This is a JetPath api preview."
     );
 };
 
@@ -651,7 +649,7 @@ export const compileAPI = (options: jetOptions): [number, string] => {
         // ? parse headers
         for (const name in initialHeader) {
           headers.push(
-            name + ":" + initialHeader[name as keyof typeof initialHeader],
+            name + ":" + initialHeader[name as keyof typeof initialHeader]
           );
         }
         // ? parse body
@@ -696,7 +694,7 @@ ${(body && method !== "GET" ? method : "") ? JSON.stringify(bodyData) : ""}\n${
 const sorted_insert = (paths: string[], path: string): number => {
   let low = 0;
   let high = paths.length - 1;
-  for (; low <= high;) {
+  for (; low <= high; ) {
     const mid = Math.floor((low + high) / 2);
     const current = paths[mid];
     if (current < path) {

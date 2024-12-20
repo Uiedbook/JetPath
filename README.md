@@ -59,7 +59,7 @@ JetPath is the Granular web framework aimed for speed and ease of use.
 - JetPath now runs on the runtime you are using, bun or node or deno.
 - Function names as routing patterns (newest innovation you haven't seen
   before).
-- Pre, Post and Error request hooks.
+- Pre and Error request hooks.
 - Inbuilt Cors handlers hook.
 - Fast and small and easy as peasy.
 - A strong backup community moved with passion for making the web better.
