@@ -1,4 +1,5 @@
 import { createReadStream } from "node:fs";
+import { IncomingMessage } from "node:http";
 import { Stream } from "node:stream";
 import { _DONE, _JetPath_paths, _OFF, UTILS, validator } from "./functions.js";
 import type {
@@ -73,7 +74,7 @@ export class Log {
 
 export class Context {
   code = 200;
-  request: Request | undefined;
+  request: Request | IncomingMessage | undefined;
   params: Record<string, any> | undefined;
   search: Record<string, any> | undefined;
   body: Record<string, any> | undefined;
@@ -98,7 +99,7 @@ export class Context {
     req: Request,
     path: string,
     params?: Record<string, any>,
-    search?: Record<string, any>,
+    search?: Record<string, any>
   ) {
     this.request = req;
     this.method = req.method as "GET";
@@ -250,30 +251,33 @@ export class Context {
   }
 
   async json<Type extends any = Record<string, any>>(): Promise<Type> {
-    // TODO:  calling this function twice cause an request hang in nodejs
+    // Check if the body has already been parsed to avoid request hang in Node.js
+    if (this.body) {
+      return this.body as Promise<Type>;
+    }
     if (!UTILS.runtime["node"]) {
       try {
         this.body = await (this.request as unknown as Request).json();
         return this.body as Promise<Type>;
       } catch (error) {
-        return {} as Promise<Type>;
+        return Promise.reject(error);
       }
+    } else {
+      return await new Promise<Type>((resolve) => {
+        const chunks: Uint8Array[] = [];
+        (this.request as IncomingMessage).on("data", (chunk: Uint8Array) => {
+          chunks.push(chunk);
+        });
+        (this.request as IncomingMessage).on("end", () => {
+          try {
+            const body = Buffer.concat(chunks).toString();
+            this.body = JSON.parse(body);
+            resolve(this.body as Type);
+          } catch (error) {
+            resolve({} as Promise<Type>);
+          }
+        });
+      });
     }
-    return await new Promise<Type>((r) => {
-      let body = "";
-      // @ts-expect-error
-      this.request.on("data", (data: { toString: () => string }) => {
-        body += data.toString();
-      });
-      // @ts-expect-error
-      this.request!.on("end", () => {
-        try {
-          this.body = JSON.parse(body);
-          r(this.body as Type);
-        } catch (error) {
-          r({} as Promise<Type>);
-        }
-      });
-    });
   }
 }

@@ -521,7 +521,10 @@ document.addEventListener('visibilitychange', () => {
 
     function syntaxHighlight(json) {
       if (typeof json === "string") {
-        json = JSON.parse(json);
+        try {
+          json = JSON.parse(json);
+        } catch { 
+        }
       }
       return prettyPrintJson.toHtml(json,
         {

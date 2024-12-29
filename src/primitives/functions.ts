@@ -17,15 +17,7 @@ import { Context, type JetPlugin, Log } from "./classes.js";
 /**
  * an inbuilt CORS post hook
  *
- * @param {Object} [options]
- *  - {String|Function(ctx)} origin `Access-Control-Allow-Origin`, default is request Origin header
- *  - {String|Array} allowMethods `Access-Control-Allow-Methods`, default is 'GET,HEAD,PUT,POST,DELETE,PATCH'
- *  - {String|Array} exposeHeaders `Access-Control-Expose-Headers`
- *  - {String|Array} allowHeaders `Access-Control-Allow-Headers`
- *  - {String|Number} maxAge `Access-Control-Max-Age` in seconds
- *  - {Boolean|Function(ctx)} credentials `Access-Control-Allow-Credentials`
- *  - {Boolean} keepHeadersOnError Add set headers to `err.header` if an error is thrown
- *  - {Boolean} secureContext `Cross-Origin-Opener-Policy` & `Cross-Origin-Embedder-Policy` headers.', default is false
+ * @param {Object} [options] cors options
  *    @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer/Planned_changes
  *  - {Boolean} privateNetworkAccess handle `Access-Control-Request-Private-Network` request by return `Access-Control-Allow-Private-Network`, default to false
  *    @see https://wicg.github.io/private-network-access/
@@ -36,13 +28,19 @@ import { Context, type JetPlugin, Log } from "./classes.js";
 export function corsHook(options: {
   exposeHeaders?: string[];
   allowMethods?: allowedMethods;
-  allowHeaders: string[];
+  allowHeaders?: string[];
   keepHeadersOnError?: boolean;
   maxAge?: string;
   credentials?: boolean;
-  secureContext?: boolean;
+  secureContext?: {
+    "Cross-Origin-Opener-Policy":
+      | "same-origin"
+      | "unsafe-none"
+      | "same-origin-allow-popups";
+    "Cross-Origin-Embedder-Policy": "require-corp" | "unsafe-none";
+  };
   privateNetworkAccess?: any;
-  origin: string[];
+  origin?: string[];
 }): (ctx: Context) => void {
   if (Array.isArray(options.allowMethods)) {
     options.allowMethods = options.allowMethods.join(
@@ -62,23 +60,25 @@ export function corsHook(options: {
     if (options.credentials === true) {
       ctx.set("Access-Control-Allow-Credentials", "true");
     } else {
-      //? Simple Cross-Origin Request, Actual Request, and Redirects
+      if (Array.isArray(options.origin)) {
+        ctx.set("Access-Control-Allow-Origin", options.origin.join(","));
+      } else {
+        ctx.set("Access-Control-Allow-Origin", String(options.origin));
+      }
       ctx.set("Access-Control-Allow-Origin", options.origin!.join(","));
     }
 
     if (ctx.request!.method !== "OPTIONS") {
-      // if (options.exposeHeaders) {
-      //   ctx.set(
-      //     "Access-Control-Expose-Headers",
-      //     options.exposeHeaders.join(",")
-      //   );
-      // }
-      // if (options.secureContext) {
-      //   ctx.set("Cross-Origin-Opener-Policy", "unsafe-none");
-      //   ctx.set("Cross-Origin-Embedder-Policy", "unsafe-none");
-      // }
-      // options.allowHeaders &&
-      //   ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
+      if (options.secureContext) {
+        ctx.set(
+          "Cross-Origin-Opener-Policy",
+          options.secureContext["Cross-Origin-Embedder-Policy"]
+        );
+        ctx.set(
+          "Cross-Origin-Embedder-Policy",
+          options.secureContext["Cross-Origin-Embedder-Policy"]
+        );
+      }
     } else {
       //? Preflight Request
       if (options.maxAge) {
@@ -86,23 +86,35 @@ export function corsHook(options: {
       }
       if (options.privateNetworkAccess) {
         ctx.get("Access-Control-Request-Private-Network") &&
-          ctx.set("Access-Control-Allow-Private-Network", "true");
-      }
-      if (options.allowMethods) {
-        ctx.set(
           "Access-Control-Allow-Methods",
-          options.allowMethods as unknown as string
-        );
+          typeof options.allowMethods === "string" ? options.allowMethods : "";
+        if (options.allowMethods) {
+          ctx.set(
+            "Access-Control-Allow-Methods",
+            options.allowMethods as unknown as string
+          );
+        }
+        if (options.secureContext) {
+          ctx.set(
+            "Cross-Origin-Opener-Policy",
+            options.secureContext["Cross-Origin-Embedder-Policy"]
+          );
+          ctx.set(
+            "Cross-Origin-Embedder-Policy",
+            options.secureContext["Cross-Origin-Embedder-Policy"]
+          );
+        }
+        // ! pre compute the joins here
+        if (options.allowHeaders) {
+          ctx.set(
+            "Access-Control-Allow-Headers",
+            options.allowHeaders.join(",")
+          );
+        }
+        if (!ctx.code) {
+          ctx.code = 204;
+        }
       }
-      // if (options.secureContext) {
-      //   ctx.set("Cross-Origin-Opener-Policy", "same-origin");
-      //   ctx.set("Cross-Origin-Embedder-Policy", "require-corp");
-      // }
-      // ! pre compute the joins here
-      if (options.allowHeaders) {
-        ctx.set("Access-Control-Allow-Headers", options.allowHeaders.join(","));
-      }
-      ctx.code = 204;
     }
   };
 }
@@ -347,7 +359,7 @@ const JetPath = async (
   }
 };
 
-const Handlers_path = (path: any) => {
+const handlersPath = (path: any) => {
   if ((path as string).includes("hook__")) {
     //? hooks in place
     return (path as string).split("hook__")[1];
@@ -371,6 +383,7 @@ const Handlers_path = (path: any) => {
   }
   return;
 };
+
 const getModule = async (src: string, name: string) => {
   try {
     const mod = await import(path.resolve(src + "/" + name));
@@ -399,7 +412,7 @@ export async function getHandlers(
         const module = await getModule(source, dirent.name);
         if (typeof module !== "string") {
           for (const p in module) {
-            const params = Handlers_path(p);
+            const params = handlersPath(p);
             if (params) {
               // ! HTTP handler
               if (
@@ -460,57 +473,114 @@ export async function getHandlers(
   return errorsCount;
 }
 
-export function validator(schema: HTTPBody<any> | undefined, data: any) {
-  const out: Record<string, any> = {};
-  let err_out: string = "";
-  if (typeof data !== "object") throw new Error("invalid data => " + data);
-  for (const [prop, value] of Object.entries(schema || {})) {
-    // ? extract validators
-    const { err, type, required, RegExp, validator } = value;
-    //? nullability check
-    if (data[prop] === undefined || data[prop] === null) {
-      //? nullability skip
-      if (!required) {
-        continue;
-      } else {
-        err_out = err || `${prop} is required`;
-        break;
-      }
-    }
-
-    // ? type check
-    if (typeof type === "string" && type !== typeof data[prop]) {
-      if (type !== "file") {
-        //? bypass file type
-        err_out = err || `${prop} type is invalid '${data[prop]}' `;
-        break;
-      }
-    }
-
-    // ? regex check
-    if (typeof RegExp === "object" && !RegExp.test(data[prop])) {
-      err_out = err || `${prop} is invalid`;
-      break;
-    }
-
-    // ? custom check
-    if (typeof validator === "function") {
-      const v = validator(data[prop]) as any;
-      if (v !== true) {
-        err_out = err || typeof v === "string" ? v : `${prop} must is invalid`;
-        break;
-      }
-    }
-    //? set this prop as valid
-    out[prop] = data[prop];
+export function validator<T extends Record<string, any>>(
+  schema: HTTPBody<T> | undefined,
+  data: any
+): T {
+  if (!schema || typeof data !== "object") {
+    throw new Error("Invalid schema or data");
   }
-  if (err_out) throw new Error(err_out);
-  return out;
+
+  const errors: string[] = [];
+  const out: Partial<T> = {};
+
+  for (const [key, def] of Object.entries(schema)) {
+    const value = data[key];
+
+    // Required check
+    if (def.required && (value === undefined || value === null)) {
+      errors.push(`${key} is required`);
+      continue;
+    }
+
+    // Skip if optional and undefined
+    if (!def.required && value === undefined) {
+      continue;
+    }
+
+    // Type validation
+    if (def.type) {
+      if (def.type === "array") {
+        if (!Array.isArray(value)) {
+          errors.push(`${key} must be an array`);
+          continue;
+        }
+        if (def.arrayType === "object" && def.objectSchema) {
+          try {
+            const validatedArray = value.map((item) =>
+              validator(def.objectSchema, item)
+            );
+            out[key as keyof T] = validatedArray as T[keyof T];
+            continue;
+          } catch (e) {
+            errors.push(`${key}: ${String(e)}`);
+            continue;
+          }
+        } else if (
+          def.arrayType &&
+          !value.every((item) => typeof item === def.arrayType)
+        ) {
+          errors.push(`${key} must be an array of ${def.arrayType}`);
+          continue;
+        }
+      } else if (def.type === "object") {
+        if (typeof value !== "object" || Array.isArray(value)) {
+          errors.push(`${key} must be an object`);
+          continue;
+        }
+        // Handle objectSchema validation
+        if (def.objectSchema) {
+          try {
+            out[key as keyof T] = validator(
+              def.objectSchema,
+              value
+            ) as T[keyof T];
+            continue;
+          } catch (e) {
+            errors.push(`${key}: ${String(e)}`);
+            continue;
+          }
+        }
+      } else if (typeof value !== def.type && def.type !== "file") {
+        errors.push(`${key} must be of type ${def.type}`);
+        continue;
+      }
+    }
+
+    // Regex validation
+    if (def.RegExp && !def.RegExp.test(value)) {
+      errors.push(def.err || `${key} does not match required pattern`);
+      continue;
+    }
+
+    // Custom validator
+    if (def.validator) {
+      const result = def.validator(value);
+      if (result !== true) {
+        errors.push(
+          typeof result === "string"
+            ? result
+            : def.err || `${key} validation failed`
+        );
+        continue;
+      }
+    }
+
+    out[key as keyof T] = value;
+  }
+
+  if (errors.length > 0) {
+    throw new Error(errors.join(", "));
+  }
+
+  return out as T;
 }
 
 /**
- * @param method
- * @param url
+ * Parses the URL and returns the corresponding handler, parameters, search parameters, and path.
+ *
+ * @param method - The HTTP method (e.g., GET, POST, etc.)
+ * @param url - The URL to parse
  * @returns ? [handler, params, search, path]
  */
 
@@ -624,7 +694,6 @@ export const compileUI = (UI: string, options: jetOptions, api: string) => {
     );
 };
 
-// TODO: SORT THE API
 export const compileAPI = (options: jetOptions): [number, string] => {
   let handlersCount = 0;
   let compiledAPIArray: string[] = [];
