@@ -31,10 +31,10 @@
 In this version, we added/tested these features on all runtimes.
 
 1. auto-generated api documentation UI (JethPath UI).
-2. streaming via ctx.pipe(stream||filename).
-3. file uploads [check this example](tests/uploading-files.md)
-4. support for websockets [check this example](tests/websockets-usage.md).
-5. Jet Plugins.
+2. file uploads [check this example](tests/uploading-files.md)
+3. support for websockets [check this example](tests/websockets-usage.md).
+4. Jet Plugins.
+5. strong schema validation
 
 In this version (not this latest), multi-runtime support is no-longer based on
 compartiblity but pure engine api(s).
@@ -61,23 +61,21 @@ JetPath is the Granular web framework aimed for speed and ease of use.
   before).
 - Pre and Error request hooks.
 - Inbuilt Cors handlers hook.
-- Fast and small and easy as peasy.
-- A strong backup community moved with passion for making the web better.
+- Fast, Small and easy as peasy.
 - Inbuilt API auto doc functionality.
 
 JetPath is designed as a light, simple and but powerful, using the an intuitive
 route as function name system. you can be able to design and manage your api(s)
 with the smallest granularity possible.
 
-This benefits are very lovely and delighting, but trust me you have never
-written javascript app in this manner before and you should definitely check
+Trust me you have never written javascript app in this manner before and you should definitely check
 this out.
 
 --
 
 ## How JetPath works
 
-JetPath works by search through the source forder and join up any defined
+JetPath works by search through the source folder and join up any defined
 handlers and hooks that follows it's format in files named [anything].jet.js.
 
 ## Requirements to use JetPath.
@@ -125,10 +123,12 @@ const payment: any = {};
 
 // this goes to = /api/v1/payment
 export const POST_api_v1_payment: JetFunc<{
-  name: string;
-  amount: number;
-  currency: "BTC" | "ETH" | "XRP" | "LTC";
-  address: string;
+  body: {
+    name: string;
+    amount: number;
+    currency: "BTC" | "ETH" | "XRP" | "LTC";
+    address: string;
+  };
 }> = async function (ctx) {
   // ? http body to json
   await ctx.json();
