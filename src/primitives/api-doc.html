@@ -95,7 +95,7 @@
       border: none;
       margin: auto;
       margin-bottom: 20px;
-      max-width: 800px; 
+      max-width: 800px;
     }
 
 
@@ -374,6 +374,11 @@
       }
     }
 
+    .array-items {
+      display: flex;
+      flex-direction: column;
+    }
+
   </style>
 </head>
 
@@ -396,14 +401,14 @@
   <div class="accordion" id="accordionExample"></div>
   <h3 class="comment">Requests</h3>
   <div id="big-request-container"></div>
-  <script> 
-  //  auto reload on visibility change 
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
+  <script>
+    //  auto reload on visibility change 
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
         console.log('Page is visible again. Reloading...');
         location.reload();
-    }
-});
+      }
+    });
     // ? extract of cradova
     function Rhoda(l) {
       const fg = new DocumentFragment();
@@ -523,7 +528,7 @@ document.addEventListener('visibilitychange', () => {
       if (typeof json === "string") {
         try {
           json = JSON.parse(json);
-        } catch { 
+        } catch {
         }
       }
       return prettyPrintJson.toHtml(json,
@@ -534,11 +539,11 @@ document.addEventListener('visibilitychange', () => {
           quoteKeys: true,
           trailingCommas: false
         });
- 
+
     }
 
     const body = document.getElementById("big-request-container");
-    function parseUPAPIBody(packer) {
+    function parsePayload(packer) {
       if (!packer) return;
       const result = {};
       let isSet = false;
@@ -566,15 +571,128 @@ document.addEventListener('visibilitychange', () => {
       if (!isSet) return;
       return result;
     }
-    function parseINAPIBody(api) {
+    function parsePayloadData(packer) {
+      if (!packer) return;
+      const result = {};
+      let isSet = false;
+      // Retrieve the child nodes of the input div (assuming each child is a div)
+      const divs = Array.from(packer.querySelectorAll(".data-input"));
+      divs.forEach((div) => {
+        const input = div.querySelector("input");
+        isSet = true;
+        const keySpan = div.querySelector("span");
+        const key = keySpan.textContent.replace(":", "").trim();
+        const isArray = keySpan.getAttribute("data-arr"), isObject = keySpan.getAttribute("data-obj"), subOrdinate = keySpan.getAttribute("data-holder");
+        if (input.type === "file") {
+          result[key] = input.files[0];
+          return;
+        }
+        // Attempt to parse the value as JSON
+        let value;
+        try {
+          // TODO: there's no way we know if the value is a specific type due to dependency on json.parse()
+          value = JSON.parse(input.value);
+        } catch (error) {
+          // If parsing as JSON fails, treat it as a string
+          value = input.value;
+        }
+        if (isObject === 'true') {
+          if ((result[subOrdinate])) {
+            result[subOrdinate][key] = value;
+          } else {
+            result[subOrdinate] = { [key]: value };
+          }
+        }
+        if (isArray === "true") {
+          if (Array.isArray(result[subOrdinate])) {
+            result[subOrdinate].push({[key]: value})
+          } else {
+            result[subOrdinate] = [{[key]: value }];
+          }
+        } 
+        if (isArray === null && isObject === null) {
+          result[key] = value;
+        }
+      });
+      if (!isSet) return;
+      return result;
+    }
+    function parsePayloadStructure(api) {
       const packer = div({ className: "body-pack" });
-      const packs = (k) =>
-        div(
-          span(k + ": "),
-          input({ type: api[k], value: api[k] !== "file" ? api[k] : null })
-        );
+      function createInputField(key, value, type, holder) {
+        if (typeof value === 'object' && !Array.isArray(value)) {
+          // Handle nested objects
+          const nestedDiv = div(
+            h4(key + ": ")
+          );
+          Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+            nestedDiv.appendChild(createInputField(nestedKey, nestedValue, "obj", key));
+          });
+          return nestedDiv;
+        } else if (Array.isArray(value)) {
+          // Handle arrays
+          const arrayDiv = div(
+            { style: { display: "flex", flexDirection: "column" }, className: "data-input" }, typeof value[0] === 'object' ? h4(key + ": ") : span(key + ": ")
+          );
+          if (value.length > 0) {
+            if (typeof value[0] === 'object') {
+              // Handle array of objects
+              const arrayContainer = div({ className: 'array-items' });
+              arrayDiv.appendChild(arrayContainer);
+              const addItem = () => {
+                const itemDiv = div({ className: 'array-item' });
+                Object.entries(value[0]).forEach(([arrayKey, arrayValue]) => {
+                  itemDiv.appendChild(createInputField(arrayKey, arrayValue, "arr", key));
+                });
+                arrayContainer.appendChild(itemDiv);
+              };
 
-      packer.append(...Object.keys(api).map(packs));
+              // Add initial item
+              addItem();
+              // Add "Add More" button
+              arrayDiv.appendChild(
+                button('+ Add Item', {
+                  onclick: addItem,
+                  className: 'test-button',
+                  style: {
+                    padding: '0.5rem',
+                    fontSize: '14px',
+                    marginTop: '10px'
+                  }
+                })
+              );
+            } else {
+              // Handle array of primitives
+              arrayDiv.appendChild(input({
+                type: value[0],
+                placeholder: "Enter  " + key + " (comma-separated values) ",
+                value: ''
+              }));
+            }
+          }
+          return arrayDiv;
+        } else {
+          // Handle primitive types
+          return div(
+            { className: "data-input" },
+            span(key + ": ",
+              {
+                ["data-" + type]: true,
+                "data-holder": holder
+              }),
+            input({
+              type: value === "file" ? "file" : "text",
+              value: value !== "file" ? value : null,
+              placeholder: "Enter " + key
+            })
+          );
+        }
+      }
+
+      Object.entries(api).forEach(([key, value]) => {
+        packer.appendChild(createInputField(key, value));
+      });
+
       return packer;
     }
 
@@ -632,18 +750,20 @@ document.addEventListener('visibilitychange', () => {
     const apiGlobalHeaders = { JETPATHGH };
     // parse headers
     document.getElementById("keys")?.appendChild(
-      parseINAPIBody(JSON.parse(apiGlobalHeaders))
-      // parseINAPIBody(/*TODO: put the general api info here*/)
+      parsePayloadStructure(JSON.parse(apiGlobalHeaders))
+      // parsePayloadStructure(/*TODO: put the general api info here*/)
     );
     // Parse API documentation
     const parsedApi = parseApiDocumentation(apiDocumentation);
+    // console.log({parsedApi, apiDocumentation});
+
     const groupByFirstFeature = (apis) => {
       const results = {};
       const out = [];
       for (let a = 0; a < apis.length; a++) {
         const api = apis[a];
-        const top_path = new URL(api?.url).pathname.split("/")[1];
-        if (results[top_path || "/"]) {
+        const top_path = new URL(api?.url).pathname.split("/")[1] || "/";
+        if (results[top_path]) {
           results[top_path].push(api);
         } else {
           results[top_path] = [api];
@@ -698,6 +818,7 @@ document.addEventListener('visibilitychange', () => {
     }
 
     const card = (request, i) => {
+      // console.log({request,i});
       const payload = JSON.parse(request.payload);
       return div(
         { className: "card" },
@@ -760,7 +881,7 @@ document.addEventListener('visibilitychange', () => {
                   },
                   strong("Payload:"),
                   br(),
-                  parseINAPIBody(payload)
+                  parsePayloadStructure(payload)
                 )
               )
             ),
@@ -773,13 +894,13 @@ document.addEventListener('visibilitychange', () => {
                   headers: request.headers,
                   payload: request.payload,
                 };
-                const keysHeaders = parseUPAPIBody(
+                const keysHeaders = parsePayload(
                   document.getElementById("keys")
                 );
                 const requestContainer = document.getElementById(
                   "payload-" + i
                 );
-                const data = parseUPAPIBody(
+                const data = parsePayloadData(
                   requestContainer?.querySelector(".body-pack")
                 );
                 document.getElementById("response-" + i).style.display =
@@ -809,6 +930,7 @@ document.addEventListener('visibilitychange', () => {
 
     // Display API documentation in UI and add testing functionality
     groupByFirstFeature(parsedApi).map((request, i) => {
+
       const requestContainer = div();
       if (!request.url) {
         const comment = span();
@@ -817,6 +939,7 @@ document.addEventListener('visibilitychange', () => {
         comment.style.textTransform = "capitalize";
         requestContainer.appendChild(comment);
         body.appendChild(requestContainer);
+        // console.log({request,i});
       } else {
         body.appendChild(card(request, i));
       }

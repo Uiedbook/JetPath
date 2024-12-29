@@ -725,12 +725,25 @@ export const compileAPI = (options: jetOptions): [number, string] => {
         let bodyData: Record<string, any> | undefined = undefined;
         if (body) {
           bodyData = {};
-          for (const keyOfBody in body) {
-            bodyData[keyOfBody] =
-              (body[keyOfBody as keyof typeof body] as any)?.defaultValue ||
-              (body[keyOfBody as keyof typeof body] as any)?.inputType ||
-              "text";
-          }
+          const processSchema = (schema: any, target: any) => {
+            for (const key in schema) {
+              const field = schema[key];
+              if (field.type === "object" && field.objectSchema) {
+                target[key] = {};
+                processSchema(field.objectSchema, target[key]);
+              } else if (field.type === "array") {
+                if (field.arrayType === "object" && field.objectSchema) {
+                  target[key] = [{}];
+                  processSchema(field.objectSchema, target[key][0]);
+                } else {
+                  target[key] = [field.arrayType || "text"];
+                }
+              } else {
+                target[key] = field?.defaultValue || field?.inputType || "text";
+              }
+            }
+          };
+          processSchema(body, bodyData);
         }
         // ? combine api infos into .http format
         const api = `\n

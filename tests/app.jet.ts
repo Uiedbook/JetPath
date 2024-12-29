@@ -227,7 +227,15 @@ export const POST_: JetFunc<
 };
 
 POST_.body = {
-  image: { type: "file", inputType: "file" },
-  video: { type: "file", inputType: "file" },
   textfield: { type: "string", required: false },
+  tags: { type: "array", arrayType: "string" },
+  metadata: {
+    type: "object",
+    objectSchema: { time: { type: "string" }, location: { type: "string" } },
+  },
+  suppliers: {
+    type: "array",
+    arrayType: "object",
+    objectSchema: { name: { type: "string" }, location: { type: "string" } },
+  },
 };
