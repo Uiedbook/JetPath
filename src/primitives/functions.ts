@@ -485,31 +485,40 @@ export function validator<T extends Record<string, any>>(
   const errors: string[] = [];
   const out: Partial<T> = {};
 
-  for (const [key, def] of Object.entries(schema)) {
+  for (const [key, defs] of Object.entries(schema)) {
+    const {
+      RegExp,
+      arrayType,
+      err,
+      objectSchema,
+      required,
+      type,
+      validator: validate,
+    } = defs;
     const value = data[key];
 
     // Required check
-    if (def.required && (value === undefined || value === null)) {
+    if (required && (value === undefined || value === null)) {
       errors.push(`${key} is required`);
       continue;
     }
 
     // Skip if optional and undefined
-    if (!def.required && value === undefined) {
+    if (!required && value === undefined) {
       continue;
     }
 
     // Type validation
-    if (def.type) {
-      if (def.type === "array") {
+    if (type) {
+      if (type === "array") {
         if (!Array.isArray(value)) {
           errors.push(`${key} must be an array`);
           continue;
         }
-        if (def.arrayType === "object" && def.objectSchema) {
+        if (arrayType === "object" && objectSchema) {
           try {
             const validatedArray = value.map((item) =>
-              validator(def.objectSchema, item)
+              validator(objectSchema, item)
             );
             out[key as keyof T] = validatedArray as T[keyof T];
             continue;
@@ -518,50 +527,47 @@ export function validator<T extends Record<string, any>>(
             continue;
           }
         } else if (
-          def.arrayType &&
-          !value.every((item) => typeof item === def.arrayType)
+          arrayType &&
+          !value.every((item) => typeof item === arrayType)
         ) {
-          errors.push(`${key} must be an array of ${def.arrayType}`);
+          errors.push(`${key} must be an array of ${arrayType}`);
           continue;
         }
-      } else if (def.type === "object") {
+      } else if (type === "object") {
         if (typeof value !== "object" || Array.isArray(value)) {
           errors.push(`${key} must be an object`);
           continue;
         }
         // Handle objectSchema validation
-        if (def.objectSchema) {
+        if (objectSchema) {
           try {
-            out[key as keyof T] = validator(
-              def.objectSchema,
-              value
-            ) as T[keyof T];
+            out[key as keyof T] = validator(objectSchema, value) as T[keyof T];
             continue;
           } catch (e) {
             errors.push(`${key}: ${String(e)}`);
             continue;
           }
         }
-      } else if (typeof value !== def.type && def.type !== "file") {
-        errors.push(`${key} must be of type ${def.type}`);
+      } else if (typeof value !== type && type !== "file") {
+        errors.push(`${key} must be of type ${type}`);
         continue;
       }
     }
 
     // Regex validation
-    if (def.RegExp && !def.RegExp.test(value)) {
-      errors.push(def.err || `${key} does not match required pattern`);
+    if (RegExp && !RegExp.test(value)) {
+      errors.push(err || `${key} does not match required pattern`);
       continue;
     }
 
     // Custom validator
-    if (def.validator) {
-      const result = def.validator(value);
+    if (validate) {
+      const result = validate(value);
       if (result !== true) {
         errors.push(
           typeof result === "string"
             ? result
-            : def.err || `${key} validation failed`
+            : err || `${key} validation failed`
         );
         continue;
       }
@@ -739,7 +745,8 @@ export const compileAPI = (options: jetOptions): [number, string] => {
                   target[key] = [field.arrayType || "text"];
                 }
               } else {
-                target[key] = field?.defaultValue || field?.inputType || "text";
+                target[key] =
+                  field?.inputDefaultValue || field?.inputType || "text";
               }
             }
           };

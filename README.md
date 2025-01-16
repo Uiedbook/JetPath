@@ -149,8 +149,8 @@ export const POST_api_v1_payment: JetFunc<{
 
 POST_api_v1_payment.body = {
   name: { type: "string" },
-  amount: { type: "number", defaultValue: 50 },
-  currency: { RegExp: /(BTC|ETH|XRP|LTC)/, defaultValue: "BTC" },
+  amount: { type: "number", inputDefaultValue: 50 },
+  currency: { RegExp: /(BTC|ETH|XRP|LTC)/, inputDefaultValue: "BTC" },
   address: {
     err: "Please provide a valid address",
     validator(address) {

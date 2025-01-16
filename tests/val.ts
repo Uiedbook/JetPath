@@ -22,7 +22,7 @@ type HTTPBody<Obj extends Record<string, any>> = {
       | "tel"
       | "datetime"
       | "url";
-    defaultValue?: string | number | boolean;
+    inputDefaultValue?: string | number | boolean;
     required?: boolean;
     validator?: (value: any) => boolean;
     objectSchema?: HTTPBody<Record<string, any>>;
@@ -198,7 +198,7 @@ const userSchema: HTTPBody<{
   newsletter: {
     type: "boolean",
     required: false,
-    defaultValue: false,
+    inputDefaultValue: false,
   },
 };
 
