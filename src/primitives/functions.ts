@@ -556,7 +556,7 @@ export function validator<T extends Record<string, any>>(
 
     // Regex validation
     if (RegExp && !RegExp.test(value)) {
-      errors.push(err || `${key} does is incorrect`);
+      errors.push(err || `${key} is incorrect`);
       continue;
     }
 
