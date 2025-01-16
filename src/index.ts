@@ -24,25 +24,11 @@ export class JetPath {
     if (this.options.cors !== false) {
       _JetPath_hooks["cors"] = corsHook({
         exposeHeaders: [],
-        allowMethods: [
-          "DELETE",
-          "GET",
-          "HEAD",
-          "PATCH",
-          "POST",
-          "PUT",
-          "OPTIONS",
-        ],
+        allowMethods: ["DELETE", "GET", "HEAD", "PATCH", "POST", "PUT"],
+        origin: ["*"],
         allowHeaders: ["*"],
         maxAge: "86400",
         keepHeadersOnError: true,
-        // secureContext: {
-        //   "Cross-Origin-Embedder-Policy": "unsafe-none",
-        //   "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
-        // },
-        privateNetworkAccess: false,
-        origin: ["*"],
-        credentials: false,
         ...(typeof options?.cors === "object" ? options.cors : {}),
       });
     }

@@ -47,9 +47,6 @@ export function corsHook(options: {
       ","
     ) as unknown as methods[];
   }
-  if (options.maxAge) {
-    options.maxAge = String(options.maxAge);
-  }
 
   options.keepHeadersOnError =
     options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
@@ -59,15 +56,10 @@ export function corsHook(options: {
     ctx.set("Vary", "Origin");
     if (options.credentials === true) {
       ctx.set("Access-Control-Allow-Credentials", "true");
-    } else {
-      if (Array.isArray(options.origin)) {
-        ctx.set("Access-Control-Allow-Origin", options.origin.join(","));
-      } else {
-        ctx.set("Access-Control-Allow-Origin", String(options.origin));
-      }
-      ctx.set("Access-Control-Allow-Origin", options.origin!.join(","));
     }
-
+    if (Array.isArray(options.origin)) {
+      ctx.set("Access-Control-Allow-Origin", options.origin.join(","));
+    }
     if (ctx.request!.method !== "OPTIONS") {
       if (options.secureContext) {
         ctx.set(
@@ -84,14 +76,11 @@ export function corsHook(options: {
       if (options.maxAge) {
         ctx.set("Access-Control-Max-Age", options.maxAge);
       }
-      if (options.privateNetworkAccess) {
-        ctx.get("Access-Control-Request-Private-Network") &&
-          "Access-Control-Allow-Methods",
-          typeof options.allowMethods === "string" ? options.allowMethods : "";
+      if (!options.privateNetworkAccess) {
         if (options.allowMethods) {
           ctx.set(
             "Access-Control-Allow-Methods",
-            options.allowMethods as unknown as string
+            options.allowMethods.join(",")
           );
         }
         if (options.secureContext) {
@@ -104,7 +93,6 @@ export function corsHook(options: {
             options.secureContext["Cross-Origin-Embedder-Policy"]
           );
         }
-        // ! pre compute the joins here
         if (options.allowHeaders) {
           ctx.set(
             "Access-Control-Allow-Headers",
