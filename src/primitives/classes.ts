@@ -106,6 +106,7 @@ export class Context {
     this.params = params || {};
     this.search = search || {};
     this.path = path;
+    this.body = undefined;
     //? load
     this._1 = undefined;
     // ? header of response
