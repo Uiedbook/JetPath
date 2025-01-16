@@ -42,15 +42,8 @@ export function corsHook(options: {
   privateNetworkAccess?: any;
   origin?: string[];
 }): (ctx: Context) => void {
-  if (Array.isArray(options.allowMethods)) {
-    options.allowMethods = options.allowMethods.join(
-      ","
-    ) as unknown as methods[];
-  }
-
   options.keepHeadersOnError =
     options.keepHeadersOnError === undefined || !!options.keepHeadersOnError;
-
   return function cors(ctx: Context) {
     //? Add Vary header to indicate response varies based on the Origin header
     ctx.set("Vary", "Origin");
