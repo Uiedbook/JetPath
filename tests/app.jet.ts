@@ -9,8 +9,8 @@ const app = new JetPath({
     `,
   },
   source: "tests",
-  APIdisplay: "UI",
-  // APIdisplay: "HTTP",
+  // APIdisplay: "UI",
+  APIdisplay: "HTTP",
   static: { dir: "./tests", route: "/assets" },
   port: 9000,
   globalHeaders: {
@@ -236,6 +236,11 @@ POST_.body = {
   suppliers: {
     type: "array",
     arrayType: "object",
-    objectSchema: { name: { type: "string" }, location: { type: "string" } },
+    objectSchema: {
+      name: {
+        type: "string",
+      },
+      location: { type: "string" },
+    },
   },
 };

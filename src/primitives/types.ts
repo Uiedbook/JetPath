@@ -144,7 +144,13 @@ export type jetOptions = {
   cors?:
     | {
         allowMethods?: allowedMethods;
-        secureContext?: boolean;
+        secureContext?: {
+          "Cross-Origin-Opener-Policy":
+            | "same-origin"
+            | "unsafe-none"
+            | "same-origin-allow-popups";
+          "Cross-Origin-Embedder-Policy": "require-corp" | "unsafe-none";
+        };
         allowHeaders?: string[];
         exposeHeaders?: string[];
         keepHeadersOnError?: boolean;

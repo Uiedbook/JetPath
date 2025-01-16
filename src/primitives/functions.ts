@@ -594,7 +594,6 @@ const URL_PARSER = (
   }
 
   // if (!routes) return;
-
   if (routes[url]) {
     return [routes[url], {}, {}, url];
   }

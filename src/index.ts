@@ -28,7 +28,10 @@ export class JetPath {
         allowHeaders: ["*"],
         maxAge: "",
         keepHeadersOnError: true,
-        secureContext: false,
+        secureContext: {
+          "Cross-Origin-Embedder-Policy": "unsafe-none",
+          "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+        },
         privateNetworkAccess: false,
         origin: ["*"],
         credentials: undefined,
