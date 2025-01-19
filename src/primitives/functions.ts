@@ -370,6 +370,7 @@ const getModule = async (src: string, name: string) => {
     const mod = await import(path.resolve(src + "/" + name));
     return mod;
   } catch (error) {
+    Log.error(String(error));
     Log.info("Error at " + src + "/" + name + "  loading failed!");
     return String(error);
   }
